@@ -698,6 +698,7 @@
         let gameTimer = null;
         let currentTime = 0;
         let customBuffers = [[], []];
+        let customAudioData = [[], []]; // Store base64 audio data for persistence
         let fileMetadata = [[], []];
         let gameNames = ["Custom Set 1", "Custom Set 2"];
         let adminVisible = false;
@@ -1032,7 +1033,7 @@
             tab.textContent = nameInput.value;
             
             // Save to localStorage
-            localStorage.setItem('gameNames', JSON.stringify(gameNames));
+            saveCustomGames();
         }
 
         function handleFiles(event, slotIndex) {
@@ -1079,6 +1080,7 @@
             preview.innerHTML = '';
             
             customBuffers[slotIndex - 1] = [];
+            customAudioData[slotIndex - 1] = [];
             fileMetadata[slotIndex - 1] = [];
             
             for (let i = 0; i < audioFiles.length; i++) {
@@ -1090,10 +1092,20 @@
                     const arrayBuffer = await file.arrayBuffer();
                     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                     
+                    // Store audio buffer for immediate use
                     customBuffers[slotIndex - 1].push(audioBuffer);
+                    
+                    // Convert to base64 for persistence
+                    const base64Data = arrayBufferToBase64(arrayBuffer);
+                    customAudioData[slotIndex - 1].push({
+                        data: base64Data,
+                        type: file.type
+                    });
+                    
                     fileMetadata[slotIndex - 1].push({
                         name: file.name,
-                        duration: audioBuffer.duration.toFixed(1) + 's'
+                        duration: audioBuffer.duration.toFixed(1) + 's',
+                        type: file.type
                     });
                     
                     // Create file preview
@@ -1126,6 +1138,37 @@
             saveCustomGames();
         }
 
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function loadAudioFromBase64(audioData) {
+            try {
+                const arrayBuffer = base64ToArrayBuffer(audioData.data);
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                return audioBuffer;
+            } catch (error) {
+                console.error('Error loading audio from base64:', error);
+                return null;
+            }
+        }
+
         function playFilePreview(slotIndex, fileIndex) {
             if (customBuffers[slotIndex] && customBuffers[slotIndex][fileIndex]) {
                 playAudioBuffer(customBuffers[slotIndex][fileIndex]);
@@ -1134,9 +1177,16 @@
 
         function removeFile(slotIndex, fileIndex) {
             customBuffers[slotIndex - 1].splice(fileIndex, 1);
+            customAudioData[slotIndex - 1].splice(fileIndex, 1);
             fileMetadata[slotIndex - 1].splice(fileIndex, 1);
             
             // Refresh preview
+            refreshFilePreview(slotIndex);
+            updateAdminStatus();
+            saveCustomGames();
+        }
+
+        function refreshFilePreview(slotIndex) {
             const preview = document.getElementById(`filePreview${slotIndex}`);
             preview.innerHTML = '';
             
@@ -1155,9 +1205,6 @@
                 `;
                 preview.appendChild(fileItem);
             });
-            
-            updateAdminStatus();
-            saveCustomGames();
         }
 
         function autoPopulate(slotIndex) {
@@ -1191,6 +1238,7 @@
         function clearSlot(slotIndex) {
             if (confirm(`Clear all files from ${gameNames[slotIndex - 1]}?`)) {
                 customBuffers[slotIndex - 1] = [];
+                customAudioData[slotIndex - 1] = [];
                 fileMetadata[slotIndex - 1] = [];
                 document.getElementById(`filePreview${slotIndex}`).innerHTML = '';
                 updateAdminStatus();
@@ -1212,6 +1260,7 @@
             const data = {
                 gameNames: gameNames,
                 fileMetadata: fileMetadata,
+                customAudioData: customAudioData,
                 bestRecords: bestRecords,
                 exportDate: new Date().toISOString()
             };
@@ -1224,15 +1273,15 @@
             a.click();
             URL.revokeObjectURL(url);
             
-            alert('Game configuration exported! Note: Audio files themselves are not included in the export.');
+            alert('Game configuration exported with audio data included!');
         }
 
-        function importGameData(event) {
+        async function importGameData(event) {
             const file = event.target.files[0];
             if (!file) return;
             
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     
@@ -1244,15 +1293,39 @@
                         document.getElementById('tab2').textContent = gameNames[1];
                     }
                     
+                    if (data.fileMetadata) {
+                        fileMetadata = data.fileMetadata;
+                    }
+                    
+                    if (data.customAudioData) {
+                        customAudioData = data.customAudioData;
+                        
+                        // Reload audio buffers from base64 data
+                        for (let slotIndex = 0; slotIndex < 2; slotIndex++) {
+                            customBuffers[slotIndex] = [];
+                            if (customAudioData[slotIndex]) {
+                                for (let audioData of customAudioData[slotIndex]) {
+                                    const buffer = await loadAudioFromBase64(audioData);
+                                    if (buffer) {
+                                        customBuffers[slotIndex].push(buffer);
+                                    }
+                                }
+                                refreshFilePreview(slotIndex + 1);
+                            }
+                        }
+                    }
+                    
                     if (data.bestRecords) {
                         bestRecords = { ...bestRecords, ...data.bestRecords };
                         saveRecords();
                     }
                     
-                    alert('Game configuration imported successfully!');
-                    alert('Import feature shows game configuration metadata. Note: Original audio files will still need to be uploaded separately.');
+                    updateAdminStatus();
+                    saveCustomGames();
+                    alert('Game configuration imported successfully with audio data!');
                     
                 } catch (error) {
+                    console.error('Import error:', error);
                     alert('Error importing file: Invalid format');
                 }
             };
@@ -1263,42 +1336,74 @@
         }
 
         function saveCustomGames() {
-            // Save metadata only (not audio buffers)
+            // Save all data including base64 audio
             const saveData = {
                 gameNames: gameNames,
-                fileMetadata: fileMetadata
+                fileMetadata: fileMetadata,
+                customAudioData: customAudioData
             };
-            localStorage.setItem('customGames', JSON.stringify(saveData));
+            
+            try {
+                localStorage.setItem('customGames', JSON.stringify(saveData));
+            } catch (error) {
+                console.warn('Could not save to localStorage (data too large):', error);
+                // Fallback: save without audio data
+                const fallbackData = {
+                    gameNames: gameNames,
+                    fileMetadata: fileMetadata
+                };
+                localStorage.setItem('customGames', JSON.stringify(fallbackData));
+            }
         }
 
-        function loadCustomGames() {
+        async function loadCustomGames() {
             const saved = localStorage.getItem('customGames');
             if (saved) {
-                const data = JSON.parse(saved);
-                if (data.gameNames) {
-                    gameNames = data.gameNames;
-                    document.getElementById('name1').value = gameNames[0];
-                    document.getElementById('name2').value = gameNames[1];
-                    document.getElementById('tab1').textContent = gameNames[0];
-                    document.getElementById('tab2').textContent = gameNames[1];
+                try {
+                    const data = JSON.parse(saved);
+                    
+                    if (data.gameNames) {
+                        gameNames = data.gameNames;
+                        document.getElementById('name1').value = gameNames[0];
+                        document.getElementById('name2').value = gameNames[1];
+                        document.getElementById('tab1').textContent = gameNames[0];
+                        document.getElementById('tab2').textContent = gameNames[1];
+                    }
+                    
+                    if (data.fileMetadata) {
+                        fileMetadata = data.fileMetadata;
+                    }
+                    
+                    if (data.customAudioData) {
+                        customAudioData = data.customAudioData;
+                        
+                        // Reload audio buffers from base64 data
+                        for (let slotIndex = 0; slotIndex < 2; slotIndex++) {
+                            customBuffers[slotIndex] = [];
+                            if (customAudioData[slotIndex]) {
+                                for (let audioData of customAudioData[slotIndex]) {
+                                    const buffer = await loadAudioFromBase64(audioData);
+                                    if (buffer) {
+                                        customBuffers[slotIndex].push(buffer);
+                                    }
+                                }
+                                refreshFilePreview(slotIndex + 1);
+                            }
+                        }
+                    }
+                    
+                    updateAdminStatus();
+                } catch (error) {
+                    console.error('Error loading saved games:', error);
                 }
-            }
-            
-            const savedNames = localStorage.getItem('gameNames');
-            if (savedNames) {
-                gameNames = JSON.parse(savedNames);
-                document.getElementById('name1').value = gameNames[0];
-                document.getElementById('name2').value = gameNames[1];
-                document.getElementById('tab1').textContent = gameNames[0];
-                document.getElementById('tab2').textContent = gameNames[1];
             }
         }
 
         // Initialize game
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             initAudio();
             loadRecords();
-            loadCustomGames();
+            await loadCustomGames();
             generateSounds();
             createGrid();
             updateStats();
