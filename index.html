@@ -1060,10 +1060,10 @@
         }
 
         async function processFiles(files, slotIndex) {
-            const audioFiles = files.filter(file => file.type.startsWith('audio/'));
+            const audioFiles = files.filter(file => file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|flac)$/i));
             
             if (audioFiles.length === 0) {
-                alert('No audio files found. Please select audio files.');
+                alert('No audio files found. Please select audio files (MP3, WAV, OGG, M4A, FLAC).');
                 return;
             }
             
@@ -1083,14 +1083,37 @@
             customAudioData[slotIndex - 1] = [];
             fileMetadata[slotIndex - 1] = [];
             
+            let successCount = 0;
+            let errorFiles = [];
+            
             for (let i = 0; i < audioFiles.length; i++) {
                 const file = audioFiles[i];
                 const progress = ((i + 1) / audioFiles.length) * 100;
                 progressFill.style.width = `${progress}%`;
                 
                 try {
+                    // Validate file size (max 10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        throw new Error('File too large (max 10MB)');
+                    }
+                    
+                    // Validate file duration by checking if it's a valid audio file
                     const arrayBuffer = await file.arrayBuffer();
-                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    
+                    // Try to decode the audio
+                    let audioBuffer;
+                    try {
+                        audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice());
+                    } catch (decodeError) {
+                        // If decoding fails, try with a copy of the buffer
+                        const bufferCopy = arrayBuffer.slice();
+                        audioBuffer = await audioContext.decodeAudioData(bufferCopy);
+                    }
+                    
+                    // Validate duration (0.1s to 30s)
+                    if (audioBuffer.duration < 0.1 || audioBuffer.duration > 30) {
+                        throw new Error(`Invalid duration: ${audioBuffer.duration.toFixed(1)}s (must be 0.1-30s)`);
+                    }
                     
                     // Store audio buffer for immediate use
                     customBuffers[slotIndex - 1].push(audioBuffer);
@@ -1099,13 +1122,13 @@
                     const base64Data = arrayBufferToBase64(arrayBuffer);
                     customAudioData[slotIndex - 1].push({
                         data: base64Data,
-                        type: file.type
+                        type: file.type || 'audio/mpeg'
                     });
                     
                     fileMetadata[slotIndex - 1].push({
                         name: file.name,
                         duration: audioBuffer.duration.toFixed(1) + 's',
-                        type: file.type
+                        type: file.type || 'audio/mpeg'
                     });
                     
                     // Create file preview
@@ -1117,21 +1140,48 @@
                             <div class="file-duration">${audioBuffer.duration.toFixed(1)}s</div>
                         </div>
                         <div class="file-actions">
-                            <button class="file-btn" onclick="playFilePreview(${slotIndex - 1}, ${i})">▶</button>
-                            <button class="file-btn remove" onclick="removeFile(${slotIndex}, ${i})">✕</button>
+                            <button class="file-btn" onclick="playFilePreview(${slotIndex - 1}, ${successCount})">▶</button>
+                            <button class="file-btn remove" onclick="removeFile(${slotIndex}, ${successCount})">✕</button>
                         </div>
                     `;
                     preview.appendChild(fileItem);
+                    successCount++;
                     
                 } catch (error) {
                     console.error('Error processing file:', file.name, error);
-                    alert(`Error processing file: ${file.name}`);
+                    errorFiles.push(`${file.name}: ${error.message}`);
+                    
+                    // Create error preview
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+                    fileItem.style.background = 'rgba(239, 68, 68, 0.1)';
+                    fileItem.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    fileItem.innerHTML = `
+                        <div class="file-info">
+                            <div class="file-name" style="color: #ef4444;">${file.name}</div>
+                            <div class="file-duration" style="color: #ef4444;">Error: ${error.message}</div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="file-btn remove" onclick="this.parentElement.parentElement.remove()">✕</button>
+                        </div>
+                    `;
+                    preview.appendChild(fileItem);
                 }
             }
             
             setTimeout(() => {
                 progressBar.style.display = 'none';
                 progressFill.style.width = '0%';
+                
+                // Show summary of results
+                if (errorFiles.length > 0) {
+                    const errorMessage = `Upload completed with ${successCount} successful files and ${errorFiles.length} errors:\n\n` +
+                                       errorFiles.join('\n') + 
+                                       '\n\nTip: Try re-encoding problematic files or use different audio files.';
+                    alert(errorMessage);
+                } else if (successCount > 0) {
+                    alert(`Successfully uploaded ${successCount} audio files!`);
+                }
             }, 500);
             
             updateAdminStatus();
