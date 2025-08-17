@@ -1390,27 +1390,61 @@
             const saveData = {
                 gameNames: gameNames,
                 fileMetadata: fileMetadata,
-                customAudioData: customAudioData
+                customAudioData: customAudioData,
+                timestamp: new Date().toISOString()
             };
             
             try {
-                localStorage.setItem('customGames', JSON.stringify(saveData));
+                const dataString = JSON.stringify(saveData);
+                const dataSize = new Blob([dataString]).size;
+                console.log(`Attempting to save ${dataSize} bytes to localStorage`);
+                
+                // Check if data is too large (localStorage limit is usually 5-10MB)
+                if (dataSize > 5 * 1024 * 1024) {
+                    console.warn('Data too large for localStorage, using fallback');
+                    throw new Error('Data too large');
+                }
+                
+                localStorage.setItem('customGames', dataString);
+                console.log('Successfully saved custom games to localStorage');
+                
+                // Verify the save worked
+                const verification = localStorage.getItem('customGames');
+                if (!verification) {
+                    throw new Error('Save verification failed');
+                }
+                
             } catch (error) {
-                console.warn('Could not save to localStorage (data too large):', error);
-                // Fallback: save without audio data
+                console.warn('Could not save to localStorage:', error);
+                
+                // Fallback: save without audio data but keep metadata
                 const fallbackData = {
                     gameNames: gameNames,
-                    fileMetadata: fileMetadata
+                    fileMetadata: fileMetadata,
+                    timestamp: new Date().toISOString(),
+                    note: 'Audio data not saved due to size limitations'
                 };
-                localStorage.setItem('customGames', JSON.stringify(fallbackData));
+                
+                try {
+                    localStorage.setItem('customGames', JSON.stringify(fallbackData));
+                    localStorage.setItem('customGamesAudioLost', 'true');
+                    console.log('Saved fallback data without audio');
+                } catch (fallbackError) {
+                    console.error('Even fallback save failed:', fallbackError);
+                }
             }
         }
 
         async function loadCustomGames() {
             const saved = localStorage.getItem('customGames');
+            const audioLost = localStorage.getItem('customGamesAudioLost');
+            
+            console.log('Loading custom games from localStorage...');
+            
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
+                    console.log('Loaded data:', data);
                     
                     if (data.gameNames) {
                         gameNames = data.gameNames;
@@ -1418,34 +1452,69 @@
                         document.getElementById('name2').value = gameNames[1];
                         document.getElementById('tab1').textContent = gameNames[0];
                         document.getElementById('tab2').textContent = gameNames[1];
+                        console.log('Restored game names:', gameNames);
                     }
                     
                     if (data.fileMetadata) {
                         fileMetadata = data.fileMetadata;
+                        console.log('Restored file metadata:', fileMetadata);
                     }
                     
-                    if (data.customAudioData) {
+                    if (data.customAudioData && data.customAudioData.length > 0) {
                         customAudioData = data.customAudioData;
+                        console.log('Found audio data, restoring buffers...');
                         
                         // Reload audio buffers from base64 data
                         for (let slotIndex = 0; slotIndex < 2; slotIndex++) {
                             customBuffers[slotIndex] = [];
-                            if (customAudioData[slotIndex]) {
-                                for (let audioData of customAudioData[slotIndex]) {
-                                    const buffer = await loadAudioFromBase64(audioData);
-                                    if (buffer) {
-                                        customBuffers[slotIndex].push(buffer);
+                            if (customAudioData[slotIndex] && customAudioData[slotIndex].length > 0) {
+                                console.log(`Restoring ${customAudioData[slotIndex].length} audio files for slot ${slotIndex + 1}`);
+                                
+                                for (let i = 0; i < customAudioData[slotIndex].length; i++) {
+                                    const audioData = customAudioData[slotIndex][i];
+                                    try {
+                                        const buffer = await loadAudioFromBase64(audioData);
+                                        if (buffer) {
+                                            customBuffers[slotIndex].push(buffer);
+                                            console.log(`Restored audio file ${i + 1} for slot ${slotIndex + 1}`);
+                                        } else {
+                                            console.warn(`Failed to restore audio file ${i + 1} for slot ${slotIndex + 1}`);
+                                        }
+                                    } catch (audioError) {
+                                        console.error(`Error restoring audio file ${i + 1} for slot ${slotIndex + 1}:`, audioError);
                                     }
                                 }
+                                
                                 refreshFilePreview(slotIndex + 1);
                             }
+                        }
+                        
+                        console.log('Audio restoration complete');
+                    } else {
+                        console.log('No audio data found in saved data');
+                        
+                        if (audioLost === 'true') {
+                            console.warn('Audio data was previously lost due to size limitations');
+                            // Show a notification to the user
+                            setTimeout(() => {
+                                if (adminVisible) {
+                                    alert('Note: Your game names and file lists were restored, but audio files need to be re-uploaded due to browser storage limitations.');
+                                }
+                            }, 1000);
                         }
                     }
                     
                     updateAdminStatus();
+                    console.log('Custom games loading complete');
+                    
                 } catch (error) {
                     console.error('Error loading saved games:', error);
+                    // Clear corrupted data
+                    localStorage.removeItem('customGames');
+                    localStorage.removeItem('customGamesAudioLost');
                 }
+            } else {
+                console.log('No saved custom games found');
             }
         }
 
