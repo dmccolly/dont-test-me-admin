@@ -1385,8 +1385,116 @@
             event.target.value = '';
         }
 
+        // IndexedDB implementation for reliable audio storage
+        let db = null;
+        const DB_NAME = 'DontTestMeDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'audioGames';
+
+        async function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => {
+                    console.error('IndexedDB failed to open:', request.error);
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB opened successfully');
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    console.log('Creating IndexedDB object store');
+                    
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+            });
+        }
+
+        async function saveToIndexedDB(data) {
+            if (!db) {
+                console.warn('IndexedDB not initialized, falling back to localStorage');
+                return saveCustomGamesLegacy();
+            }
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                const saveData = {
+                    id: 'customGames',
+                    gameNames: data.gameNames,
+                    fileMetadata: data.fileMetadata,
+                    customAudioData: data.customAudioData,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const request = store.put(saveData);
+                
+                request.onsuccess = () => {
+                    console.log('Successfully saved to IndexedDB');
+                    resolve();
+                };
+                
+                request.onerror = () => {
+                    console.error('Failed to save to IndexedDB:', request.error);
+                    reject(request.error);
+                };
+            });
+        }
+
+        async function loadFromIndexedDB() {
+            if (!db) {
+                console.warn('IndexedDB not initialized, falling back to localStorage');
+                return loadCustomGamesLegacy();
+            }
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get('customGames');
+                
+                request.onsuccess = () => {
+                    const result = request.result;
+                    if (result) {
+                        console.log('Successfully loaded from IndexedDB:', result);
+                        resolve(result);
+                    } else {
+                        console.log('No data found in IndexedDB');
+                        resolve(null);
+                    }
+                };
+                
+                request.onerror = () => {
+                    console.error('Failed to load from IndexedDB:', request.error);
+                    reject(request.error);
+                };
+            });
+        }
+
         function saveCustomGames() {
-            // Save all data including base64 audio
+            const saveData = {
+                gameNames: gameNames,
+                fileMetadata: fileMetadata,
+                customAudioData: customAudioData
+            };
+            
+            // Try IndexedDB first, fallback to localStorage
+            saveToIndexedDB(saveData).catch(error => {
+                console.warn('IndexedDB save failed, using localStorage fallback:', error);
+                saveCustomGamesLegacy();
+            });
+        }
+
+        function saveCustomGamesLegacy() {
+            // Original localStorage implementation as fallback
             const saveData = {
                 gameNames: gameNames,
                 fileMetadata: fileMetadata,
@@ -1399,7 +1507,6 @@
                 const dataSize = new Blob([dataString]).size;
                 console.log(`Attempting to save ${dataSize} bytes to localStorage`);
                 
-                // Check if data is too large (localStorage limit is usually 5-10MB)
                 if (dataSize > 5 * 1024 * 1024) {
                     console.warn('Data too large for localStorage, using fallback');
                     throw new Error('Data too large');
@@ -1408,7 +1515,6 @@
                 localStorage.setItem('customGames', dataString);
                 console.log('Successfully saved custom games to localStorage');
                 
-                // Verify the save worked
                 const verification = localStorage.getItem('customGames');
                 if (!verification) {
                     throw new Error('Save verification failed');
@@ -1417,7 +1523,6 @@
             } catch (error) {
                 console.warn('Could not save to localStorage:', error);
                 
-                // Fallback: save without audio data but keep metadata
                 const fallbackData = {
                     gameNames: gameNames,
                     fileMetadata: fileMetadata,
@@ -1436,6 +1541,25 @@
         }
 
         async function loadCustomGames() {
+            console.log('Loading custom games...');
+            
+            try {
+                // Try IndexedDB first
+                const data = await loadFromIndexedDB();
+                
+                if (data) {
+                    await restoreGameData(data);
+                    return;
+                }
+            } catch (error) {
+                console.warn('IndexedDB load failed, trying localStorage:', error);
+            }
+            
+            // Fallback to localStorage
+            await loadCustomGamesLegacy();
+        }
+
+        async function loadCustomGamesLegacy() {
             const saved = localStorage.getItem('customGames');
             const audioLost = localStorage.getItem('customGamesAudioLost');
             
@@ -1444,72 +1568,17 @@
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
-                    console.log('Loaded data:', data);
+                    await restoreGameData(data);
                     
-                    if (data.gameNames) {
-                        gameNames = data.gameNames;
-                        document.getElementById('name1').value = gameNames[0];
-                        document.getElementById('name2').value = gameNames[1];
-                        document.getElementById('tab1').textContent = gameNames[0];
-                        document.getElementById('tab2').textContent = gameNames[1];
-                        console.log('Restored game names:', gameNames);
-                    }
-                    
-                    if (data.fileMetadata) {
-                        fileMetadata = data.fileMetadata;
-                        console.log('Restored file metadata:', fileMetadata);
-                    }
-                    
-                    if (data.customAudioData && data.customAudioData.length > 0) {
-                        customAudioData = data.customAudioData;
-                        console.log('Found audio data, restoring buffers...');
-                        
-                        // Reload audio buffers from base64 data
-                        for (let slotIndex = 0; slotIndex < 2; slotIndex++) {
-                            customBuffers[slotIndex] = [];
-                            if (customAudioData[slotIndex] && customAudioData[slotIndex].length > 0) {
-                                console.log(`Restoring ${customAudioData[slotIndex].length} audio files for slot ${slotIndex + 1}`);
-                                
-                                for (let i = 0; i < customAudioData[slotIndex].length; i++) {
-                                    const audioData = customAudioData[slotIndex][i];
-                                    try {
-                                        const buffer = await loadAudioFromBase64(audioData);
-                                        if (buffer) {
-                                            customBuffers[slotIndex].push(buffer);
-                                            console.log(`Restored audio file ${i + 1} for slot ${slotIndex + 1}`);
-                                        } else {
-                                            console.warn(`Failed to restore audio file ${i + 1} for slot ${slotIndex + 1}`);
-                                        }
-                                    } catch (audioError) {
-                                        console.error(`Error restoring audio file ${i + 1} for slot ${slotIndex + 1}:`, audioError);
-                                    }
-                                }
-                                
-                                refreshFilePreview(slotIndex + 1);
+                    if (audioLost === 'true' && (!data.customAudioData || data.customAudioData.length === 0)) {
+                        setTimeout(() => {
+                            if (adminVisible) {
+                                alert('Note: Your game names and file lists were restored, but audio files need to be re-uploaded due to browser storage limitations.');
                             }
-                        }
-                        
-                        console.log('Audio restoration complete');
-                    } else {
-                        console.log('No audio data found in saved data');
-                        
-                        if (audioLost === 'true') {
-                            console.warn('Audio data was previously lost due to size limitations');
-                            // Show a notification to the user
-                            setTimeout(() => {
-                                if (adminVisible) {
-                                    alert('Note: Your game names and file lists were restored, but audio files need to be re-uploaded due to browser storage limitations.');
-                                }
-                            }, 1000);
-                        }
+                        }, 1000);
                     }
-                    
-                    updateAdminStatus();
-                    console.log('Custom games loading complete');
-                    
                 } catch (error) {
                     console.error('Error loading saved games:', error);
-                    // Clear corrupted data
                     localStorage.removeItem('customGames');
                     localStorage.removeItem('customGamesAudioLost');
                 }
@@ -1518,10 +1587,73 @@
             }
         }
 
+        async function restoreGameData(data) {
+            console.log('Restoring game data:', data);
+            
+            if (data.gameNames) {
+                gameNames = data.gameNames;
+                document.getElementById('name1').value = gameNames[0];
+                document.getElementById('name2').value = gameNames[1];
+                document.getElementById('tab1').textContent = gameNames[0];
+                document.getElementById('tab2').textContent = gameNames[1];
+                console.log('Restored game names:', gameNames);
+            }
+            
+            if (data.fileMetadata) {
+                fileMetadata = data.fileMetadata;
+                console.log('Restored file metadata:', fileMetadata);
+            }
+            
+            if (data.customAudioData && data.customAudioData.length > 0) {
+                customAudioData = data.customAudioData;
+                console.log('Found audio data, restoring buffers...');
+                
+                for (let slotIndex = 0; slotIndex < 2; slotIndex++) {
+                    customBuffers[slotIndex] = [];
+                    if (customAudioData[slotIndex] && customAudioData[slotIndex].length > 0) {
+                        console.log(`Restoring ${customAudioData[slotIndex].length} audio files for slot ${slotIndex + 1}`);
+                        
+                        for (let i = 0; i < customAudioData[slotIndex].length; i++) {
+                            const audioData = customAudioData[slotIndex][i];
+                            try {
+                                const buffer = await loadAudioFromBase64(audioData);
+                                if (buffer) {
+                                    customBuffers[slotIndex].push(buffer);
+                                    console.log(`Restored audio file ${i + 1} for slot ${slotIndex + 1}`);
+                                } else {
+                                    console.warn(`Failed to restore audio file ${i + 1} for slot ${slotIndex + 1}`);
+                                }
+                            } catch (audioError) {
+                                console.error(`Error restoring audio file ${i + 1} for slot ${slotIndex + 1}:`, audioError);
+                            }
+                        }
+                        
+                        refreshFilePreview(slotIndex + 1);
+                    }
+                }
+                
+                console.log('Audio restoration complete');
+            } else {
+                console.log('No audio data found in saved data');
+            }
+            
+            updateAdminStatus();
+            console.log('Game data restoration complete');
+        }
+
         // Initialize game
         document.addEventListener('DOMContentLoaded', async () => {
             initAudio();
             loadRecords();
+            
+            // Initialize IndexedDB first
+            try {
+                await initIndexedDB();
+                console.log('IndexedDB initialized successfully');
+            } catch (error) {
+                console.warn('IndexedDB initialization failed, will use localStorage fallback:', error);
+            }
+            
             await loadCustomGames();
             generateSounds();
             createGrid();
