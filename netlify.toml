@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+
+# Optional: cache headers for the SPA
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
