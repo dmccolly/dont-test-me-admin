@@ -181,7 +181,7 @@ export function showOtherGames() { hideWin(); alert('Use the tabs above to switc
 /* Tabs */
 export function switchGame(idx) {
   if (idx > 0 && state.customBuffers[idx-1].length !== 18) {
-    alert(`${state.gameNames[idx-1]} is not ready. Please upload 18 audio files first.`);
+    alert(`${state.gameNames[idx-1]} is not ready. Please upload 18 files first.`);
     return;
   }
   state.currentGame = idx;
