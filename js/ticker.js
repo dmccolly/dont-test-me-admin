@@ -1,34 +1,41 @@
 import { $ } from './utils.js';
+import { getFunnyMessages } from './admin.js';
 
-let timer = null;
+let messageTimer = null;
 
-export function startTicker(getMessages) {
-  stopTicker();
+export function startMessageRotation(){
+  stopMessageRotation();
   const el = $('rotatingMessage');
+  if (!el) return;
 
-  // staged intro
+  // 10s greeting
   el.textContent = 'Welcome to the audio memory challenge!';
-  setTimeout(() => {
+  setTimeout(()=>{
+    // 10s how-to
     el.textContent = 'Click buttons to hear sounds, find matching pairs!';
-    setTimeout(() => {
-      const msgs = getMessages();
-      if (msgs && msgs.length) {
-        showRandom(el, msgs);
-        timer = setInterval(() => showRandom(el, getMessages()), 20000);
-      } else {
-        el.textContent = 'Welcome to the audio memory challenge!';
-      }
-    }, 20000);
+    setTimeout(()=>{
+      // 20s wait then loop
+      setTimeout(()=>{
+        if (!getFunnyMessages().length) {
+          el.textContent = 'Welcome to the audio memory challenge!';
+          return;
+        }
+        showRandomMessage();
+        messageTimer = setInterval(showRandomMessage, 20000);
+      }, 20000);
+    }, 10000);
   }, 10000);
 }
 
-export function stopTicker() {
-  if (timer) { clearInterval(timer); timer = null; }
+export function stopMessageRotation(){
+  if (messageTimer) { clearInterval(messageTimer); messageTimer = null; }
 }
 
-function showRandom(el, msgs) {
-  if (!msgs || !msgs.length) return;
-  const i = Math.floor(Math.random() * msgs.length);
+function showRandomMessage(){
+  const el = $('rotatingMessage');
+  const msgs = getFunnyMessages();
+  if (!el || !msgs.length) return;
+  const i = Math.floor(Math.random()*msgs.length);
   el.textContent = msgs[i];
-  setTimeout(() => { el.textContent = ''; }, 10000);
+  setTimeout(()=>{ if (el.textContent === msgs[i]) el.textContent = ''; }, 10000);
 }
