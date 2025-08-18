@@ -1,8 +1,10 @@
+# netlify.toml — tells Netlify where your functions live
 [build]
+  publish = "."            # your static site root (where index.html lives)
   functions = "netlify/functions"
 
-# Optional: cache headers for the SPA
+# Optional: force clean content-type for the API path
 [[headers]]
-  for = "/*"
+  for = "/.netlify/functions/*"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Access-Control-Allow-Origin = "*"
