@@ -20,6 +20,14 @@
 
     /* subtle brand golds (ticker + accents) */
     --gold-1:#f3d08f; --gold-2:#f0b73f; --gold-3:#d99014;
+
+    /* row hues (subtle) */
+    --r0a: rgba(219,154,154,.28); --r0b: rgba(180,120,120,.18);
+    --r1a: rgba(154,219,168,.28); --r1b: rgba(120,180,135,.18);
+    --r2a: rgba(154,168,219,.28); --r2b: rgba(120,135,180,.18);
+    --r3a: rgba(219,195,154,.28); --r3b: rgba(180,160,120,.18);
+    --r4a: rgba(160,160,200,.28); --r4b: rgba(120,120,160,.18);
+    --r5a: rgba(180,220,230,.28); --r5b: rgba(130,170,180,.18);
   }
   body{min-height:100vh;background:var(--bg);color:var(--fg);
        font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui,sans-serif}
@@ -54,11 +62,10 @@
   .stat .lab{font-size:10px;letter-spacing:.12em;opacity:.75}
   .stat .val{font-size:18px;margin-top:4px}
 
-  /* ===== Glassmorphic keys ===== */
+  /* ===== Glassmorphic keys with subtle row hues ===== */
   .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0 14px}
   .btn{
     position:relative;
-    background:linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
     border:1px solid rgba(255,255,255,.16);
     border-radius:16px; cursor:pointer; aspect-ratio:1/1;
     display:flex; align-items:center; justify-content:center;
@@ -78,6 +85,13 @@
     background:linear-gradient(145deg, rgba(16,185,129,.22), rgba(5,150,105,.12));
     box-shadow:0 10px 24px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -6px 18px rgba(4,120,87,.35);
   }
+  /* row tint gradients (subtle) */
+  .row-0{ background:linear-gradient(145deg, var(--r0a), var(--r0b)); border-color: rgba(219,154,154,.35); }
+  .row-1{ background:linear-gradient(145deg, var(--r1a), var(--r1b)); border-color: rgba(154,219,168,.35); }
+  .row-2{ background:linear-gradient(145deg, var(--r2a), var(--r2b)); border-color: rgba(154,168,219,.35); }
+  .row-3{ background:linear-gradient(145deg, var(--r3a), var(--r3b)); border-color: rgba(219,195,154,.35); }
+  .row-4{ background:linear-gradient(145deg, var(--r4a), var(--r4b)); border-color: rgba(160,160,200,.35); }
+  .row-5{ background:linear-gradient(145deg, var(--r5a), var(--r5b)); border-color: rgba(180,220,230,.35); }
 
   .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
   .ctrl{padding:9px 14px;border-radius:12px;border:1px solid var(--line);
@@ -218,11 +232,9 @@ function openDB(){
     req.onerror   = e=>reject(e.target.error);
   });
 }
+function tx(store,mode='readonly'){ return idb.transaction(store,mode).objectStore(store); }
 
-function tx(store,mode='readonly'){
-  return idb.transaction(store,mode).objectStore(store);
-}
-async function saveSet(slot, files){ // files: [{name, blob}]
+async function saveSet(slot, files){
   await new Promise((res,rej)=>{
     const req = tx('sets','readwrite').put({id:`custom${slot}`, files});
     req.onsuccess = ()=>res();
@@ -276,11 +288,40 @@ let bestRecords = {0:{time:null,attempts:null},1:{time:null,attempts:null},2:{ti
 let customBuffers=[[],[]];      // decoded buffers for sets [0]=set1 [1]=set2
 let customNames={1:'Custom Set 1',2:'Custom Set 2'};
 
+/* Track currently playing nodes so only one sound plays at a time */
+let currentSources=[]; // each item: {type:'osc'|'buf', node:AudioScheduledSourceNode, gain:GainNode}
+
 const frequencies=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
 
 function initAudio(){ if(!audioCtx){ try{audioCtx = new (window.AudioContext||window.webkitAudioContext)();}catch(e){console.error(e);} } }
+
+function stopAllAudio(){
+  try{
+    currentSources.forEach(s=>{
+      try{ s.node.stop(0); }catch(_){}
+      try{ s.node.disconnect(); }catch(_){}
+      try{ s.gain?.disconnect(); }catch(_){}
+    });
+  }finally{
+    currentSources=[];
+  }
+}
+function registerSource(type,node,gain){
+  currentSources.push({type,node,gain});
+  node.onended = ()=>{
+    // cleanup that specific source
+    const i=currentSources.findIndex(s=>s.node===node);
+    if(i>-1){ currentSources.splice(i,1); }
+    try{ node.disconnect(); }catch(_){}
+    try{ gain?.disconnect(); }catch(_){}
+  };
+}
+
 function playTone(freq){
-  if(muted||!audioCtx) return;
+  if(muted) return;
+  initAudio(); if(!audioCtx) return;
+  stopAllAudio(); // ensure only one sound at once
+
   const osc = audioCtx.createOscillator();
   const gain= audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
@@ -288,13 +329,21 @@ function playTone(freq){
   gain.gain.setValueAtTime(0, audioCtx.currentTime);
   gain.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime+0.02);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.45);
+  registerSource('osc',osc,gain);
   osc.start(); osc.stop(audioCtx.currentTime+0.45);
 }
+
 function playBuffer(buf){
-  if(muted||!audioCtx||!buf) return;
-  const src=audioCtx.createBufferSource(); const g=audioCtx.createGain();
+  if(muted) return;
+  initAudio(); if(!audioCtx||!buf) return;
+  stopAllAudio(); // ensure only one sound at once
+
+  const src=audioCtx.createBufferSource();
+  const g=audioCtx.createGain();
   src.buffer=buf; src.connect(g); g.connect(audioCtx.destination);
-  g.gain.value=.85; src.start();
+  g.gain.value=.85;
+  registerSource('buf',src,g);
+  src.start();
 }
 
 function formatTime(s){ const m=Math.floor(s/60), ss=(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; }
@@ -305,7 +354,8 @@ function buildGrid(){
   const grid=document.getElementById('grid'); grid.innerHTML='';
   for(let i=0;i<36;i++){
     const b=document.createElement('button');
-    b.className='btn'; b.textContent=(i+1);
+    const row = Math.floor(i/6);
+    b.className='btn row-'+row; b.textContent=(i+1);
     b.addEventListener('click',()=>handleClick(i));
     grid.appendChild(b);
   }
@@ -346,12 +396,14 @@ function newSounds(){
 }
 
 function resetGame(){
+  stopAllAudio();
   stopTimer(); startMs=null; currentTime=0;
   firstClick=null; matches=0; attempts=0; matchedIndices.clear();
   clearClasses(); updateStats(); updateTimerBox(); newSounds();
 }
 function scrambleGame(){
   if(!sounds.length){ resetGame(); return; }
+  stopAllAudio();
   stopTimer(); startMs=null; currentTime=0; firstClick=null; matches=0; attempts=0; matchedIndices.clear();
   sounds = shuffle(sounds); clearClasses(); updateStats(); updateTimerBox();
 }
@@ -360,8 +412,8 @@ function markMatched(i1,i2){
   const btns=document.querySelectorAll('.btn');
   btns[i1].classList.add('matched'); btns[i2].classList.add('matched');
   matchedIndices.add(i1); matchedIndices.add(i2); matches++; updateStats();
-  if(!muted){ initAudio(); setTimeout(()=>playTone(880),120); setTimeout(()=>playTone(1100),260); }
-  if(matches===18){ // win
+  if(!muted){ setTimeout(()=>playTone(880),120); setTimeout(()=>playTone(1100),260); }
+  if(matches===18){
     stopTimer();
     const rec=bestRecords[currentGame];
     let changed=false;
@@ -381,7 +433,6 @@ function handleClick(index){
   btn.style.transform='translateY(-1px) scale(.97)'; setTimeout(()=>{btn.style.transform='';},120);
 
   const item=sounds[index];
-  initAudio();
   if(currentGame===0) playTone(item); else playBuffer(item);
 
   if(firstClick===null){ firstClick=index; return; }
@@ -488,7 +539,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   const set1 = await getSet(1);
   const set2 = await getSet(2);
 
-  // decode existing blobs into buffers (lazy-decoded only when switching? here decode now)
+  // decode existing blobs into buffers
   initAudio();
   async function decodeToBuffers(files){ const arr=[]; for(const f of (files||[])){ const ab=await f.blob.arrayBuffer(); arr.push(await audioCtx.decodeAudioData(ab)); } return arr; }
   customBuffers[0] = await decodeToBuffers(set1.files);
@@ -498,7 +549,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   document.getElementById('tab1').textContent=customNames[1];
   document.getElementById('tab2').textContent=customNames[2];
 
-  // Build grid keys visible
+  // Build grid keys with row tints
   buildGrid();
   resetGame();
 
@@ -507,6 +558,7 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   document.getElementById('scrambleBtn').addEventListener('click', scrambleGame);
   document.getElementById('toggleAudio').addEventListener('click', ()=>{
     muted=!muted; document.getElementById('toggleAudio').textContent = muted ? '🔇 Audio Off' : '🔊 Audio On';
+    if(muted) stopAllAudio();
   });
 
   // Tabs
@@ -557,6 +609,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   }
   wireUpload(1); wireUpload(2);
 });
+
+/* Resume suspended audio context on first user interaction (mobile Safari etc.) */
+document.addEventListener('click', ()=>{
+  if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); }
+}, {once:true});
 </script>
 </body>
 </html>
