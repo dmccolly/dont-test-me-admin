@@ -1,13 +1,5 @@
+// Query helper & small utilities
 export const $ = (id) => document.getElementById(id);
-export const qs = (sel, root = document) => root.querySelector(sel);
-export const qsa = (sel, root = document) => [...root.querySelectorAll(sel)];
-
-export const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-export function formatTime(s) {
-  const m = Math.floor(s / 60), ss = s % 60;
-  return `${m}:${String(ss).padStart(2, '0')}`;
-}
 
 export function shuffle(arr) {
   const a = [...arr];
@@ -16,4 +8,10 @@ export function shuffle(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+export function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${m}:${String(ss).padStart(2, '0')}`;
 }
