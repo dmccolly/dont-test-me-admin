@@ -43,8 +43,8 @@ function closeAdmin() {
 }
 
 function refreshAdminUI() {
-  $('#name1').value = state.gameNames[0];
-  $('#name2').value = state.gameNames[1];
+  $('#name1').value = state.gameNames[0] || 'Custom Set 1';
+  $('#name2').value = state.gameNames[1] || 'Custom Set 2';
   updateStatuses();
   updateMessageStatus();
 }
