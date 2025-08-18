@@ -785,13 +785,25 @@
                 clearInterval(messageTimer);
             }
             
-            // Show first message immediately
-            showRandomMessage();
+            // Shuffle messages for this session
+            shuffleMessages();
             
-            // Set up 40-second interval
-            messageTimer = setInterval(() => {
-                showRandomMessage();
-            }, 44000); // 40 seconds between messages + 4 seconds display time
+            // Show welcome message for 4 seconds, then wait 40 seconds before starting rotation
+            setTimeout(() => {
+                // Fade out welcome message
+                const messageEl = document.getElementById('rotatingMessage');
+                messageEl.classList.remove('show');
+                
+                // Start rotation after 40 second pause
+                setTimeout(() => {
+                    showNextMessage();
+                    // Set up 44-second interval for subsequent messages
+                    messageTimer = setInterval(() => {
+                        showNextMessage();
+                    }, 44000);
+                }, 40000);
+                
+            }, 4000); // Welcome message displays for 4 seconds
         }
 
         function stopMessageRotation() {
@@ -801,7 +813,16 @@
             }
         }
 
-        function showRandomMessage() {
+        function shuffleMessages() {
+            // Fisher-Yates shuffle algorithm
+            for (let i = funnyMessages.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [funnyMessages[i], funnyMessages[j]] = [funnyMessages[j], funnyMessages[i]];
+            }
+            currentMessageIndex = 0;
+        }
+
+        function showNextMessage() {
             if (funnyMessages.length === 0) return;
             
             const messageEl = document.getElementById('rotatingMessage');
@@ -810,9 +831,14 @@
             messageEl.classList.remove('show');
             
             setTimeout(() => {
-                // Pick a random message
-                const randomIndex = Math.floor(Math.random() * funnyMessages.length);
-                const message = funnyMessages[randomIndex];
+                // Get next message in shuffled order
+                const message = funnyMessages[currentMessageIndex];
+                currentMessageIndex = (currentMessageIndex + 1) % funnyMessages.length;
+                
+                // If we've gone through all messages, shuffle again
+                if (currentMessageIndex === 0) {
+                    shuffleMessages();
+                }
                 
                 // Update text
                 messageEl.textContent = message;
