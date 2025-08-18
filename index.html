@@ -6,61 +6,70 @@
 <title>DON'T TEST ME</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --fg:#e5e7eb; --muted:#9ca3af; --line:rgba(255,255,255,.10);
-    --card:rgba(255,255,255,.04); --card2:rgba(255,255,255,.06);
-    --ok:#10b981; --ok2:#34d399; --accent:#fbbf24;
-  }
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
-    color:var(--fg); min-height:100vh; display:flex; justify-content:center;
-    background:radial-gradient(1200px 600px at 10% 0%,#14151a 0%,#0d0e12 60%,#0a0b10 100%);
-  }
-  .wrap{width:100%; max-width:980px; padding:36px 18px}
-  .hdr{ text-align:center; margin-bottom:18px }
-  .title{font-size:44px; letter-spacing:.02em; font-weight:200}
-  .subtitle{opacity:.8; margin:10px auto 0; max-width:680px; line-height:1.5}
-  .ticker {text-align:center; margin-top:14px; min-height:24px; font-weight:700; color:var(--accent)}
-  .tabs{display:flex; gap:12px; justify-content:center; margin:18px 0 12px; flex-wrap:wrap}
-  .tab{
-    min-width:140px; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700;
-    border:1px solid var(--line); color:#cbd5e1; background:var(--card)
-  }
-  .tab.active{color:var(--ok2); border-color:rgba(16,185,129,.35); background:rgba(16,185,129,.14)}
-  .panel{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px}
-  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px}
-  .stat{background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center}
-  .stat .lab{font-size:12px; letter-spacing:.12em; opacity:.7}
-  .stat .val{font-size:22px; margin-top:6px}
-  .grid{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin:14px 0 16px}
-  .btn{
-    aspect-ratio:1; border:1px solid var(--line); border-radius:18px; cursor:pointer;
-    color:#e5e7eb; background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-    box-shadow:0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
-    font-size:22px; display:flex; align-items:center; justify-content:center; transition:.12s transform
-  }
-  .btn:hover{ transform:translateY(-2px) }
-  .btn.matched{ color:var(--ok2); background:linear-gradient(145deg,rgba(16,185,129,.18),rgba(5,150,105,.12)); border-color:rgba(16,185,129,.35) }
-  .btn.placeholder{ color:#94a3b8; opacity:.6 }
-  .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:4px }
-  .ctrl{ padding:10px 16px; border-radius:12px; border:1px solid var(--line); background:var(--card2); color:#fff; cursor:pointer; font-weight:700 }
-  .timer{font-size:14px; opacity:.9}
-  .admin{position:fixed; top:10px; right:10px; opacity:.85; z-index:10}
-  .admin button{border:1px solid var(--line); background:var(--card2); color:#ddd; border-radius:8px; padding:6px 8px; cursor:pointer}
-  .pillbar{display:flex; gap:10px; justify-content:center; align-items:center; margin-bottom:10px}
-  .pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--line); opacity:.95}
-  .pill.ok{background:rgba(16,185,129,.16); border-color:rgba(16,185,129,.35); color:var(--ok2)}
-  .adminPanel{position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:9999}
-  .adminCard{width:min(740px,94vw); background:rgba(10,11,16,.98); border:1px solid var(--line); border-radius:18px; padding:20px}
-  .slot{border:1px dashed var(--line); border-radius:14px; padding:16px; margin-top:12px; text-align:center}
+  :root{--fg:#e5e7eb;--muted:#9ca3af;--line:rgba(255,255,255,.10);
+    --card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.06);
+    --ok:#10b981;--ok2:#34d399;--accent:#fbbf24;--bg1:#0a0b10;--bg2:#14151a}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;color:var(--fg);
+    background:radial-gradient(1200px 600px at 10% 0%,var(--bg2) 0%,#0d0e12 60%,var(--bg1) 100%);
+    display:flex;justify-content:center;min-height:100vh}
+
+  .wrap{width:100%;max-width:980px;padding:28px 16px 40px}
+  .hdr{text-align:center;margin-bottom:18px}
+  .title{font-size:clamp(28px,4.5vw,44px);letter-spacing:.02em;font-weight:200;line-height:1.1}
+  .subtitle{opacity:.85;margin:10px auto 0;max-width:760px;line-height:1.5;font-size:clamp(14px,2.3vw,18px)}
+  .ticker{text-align:center;margin-top:12px;min-height:24px;font-weight:700;color:var(--accent)}
+
+  .pillbar{display:flex;gap:10px;justify-content:center;align-items:center;margin:12px 0}
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
+  .pill.ok{background:rgba(16,185,129,.16);border-color:rgba(16,185,129,.35);color:var(--ok2)}
+
+  .tabs{display:flex;gap:10px;justify-content:center;margin:12px 0 10px;flex-wrap:wrap}
+  .tab{min-width:130px;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;
+    border:1px solid var(--line);color:#cbd5e1;background:var(--card);transition:background .15s,border-color .15s,color .15s}
+  .tab.active{color:var(--ok2);border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.14)}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .stat{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .stat .lab{font-size:12px;letter-spacing:.12em;opacity:.7}
+  .stat .val{font-size:22px;margin-top:6px}
+
+  .grid{--cols:6;display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:8px;margin:12px 0 16px}
+  .btn{position:relative;border:1px solid var(--line);border-radius:16px;cursor:pointer;color:#e5e7eb;
+    background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+    box-shadow:0 6px 18px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08);
+    transition:transform .12s ease,background .12s ease,color .12s ease;aspect-ratio:1/1}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.matched{color:var(--ok2);background:linear-gradient(145deg,rgba(16,185,129,.18),rgba(5,150,105,.12));border-color:rgba(16,185,129,.35)}
+  .btn.placeholder{color:#94a3b8;opacity:.6}
+  .btn .btn-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:clamp(14px,2.6vw,22px);font-weight:700;user-select:none;pointer-events:none}
+  @supports not (aspect-ratio:1/1){.btn{height:0;padding-bottom:100%}.btn .btn-label{position:absolute;inset:0}}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .ctrl{padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:#fff;cursor:pointer;font-weight:700}
+  .timer{font-size:14px;opacity:.9}
+  .foot{margin-top:10px;text-align:center;opacity:.55;font-size:12px}
+
+  .admin{position:fixed;top:10px;right:10px;z-index:10}
+  .admin button{border:1px solid var(--line);background:var(--card2);color:#ddd;border-radius:8px;padding:6px 8px;cursor:pointer}
+
+  .adminPanel{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:9999}
+  .adminCard{width:min(740px,94vw);background:rgba(10,11,16,.98);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .slot{border:1px dashed var(--line);border-radius:14px;padding:16px;margin-top:12px;text-align:center}
   .slot h4{margin-bottom:8px}
-  .foot{margin-top:10px; text-align:center; opacity:.55; font-size:12px}
-  .win{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.75); z-index:9998}
-  .winCard{background:#0e1016; border:1px solid var(--line); border-radius:18px; padding:24px; text-align:center; width:min(420px,92vw)}
-  .winCard h3{font-weight:200; font-size:28px; margin-bottom:10px; color:var(--accent)}
+  .slot p{opacity:.8;margin-bottom:8px}
+
+  .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:9998}
+  .winCard{background:#0e1016;border:1px solid var(--line);border-radius:18px;padding:24px;text-align:center;width:min(420px,92vw)}
+  .winCard h3{font-weight:200;font-size:28px;margin-bottom:10px;color:var(--accent)}
+
+  @media (max-width:640px){.wrap{padding:20px 12px 32px}.grid{gap:6px}.stats{gap:8px}.tab{min-width:120px}.ctrl{padding:9px 14px}}
 </style>
 </head>
 <body>
+  <!-- ADMIN BUTTON -->
   <div class="admin"><button id="adminBtn" title="Admin">⚙</button></div>
 
   <div class="wrap">
@@ -70,9 +79,7 @@
       <div class="ticker" id="ticker">Welcome to the audio memory challenge!</div>
     </header>
 
-    <div class="pillbar">
-      <div class="pill ok">Persistence: IndexedDB (dbIndex) ON</div>
-    </div>
+    <div class="pillbar"><div class="pill ok">Persistence: IndexedDB (dbIndex)</div></div>
 
     <div class="tabs">
       <button class="tab active" data-game="0">Tones</button>
@@ -97,28 +104,30 @@
       </div>
     </section>
 
-    <div class="foot">Upload up to 18 sounds for each custom set in the ⚙ admin panel. Data persists via IndexedDB.</div>
+    <div class="foot">Upload messages & sounds via ⚙ Admin. Data persists in your browser (IndexedDB).</div>
   </div>
 
-  <!-- Admin Modal -->
+  <!-- ADMIN MODAL -->
   <div class="adminPanel" id="adminPanel" aria-hidden="true">
     <div class="adminCard">
-      <h3 style="text-align:center;margin-bottom:8px;">Admin</h3>
-      <p style="text-align:center;opacity:.85">Upload ticker messages (.txt) and audio files for the custom sets. All persisted with <b>dbIndex()</b>.</p>
+      <h3 style="text-align:center;margin-bottom:6px;">Admin</h3>
+      <p style="text-align:center;opacity:.85">Load funny messages (.txt) and up to 18 audio files per custom set. These persist via IndexedDB.</p>
 
       <div class="slot">
         <h4>Funny Messages</h4>
-        <p class="muted" id="msgStatus">No messages loaded</p>
+        <p id="msgStatus">No messages loaded</p>
         <input type="file" id="msgFile" accept=".txt" />
       </div>
 
       <div class="slot">
         <h4>Custom Set 1 <span id="s1count" style="opacity:.75">(0/18)</span></h4>
+        <p>Upload up to 18 audio files (mp3, wav, ogg, m4a, flac).</p>
         <input type="file" id="files1" accept="audio/*" multiple />
       </div>
 
       <div class="slot">
         <h4>Custom Set 2 <span id="s2count" style="opacity:.75">(0/18)</span></h4>
+        <p>Upload up to 18 audio files (mp3, wav, ogg, m4a, flac).</p>
         <input type="file" id="files2" accept="audio/*" multiple />
       </div>
 
@@ -131,7 +140,7 @@
     </div>
   </div>
 
-  <!-- Win modal -->
+  <!-- WIN MODAL -->
   <div class="win" id="win">
     <div class="winCard">
       <h3>Perfect Match!</h3>
@@ -150,10 +159,10 @@ function dbIndex() {
     const open = indexedDB.open('dtm.v1', 1);
     open.onupgradeneeded = () => {
       const db = open.result;
-      if (!db.objectStoreNames.contains('audio1')) db.createObjectStore('audio1'); // key: 0..17 -> Blob
-      if (!db.objectStoreNames.contains('audio2')) db.createObjectStore('audio2'); // key: 0..17 -> Blob
-      if (!db.objectStoreNames.contains('meta'))   db.createObjectStore('meta');   // key: string -> JSON
-      if (!db.objectStoreNames.contains('records')) db.createObjectStore('records'); // key: gameId -> {time,attempts}
+      if (!db.objectStoreNames.contains('audio1')) db.createObjectStore('audio1'); // 0..17 -> Blob
+      if (!db.objectStoreNames.contains('audio2')) db.createObjectStore('audio2');
+      if (!db.objectStoreNames.contains('meta'))   db.createObjectStore('meta');   // key:string -> JSON
+      if (!db.objectStoreNames.contains('records')) db.createObjectStore('records'); // gameId -> {time,attempts}
     };
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {
@@ -239,7 +248,7 @@ function dbIndex() {
   const msgStatus = document.getElementById('msgStatus');
 
   let currentGame = 0;
-  let sounds = [];                    // 36 entries (pair token)
+  let sounds = [];                    // 36 entries (pair token 0..17 duplicated)
   let firstClick = null;
   let matched = new Set();
   let matches = 0, attempts = 0;
@@ -305,7 +314,7 @@ function dbIndex() {
     for (let i=0;i<36;i++) {
       const btn = document.createElement('button');
       btn.className = 'btn';
-      btn.textContent = i+1;
+      btn.innerHTML = '<span class="btn-label">'+(i+1)+'</span>';
       btn.addEventListener('click', () => handleClick(i));
       gridEl.appendChild(btn);
     }
@@ -378,7 +387,7 @@ function dbIndex() {
     matched = new Set(); firstClick=null;
     matches=0; attempts=0; currentTime=0;
     const btns = gridEl.querySelectorAll('.btn');
-    btns.forEach((b,i)=>{ b.className='btn'; b.textContent = i+1; });
+    btns.forEach((b,i)=>{ b.className='btn'; b.innerHTML='<span class="btn-label">'+(i+1)+'</span>'; });
     updateStats();
     timerEl.textContent = 'Time: 0:00 | Attempts: 0';
   }
@@ -473,7 +482,7 @@ function dbIndex() {
     msgStatus.textContent = `${list.length} message(s) saved`;
     await startMessageRotation();
     e.target.value='';
-    alert('Messages saved to IndexedDB.');
+    alert('Messages saved.');
   };
 
   files1.onchange = async (e)=>{ await handleAudioUpload(e.target.files, 0); e.target.value=''; };
@@ -503,12 +512,12 @@ function dbIndex() {
     if (setIdx===0) s1count.textContent = `(${customBuffers[0].size}/18)`;
     if (setIdx===1) s2count.textContent = `(${customBuffers[1].size}/18)`;
     refreshPlaceholders();
-    alert(`Loaded ${i} file(s) into Custom Set ${setIdx+1} (persisted).`);
+    alert(`Loaded ${i} file(s) into Custom Set ${setIdx+1}.`);
   }
 
-  // ------------------------ Tab switching -----------------------------
+  // ------------------------ Tabs & controls ---------------------------
   document.querySelectorAll('.tab').forEach(tab=>{
-    tab.addEventListener('click', async ()=>{
+    tab.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
       tab.classList.add('active');
       currentGame = Number(tab.dataset.game);
@@ -517,10 +526,9 @@ function dbIndex() {
     });
   });
 
-  // ------------------------ Controls ---------------------------------
-  btnNewGame.onclick = ()=> resetGame();
-  btnScramble.onclick= ()=> { sounds = shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; updateStats(); };
-  btnAudio.onclick   = ()=> { muted=!muted; btnAudio.textContent = muted? '🔇 Audio Off':'🔊 Audio On'; };
+  document.getElementById('newGame').onclick = ()=> resetGame();
+  document.getElementById('scrambleBtn').onclick= ()=> { sounds = shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; updateStats(); };
+  document.getElementById('audioBtn').onclick   = (e)=> { muted=!muted; e.currentTarget.textContent = muted? '🔇 Audio Off':'🔊 Audio On'; };
 
   // ------------------------ Boot -------------------------------------
   (async function boot(){
