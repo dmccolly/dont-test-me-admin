@@ -88,4 +88,53 @@ async function init() {
     btn.addEventListener('click', () => switchGame(parseInt(btn.dataset.game, 10)));
   });
 
-  $('#newGame').addEventListener('click', resetGa
+  $('#newGame').addEventListener('click', resetGame);
+  $('#scrambleBtn').addEventListener('click', scrambleGame);
+  $('#muteBtn').addEventListener('click', toggleAudio);
+
+  $('#playAgain').addEventListener('click', playAgain);
+  $('#scrambleInWin').addEventListener('click', ()=>{ scrambleGame(); $('#win').classList.remove('show'); });
+  $('#otherGames').addEventListener('click', showOtherGames);
+
+  // Reflect names to tabs
+  $('#tab1').textContent = state.gameNames[0] || 'Custom Set 1';
+  $('#tab2').textContent = state.gameNames[1] || 'Custom Set 2';
+
+  // Records hook → persist + (optional) push
+  import('./game.js').then(mod=>{
+    mod.onNewRecords = async () => {
+      await saveMeta({
+        names: state.gameNames,
+        records: state.bestRecords,
+        messages: state.funnyMessages || [],
+      });
+      pushToServerDebounced();
+    };
+  });
+
+  // Build initial game
+  resetGame();
+  updateBestStats();
+  updateTimerDisplay();
+
+  // Start ticker after meta is ready
+  startTicker(()=>state.funnyMessages || []);
+
+  // Resume audio on first user gesture (iOS)
+  document.addEventListener('click', ()=>{
+    const ac = window.__ac || null; // placeholder; context is created lazily by audio.js
+  }, { once: true });
+
+  // Persist meta before unload
+  window.addEventListener('beforeunload', async ()=>{
+    try {
+      await saveMeta({
+        names: state.gameNames,
+        records: state.bestRecords,
+        messages: state.funnyMessages || [],
+      });
+    } catch {}
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
