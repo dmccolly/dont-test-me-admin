@@ -683,4 +683,147 @@
           statusEl.textContent = `Uploading ${count}/${Math.min(files.length,18)}...`;
         }
         if (slot===1) customKeys[0]=keys; else customKeys[1]=keys;
-        statusEl.textContent = keys
+        statusEl.textContent = keys.length===18?'Ready (18/18)':'Partial ('+keys.length+'/18)';
+        statusEl.className = 'slot-status '+(keys.length===18?'ready':'partial');
+
+        await saveRecords(); // saves names + which keys are in each slot (stored in records payload)
+        alert(`Uploaded ${keys.length} files to ${slot===1?gameNames[0]:gameNames[1]}.`);
+      }catch(err){
+        console.error(err);
+        alert('Upload failed. See console for details.');
+        statusEl.textContent='Error';
+      }
+    }
+
+    document.getElementById('clear1').addEventListener('click', async ()=>{
+      if (!confirm('Delete all audio for Custom Set 1 from storage?')) return;
+      await clearSlot(1);
+    });
+    document.getElementById('clear2').addEventListener('click', async ()=>{
+      if (!confirm('Delete all audio for Custom Set 2 from storage?')) return;
+      await clearSlot(2);
+    });
+    async function clearSlot(slot){
+      const slotIndex=slot-1;
+      const keys = customKeys[slotIndex];
+      for (const k of keys){ try{ await apiStream('audio','DELETE',k); }catch{} }
+      customKeys[slotIndex]=[];
+      (slot===1?status1:status2).textContent='Empty (0/18)';
+      (slot===1?status1:status2).className='slot-status';
+      await saveRecords();
+      alert(`Cleared Custom Set ${slot}.`);
+    }
+
+    document.getElementById('test1').addEventListener('click', ()=>{ if (customKeys[0].length===18){ switchGame(1); adminPanel.classList.remove('show'); } else alert('Need 18 files.'); });
+    document.getElementById('test2').addEventListener('click', ()=>{ if (customKeys[1].length===18){ switchGame(2); adminPanel.classList.remove('show'); } else alert('Need 18 files.'); });
+
+    async function refreshAdmin(){
+      // messages status
+      msgStatus.textContent = funnyMessages.length===0 ? 'Empty (0)' : `Loaded (${funnyMessages.length})`;
+      // custom sets status
+      status1.textContent = customKeys[0].length===0 ? 'Empty (0/18)' : (customKeys[0].length===18 ? 'Ready (18/18)' : `Partial (${customKeys[0].length}/18)`);
+      status1.className = 'slot-status ' + (customKeys[0].length===18 ? 'ready' : (customKeys[0].length>0?'partial':'' ));
+      status2.textContent = customKeys[1].length===0 ? 'Empty (0/18)' : (customKeys[1].length===18 ? 'Ready (18/18)' : `Partial (${customKeys[1].length}/18)`);
+      status2.className = 'slot-status ' + (customKeys[1].length===18 ? 'ready' : (customKeys[1].length>0?'partial':'' ));
+      name1.value = gameNames[0]; name2.value = gameNames[1];
+    }
+
+    /****************
+     * TICKER LOGIC
+     ****************/
+    let messageTimer = null;
+    function startMessageRotation(){
+      const el = document.getElementById('rotatingMessage');
+      // 10s welcome
+      el.textContent = 'Welcome to the audio memory challenge!';
+      setTimeout(()=>{
+        el.textContent = 'Click buttons to hear sounds, find matching pairs!';
+        setTimeout(()=>{
+          if (funnyMessages.length>0){
+            showRandomMessage();
+            messageTimer = setInterval(showRandomMessage, 20000);
+          } else {
+            el.textContent = 'Welcome to the audio memory challenge!';
+          }
+        }, 20000);
+      }, 10000);
+    }
+    function stopMessageRotation(){ if (messageTimer){ clearInterval(messageTimer); messageTimer=null; } }
+    function showRandomMessage(){
+      if (funnyMessages.length===0) return;
+      const i = Math.floor(Math.random()*funnyMessages.length);
+      const el = document.getElementById('rotatingMessage');
+      el.textContent = funnyMessages[i];
+      setTimeout(()=>{ el.textContent=''; }, 10000);
+    }
+
+    /**********************
+     * PERSISTED DATA I/O
+     **********************/
+    async function loadAll(){
+      try{
+        const { messages } = await apiJSON('messages','GET');
+        funnyMessages = Array.isArray(messages)?messages:[];
+      }catch(e){
+        funnyMessages = [];
+        setPersistInfo('Persistence: API unreachable. Working with session only.', true);
+      }
+
+      try{
+        const state = await apiJSON('records','GET');
+        if (state?.best) bestRecords = state.best;
+        if (state?.names && Array.isArray(state.names) && state.names.length===2){
+          gameNames = state.names;
+        }
+        if (state?.keys && Array.isArray(state.keys) && state.keys.length===2){
+          customKeys = state.keys;
+        }
+        updateTabs();
+        setPersistInfo('Persistence: Netlify Blobs active.');
+      }catch(e){
+        setPersistInfo('Persistence: partial. Records may not save.', true);
+      }
+    }
+
+    async function saveMessages(){
+      try{
+        await apiJSON('messages','PUT',{ messages: funnyMessages });
+        setPersistInfo('Messages saved (Netlify Blobs).');
+      }catch(e){
+        setPersistInfo('Failed to save messages.', true);
+      }
+    }
+
+    async function saveRecords(){
+      try{
+        await apiJSON('records','PUT',{ best: bestRecords, names: gameNames, keys: customKeys });
+        setPersistInfo('Records saved (Netlify Blobs).');
+      }catch(e){
+        setPersistInfo('Failed to save records.', true);
+      }
+    }
+
+    /***************
+     * BOOTSTRAP
+     ***************/
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      initAudio();
+
+      // iOS audio resume
+      document.addEventListener('click', ()=>{
+        if (audioContext && audioContext.state==='suspended'){ audioContext.resume(); }
+      }, { once:true });
+
+      await loadAll();
+      startMessageRotation();
+      createGrid();
+      updateStats();
+      updateTimerDisplay();
+      updateBestStats();
+
+      // Stop audio on tab hidden
+      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) stopAllAudio(); });
+    });
+  </script>
+</body>
+</html>
