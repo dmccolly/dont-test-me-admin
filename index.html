@@ -803,14 +803,14 @@
                     setTimeout(() => {
                         messageEl.classList.remove('show');
                         
-                        // Wait 40 seconds, then start rotation
+                        // Wait 20 seconds, then start rotation
                         setTimeout(() => {
                             showNextMessage();
-                            // Set up 44-second interval for subsequent messages
+                            // Set up 30-second interval for subsequent messages (10s display + 20s pause)
                             messageTimer = setInterval(() => {
                                 showNextMessage();
-                            }, 44000);
-                        }, 40000);
+                            }, 30000);
+                        }, 20000);
                         
                     }, 5000); // Instruction message displays for 5 seconds
                     
@@ -840,7 +840,7 @@
             
             const messageEl = document.getElementById('rotatingMessage');
             
-            // Fade out current message
+            // Fade out current message (if any)
             messageEl.classList.remove('show');
             
             setTimeout(() => {
@@ -859,10 +859,10 @@
                 // Fade in new message
                 messageEl.classList.add('show');
                 
-                // Fade out after 4 seconds
+                // Fade out after 10 seconds
                 setTimeout(() => {
                     messageEl.classList.remove('show');
-                }, 4000);
+                }, 10000);
                 
             }, 800); // Wait for fade out to complete
         }
