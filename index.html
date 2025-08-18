@@ -474,8 +474,8 @@
 
             console.log(`✅ Loaded ${loadedCount}/${expectedCount} audio files for slot ${slotIndex + 1}`);
             
-            refreshFilePreview(slotIndex + 1);
-            updateAdminStatus();
+            // DO NOT call refreshFilePreview or updateAdminStatus during initialization
+            // These will be called when admin panel is actually opened
         }
 
         function initAudio() {
