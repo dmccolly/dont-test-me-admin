@@ -1182,10 +1182,32 @@
                 } else if (successCount > 0) {
                     alert(`Successfully uploaded ${successCount} audio files!`);
                 }
+                
+                // Force immediate save and test
+                console.log('Forcing immediate save after upload...');
+                await saveCustomGames();
+                
+                // Test the save worked
+                setTimeout(async () => {
+                    try {
+                        const testData = await loadFromIndexedDB();
+                        if (testData && testData.customAudioData) {
+                            console.log('✅ Save verification successful - data found in IndexedDB');
+                            alert('✅ Files saved successfully to IndexedDB!');
+                        } else {
+                            console.warn('❌ Save verification failed - no data in IndexedDB');
+                            alert('❌ Warning: Files may not have saved properly. Check console for details.');
+                        }
+                    } catch (error) {
+                        console.error('❌ Save verification error:', error);
+                        alert('❌ Error verifying save. Check console for details.');
+                    }
+                }, 1000);
+                
             }, 500);
             
             updateAdminStatus();
-            saveCustomGames();
+            await saveCustomGames();
         }
 
         function arrayBufferToBase64(buffer) {
@@ -1479,18 +1501,23 @@
             });
         }
 
-        function saveCustomGames() {
+        async function saveCustomGames() {
             const saveData = {
                 gameNames: gameNames,
                 fileMetadata: fileMetadata,
                 customAudioData: customAudioData
             };
             
+            console.log('🔄 Starting save operation...', saveData);
+            
             // Try IndexedDB first, fallback to localStorage
-            saveToIndexedDB(saveData).catch(error => {
-                console.warn('IndexedDB save failed, using localStorage fallback:', error);
+            try {
+                await saveToIndexedDB(saveData);
+                console.log('✅ Successfully saved to IndexedDB');
+            } catch (error) {
+                console.warn('❌ IndexedDB save failed, using localStorage fallback:', error);
                 saveCustomGamesLegacy();
-            });
+            }
         }
 
         function saveCustomGamesLegacy() {
