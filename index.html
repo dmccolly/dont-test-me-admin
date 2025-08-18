@@ -668,7 +668,7 @@
                     <div class="slot-status" id="messageStatus">No messages loaded</div>
                 </div>
                 <div class="upload" onclick="document.getElementById('messageFile').click()">
-                    <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
+                    <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
                     <div class="upload-hint">Text file with your funny phrases</div>
                     <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
                 </div>
@@ -818,10 +818,10 @@
                     const text = e.target.result;
                     const lines = text.split('\n')
                         .map(line => line.trim())
-                        .filter(line => line.length > 0 && line.length <= 40);
+                        .filter(line => line.length > 0 && line.length <= 150);
 
                     if (lines.length === 0) {
-                        alert('No valid messages found. Each line should be 1-40 characters.');
+                        alert('No valid messages found. Each line should be 1-150 characters.');
                         return;
                     }
 
