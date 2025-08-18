@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DON'T TEST ME</title>
-  <link rel="stylesheet" href="css/styles.css"/>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div class="container">
-    <button class="admin-btn" id="openAdmin" title="Open Admin">⚙</button>
+    <button class="admin-btn" id="adminBtn">⚙</button>
 
     <div class="header">
       <h1 class="title">DON'T TEST ME</h1>
@@ -17,16 +17,14 @@
         <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span>
       </p>
       <div class="message-ticker">
-        <div class="rotating-message" id="rotatingMessage">
-          Welcome to the audio memory challenge!
-        </div>
+        <div class="rotating-message" id="rotatingMessage">Welcome to the audio memory challenge!</div>
       </div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" data-game="0">Tones</button>
-      <button class="tab" id="tab1" data-game="1">Custom Set 1</button>
-      <button class="tab" id="tab2" data-game="2">Custom Set 2</button>
+      <button class="tab active" id="tab0">Tones</button>
+      <button class="tab" id="tab1">Custom Set 1</button>
+      <button class="tab" id="tab2">Custom Set 2</button>
     </div>
 
     <div class="panel" id="gamePanel">
@@ -48,7 +46,7 @@
       <div class="grid" id="grid"></div>
 
       <div class="controls">
-        <button class="ctrl-btn" id="newGame">New Game</button>
+        <button class="ctrl-btn" id="newGameBtn">New Game</button>
         <div class="timer-display">
           <div class="current-stats" id="currentStats">Time: 0:00 | Attempts: 0</div>
           <div class="best-stats" id="bestStats">Best Time: -- | Best Attempts: --</div>
@@ -59,48 +57,42 @@
     </div>
   </div>
 
-  <!-- Player bar -->
-  <div class="player-bar" id="playerBar" aria-live="polite">
-    <div class="led" id="led"></div>
-    <div class="player-text" id="playerText">Ready</div>
-  </div>
-
-  <!-- Win Modal -->
+  <!-- Win modal -->
   <div class="win" id="win">
     <div class="win-content">
       <div class="win-title">Perfect Match!</div>
       <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
       <div class="win-actions">
-        <button class="ctrl-btn" id="playAgain">Play Again</button>
-        <button class="ctrl-btn" id="scrambleInWin">Scramble</button>
-        <button class="ctrl-btn" id="otherGames">Other Games</button>
+        <button class="ctrl-btn" id="playAgainBtn">Play Again</button>
+        <button class="ctrl-btn" id="scrambleInWinBtn">Scramble</button>
+        <button class="ctrl-btn" id="gameOptionsBtn">Other Games</button>
       </div>
     </div>
   </div>
 
-  <!-- Admin Modal -->
+  <!-- Admin modal -->
   <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true">
     <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h2 class="admin-title" id="adminTitle">Game Management</h2>
 
-      <!-- Funny Messages -->
       <div class="slot">
         <div class="slot-header">
           <div style="font-weight:700">Funny Messages</div>
           <div class="slot-status" id="messageStatus">No messages loaded</div>
         </div>
-        <div class="upload" id="messageDrop" tabindex="0" aria-label="Upload messages">
+        <div class="upload"
+             id="messageDrop"
+             onclick="document.getElementById('messageFile').click()">
           <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
           <div class="upload-hint">Plain .txt recommended</div>
-          <input class="hidden-file" type="file" id="messageFile" accept=".txt"/>
+          <input type="file" id="messageFile" accept=".txt" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="previewMessages">👀 Preview</button>
-          <button class="ctrl-btn" id="clearMessages">🗑️ Clear</button>
+          <button class="ctrl-btn" id="previewMsgBtn">👀 Preview</button>
+          <button class="ctrl-btn" id="clearMsgBtn">🗑️ Clear</button>
         </div>
       </div>
 
-      <!-- Built-in Tones -->
       <div class="slot">
         <div class="slot-header">
           <div style="font-weight:700">Game 1: Tones</div>
@@ -109,46 +101,51 @@
         <div style="color:#9a9a9a">This game is permanent and cannot be modified.</div>
       </div>
 
-      <!-- Custom Set 1 -->
       <div class="slot">
         <div class="slot-header">
-          <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name"/>
+          <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name">
           <div class="slot-status" id="status1">Empty (0/18)</div>
         </div>
-        <div class="upload" id="drop1" tabindex="0" aria-label="Upload audio for Custom Set 1">
+        <div class="upload" id="drop1" onclick="document.getElementById('files1').click()">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
-          <input class="hidden-file" type="file" id="files1" multiple accept="audio/*"/>
+          <input type="file" id="files1" multiple accept="audio/*" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="clear1">Clear All</button>
-          <button class="ctrl-btn" id="test1">Test Game</button>
+          <button class="ctrl-btn" id="clear1Btn">Clear All</button>
+          <button class="ctrl-btn" id="test1Btn">Test Game</button>
         </div>
       </div>
 
-      <!-- Custom Set 2 -->
       <div class="slot">
         <div class="slot-header">
-          <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name"/>
+          <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name">
           <div class="slot-status" id="status2">Empty (0/18)</div>
         </div>
-        <div class="upload" id="drop2" tabindex="0" aria-label="Upload audio for Custom Set 2">
+        <div class="upload" id="drop2" onclick="document.getElementById('files2').click()">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
-          <input class="hidden-file" type="file" id="files2" multiple accept="audio/*"/>
+          <input type="file" id="files2" multiple accept="audio/*" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="clear2">Clear All</button>
-          <button class="ctrl-btn" id="test2">Test Game</button>
+          <button class="ctrl-btn" id="clear2Btn">Clear All</button>
+          <button class="ctrl-btn" id="test2Btn">Test Game</button>
         </div>
       </div>
 
       <div class="admin-actions">
-        <button class="ctrl-btn" id="closeAdmin">Close</button>
+        <button class="ctrl-btn" id="closeAdminBtn">Close</button>
       </div>
     </div>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <!-- Order matters -->
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/storage.js"></script>
+  <script defer src="js/audio.js"></script>
+  <script defer src="js/game.js"></script>
+  <script defer src="js/admin.js"></script>
+  <script defer src="js/ticker.js"></script>
+  <script defer src="js/app.js"></script>
 </body>
 </html>
