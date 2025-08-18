@@ -5,108 +5,88 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DON'T TEST ME</title>
 <style>
-  /* ===== Base ===== */
+  /* ===== Compact, one-column theme ===== */
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --fg:#e5e7eb;--muted:#a1a1aa;
-    --line:rgba(255,255,255,.12);
-    --card:rgba(255,255,255,.05);
-    --bg:#0b0d12;
-    --ok:#10b981;--ok2:#34d399;--accent:#fbbf24;
+    --fg:#e5e7eb;--muted:#a1a1aa;--line:rgba(255,255,255,.12);
+    --card:rgba(255,255,255,.05);--bg:#0b0d12;--ok:#10b981;--ok2:#34d399;--accent:#fbbf24;
   }
-  body{
-    min-height:100vh;background:#0b0d12;color:var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui,sans-serif;
-    background:
-      radial-gradient(800px 500px at 0% 0%, #10131c 0%, #0b0d12 50%, #090b10 100%),
-      linear-gradient(#0b0d12,#0a0c11);
-  }
-  .wrap{max-width:1080px;margin:0 auto;padding:26px 14px 40px}
+  body{min-height:100vh;background:#0b0d12;color:var(--fg);
+       font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui,sans-serif}
+  .wrap{max-width:540px;margin:0 auto;padding:22px 14px 36px}
 
-  /* ===== Header ===== */
   .title{font-weight:200;letter-spacing:.02em;line-height:1.1;text-align:center;
-    font-size:clamp(28px,5.2vw,48px);margin-bottom:8px}
-  .subtitle{max-width:900px;margin:0 auto 10px;text-align:center;opacity:.9;
-    line-height:1.5;font-size:clamp(14px,2.2vw,18px)}
-  .ticker{margin-top:12px;text-align:center;min-height:24px;font-weight:800;color:var(--accent)}
+         font-size:clamp(28px,5.2vw,42px);margin-bottom:6px}
+  .subtitle{max-width:520px;margin:0 auto 8px;text-align:center;opacity:.9;line-height:1.45;
+            font-size:clamp(14px,2.2vw,16px)}
+  .ticker{margin:8px 0 6px;text-align:center;min-height:20px;font-weight:800;color:var(--accent);
+          font-size:13px}
 
-  .pillbar{display:flex;justify-content:center;margin:12px 0 16px}
-  .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line)}
-  .pill.ok{background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.35);color:var(--ok2)}
-
-  /* ===== Tabs ===== */
-  .tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 12px}
-  .tab{min-width:132px;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:700;
-       border:1px solid var(--line);color:#cbd5e1;background:var(--card)}
+  .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0 10px}
+  .tab{min-width:120px;padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;
+       border:1px solid var(--line);color:#cbd5e1;background:var(--card);font-size:14px}
   .tab.active{color:var(--ok2);border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.12)}
 
-  /* ===== Panel ===== */
-  .panel{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(255,255,255,.03)}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-  .stat{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
-  .stat .lab{font-size:12px;letter-spacing:.12em;opacity:.75}
-  .stat .val{font-size:22px;margin-top:6px}
+  .panel{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .stat{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+  .stat .lab{font-size:10px;letter-spacing:.12em;opacity:.75}
+  .stat .val{font-size:18px;margin-top:4px}
 
-  /* ===== Grid ===== */
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:10px;
-    margin:12px 0 16px;
-  }
-  @media (max-width:680px){ .grid{gap:6px} }
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:10px 0 12px}
   .btn{
     background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
-    border:1px solid var(--line);border-radius:16px;cursor:pointer;
+    border:1px solid var(--line);border-radius:12px;cursor:pointer;
     aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
-    color:#e5e7eb;font-size:clamp(14px,2.5vw,22px);font-weight:800;user-select:none;
+    color:#e5e7eb;font-size:15px;font-weight:800;user-select:none;
     transition:transform .12s ease, background .12s ease, border-color .12s ease;
-    box-shadow:0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+    box-shadow:0 5px 14px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.08);
+    outline:none;
   }
-  .btn:hover{transform:translateY(-2px)}
-  .btn.placeholder{opacity:.5}
+  .btn:focus{outline:none;box-shadow:0 0 0 0 transparent} /* kill persistent focus glow */
+  .btn:hover{transform:translateY(-1px)}
+  .btn.placeholder{opacity:.45}
   .btn.matched{color:var(--ok2);border-color:rgba(16,185,129,.45);
                background:linear-gradient(145deg,rgba(16,185,129,.18),rgba(5,150,105,.12))}
 
-  /* ===== Controls ===== */
-  .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
-  .ctrl{padding:10px 16px;border-radius:12px;border:1px solid var(--line);
-        background:rgba(255,255,255,.07);color:#fff;cursor:pointer;font-weight:700}
-  .timer{font-size:14px;opacity:.9}
-  .foot{margin-top:10px;text-align:center;opacity:.55;font-size:12px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .ctrl{padding:9px 14px;border-radius:12px;border:1px solid var(--line);
+        background:rgba(255,255,255,.07);color:#fff;cursor:pointer;font-weight:700;font-size:14px}
+  .timer{font-size:13px;opacity:.9}
+  .foot{margin-top:8px;text-align:center;opacity:.55;font-size:11px}
 
-  /* ===== Admin launcher ===== */
-  .admin{position:fixed;top:10px;right:10px;z-index:2147483647} /* max z to win */
-  .admin button{border:1px solid var(--line);background:rgba(255,255,255,.1);
-                color:#fff;border-radius:10px;padding:7px 10px;font-weight:700;cursor:pointer}
-
-  /* ===== Admin modal ===== */
+  /* extra-discreet admin icon */
+  .admin{position:fixed;top:10px;right:10px;z-index:2147483647}
+  .admin button{
+    border:1px solid transparent;background:rgba(255,255,255,.04);color:#fff;opacity:.35;
+    border-radius:10px;padding:7px 9px;cursor:pointer;font-weight:700
+  }
+  .admin button:hover{opacity:.7;border-color:var(--line)}
+  /* admin modal */
   .adminPanel{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
-              align-items:center;justify-content:center;z-index:2147483600}
-  .adminCard{width:min(820px,95vw);background:#0f1219;border:1px solid var(--line);
-             border-radius:18px;padding:20px}
-  .slot{border:1px dashed var(--line);border-radius:14px;padding:16px;margin-top:12px}
-  .slot h4{margin-bottom:8px}
-  .slot p{opacity:.9;margin-bottom:8px}
+              align-items:center;justify-content:center;z-index:9990}
+  .adminCard{width:min(520px,95vw);background:#0f1219;border:1px solid var(--line);
+             border-radius:14px;padding:16px}
+  .slot{border:1px dashed var(--line);border-radius:12px;padding:12px;margin-top:10px}
+  .slot h4{margin-bottom:6px}
+  .slot p{opacity:.9;margin-bottom:8px;font-size:13px}
+  .nameRow{display:flex;gap:8px;align-items:center;margin:6px 0 2px}
+  .nameRow input{flex:1;border:1px solid var(--line);background:#0b0f17;color:#e5e7eb;border-radius:8px;padding:8px 10px}
+  .nameRow .save{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
 
-  /* ===== Win modal ===== */
-  .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:9990}
-  .winCard{background:#0e1016;border:1px solid var(--line);border-radius:18px;padding:22px;text-align:center;width:min(420px,92vw)}
-  .winCard h3{font-weight:200;font-size:28px;margin-bottom:10px;color:var(--accent)}
+  /* win modal */
+  .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);z-index:9980}
+  .winCard{background:#0e1016;border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;width:min(420px,92vw)}
+  .winCard h3{font-weight:200;font-size:24px;margin-bottom:8px;color:var(--accent)}
 </style>
 </head>
 <body>
-  <!-- floating admin -->
-  <div class="admin"><button id="adminBtn" title="Admin">⚙ Admin</button></div>
+  <div class="admin"><button id="adminBtn" title="Settings">⚙</button></div>
 
   <div class="wrap">
     <div class="title">DON'T TEST ME</div>
-    <div class="subtitle">
-      Here's one to test your hearing AND recall. Huh? <b>I SAID. TO TEST YOUR HEARING AND RECALL!!</b>
-    </div>
+    <div class="subtitle">Here's one to test your hearing AND recall. Huh? <b>I SAID. TO TEST YOUR HEARING AND RECALL!!</b></div>
     <div class="ticker" id="ticker">Welcome to the audio memory challenge!</div>
-
-    <div class="pillbar"><div class="pill ok">Persistence: IndexedDB (dbIndex)</div></div>
 
     <div class="tabs">
       <button class="tab active" data-game="0">Tones</button>
@@ -121,7 +101,6 @@
         <div class="stat"><div class="lab">ACCURACY</div><div class="val" id="accuracy">100%</div></div>
       </div>
 
-      <!-- the grid MUST be between stats and controls; it will be populated on load -->
       <div id="grid" class="grid" aria-label="game grid"></div>
 
       <div class="controls">
@@ -129,19 +108,17 @@
         <div class="ctrl timer" id="timer">Time: 0:00 | Attempts: 0</div>
         <button class="ctrl" id="audioBtn">🔊 Audio On</button>
         <button class="ctrl" id="scrambleBtn">Scramble</button>
-        <!-- second path into Admin, so you ALWAYS have access -->
-        <button class="ctrl" id="openAdmin">Open Admin</button>
+        <button class="ctrl" id="openAdmin" style="opacity:.6">Open Settings</button>
       </div>
     </section>
 
-    <div class="foot">Upload messages & custom audio via Admin. Everything persists locally in IndexedDB.</div>
+    <div class="foot">Upload messages & custom audio via Settings. Everything persists locally in IndexedDB.</div>
   </div>
 
   <!-- Admin Modal -->
   <div class="adminPanel" id="adminPanel" aria-hidden="true">
     <div class="adminCard">
-      <h3 style="text-align:center;margin-bottom:6px;">Admin</h3>
-      <p style="text-align:center;opacity:.9">Upload a .txt (funny messages) and up to 18 audio files per Custom Set. Data is stored in IndexedDB.</p>
+      <h3 style="text-align:center;margin-bottom:6px;font-weight:400">Settings</h3>
 
       <div class="slot">
         <h4>Funny Messages</h4>
@@ -150,22 +127,34 @@
       </div>
 
       <div class="slot">
+        <div class="nameRow">
+          <input id="name1" placeholder="Custom Set 1 name" />
+          <button class="save" id="save1">Save Name</button>
+        </div>
         <h4>Custom Set 1 <span id="s1count" style="opacity:.8">(0/18)</span></h4>
         <p>Upload up to 18 audio files (mp3, wav, ogg, m4a, flac). Replaces existing set.</p>
         <input type="file" id="files1" accept="audio/*" multiple />
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="save" id="clear1">Clear Set 1</button>
+        </div>
       </div>
 
       <div class="slot">
+        <div class="nameRow">
+          <input id="name2" placeholder="Custom Set 2 name" />
+          <button class="save" id="save2">Save Name</button>
+        </div>
         <h4>Custom Set 2 <span id="s2count" style="opacity:.8">(0/18)</span></h4>
         <p>Upload up to 18 audio files (mp3, wav, ogg, m4a, flac). Replaces existing set.</p>
         <input type="file" id="files2" accept="audio/*" multiple />
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button class="save" id="clear2">Clear Set 2</button>
+        </div>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
-        <button class="ctrl" id="closeAdmin">Close</button>
-        <button class="ctrl" id="clear1">Clear Set 1</button>
-        <button class="ctrl" id="clear2">Clear Set 2</button>
-        <button class="ctrl" id="clearMsgs">Clear Messages</button>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+        <button class="save" id="clearMsgs">Clear Messages</button>
+        <button class="save" id="closeAdmin">Close</button>
       </div>
     </div>
   </div>
@@ -174,10 +163,10 @@
   <div class="win" id="win">
     <div class="winCard">
       <h3>Perfect Match!</h3>
-      <div id="winStats" style="margin-bottom:14px;opacity:.9">Completed in 0:00 with 0 attempts (100% accuracy)</div>
-      <div style="display:flex;gap:10px;justify-content:center">
-        <button class="ctrl" id="playAgain">Play Again</button>
-        <button class="ctrl" id="hideWin">Close</button>
+      <div id="winStats" style="margin-bottom:12px;opacity:.9">Completed in 0:00 with 0 attempts (100% accuracy)</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="save" id="playAgain">Play Again</button>
+        <button class="save" id="hideWin">Close</button>
       </div>
     </div>
   </div>
@@ -187,12 +176,9 @@
 function dbIndex(){
   return new Promise((resolve,reject)=>{
     try{
-      const open=indexedDB.open('dtm.v1',1);
+      const open=indexedDB.open('dtm.v2',1);
       open.onupgradeneeded=()=>{const db=open.result;
-        if(!db.objectStoreNames.contains('audio1')) db.createObjectStore('audio1');
-        if(!db.objectStoreNames.contains('audio2')) db.createObjectStore('audio2');
-        if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
-        if(!db.objectStoreNames.contains('records')) db.createObjectStore('records');
+        ['audio1','audio2','meta','records'].forEach(s=>{ if(!db.objectStoreNames.contains(s)) db.createObjectStore(s); });
       };
       open.onerror=()=>reject(open.error);
       open.onsuccess=()=>{const db=open.result;
@@ -215,89 +201,61 @@ function dbIndex(){
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
 
-  /* DOM */
-  const gridEl = $('#grid');
-  const matchesEl = $('#matches');
-  const attemptsEl = $('#attempts');
-  const accuracyEl = $('#accuracy');
-  const timerEl = $('#timer');
-  const tickerEl = $('#ticker');
+  /* DOM refs */
+  const gridEl = $('#grid'), matchesEl=$('#matches'), attemptsEl=$('#attempts'), accuracyEl=$('#accuracy'), timerEl=$('#timer'), tickerEl=$('#ticker');
 
-  const btnNew = $('#newGame');
-  const btnAudio = $('#audioBtn');
-  const btnScramble = $('#scrambleBtn');
+  const btnNew=$('#newGame'), btnAudio=$('#audioBtn'), btnScramble=$('#scrambleBtn');
 
-  const adminBtn = $('#adminBtn');
-  const openAdmin = $('#openAdmin');
-  const adminPanel = $('#adminPanel');
-  const closeAdmin = $('#closeAdmin');
+  const adminBtn=$('#adminBtn'), openAdmin=$('#openAdmin'), adminPanel=$('#adminPanel'), closeAdmin=$('#closeAdmin');
 
-  const msgFile = $('#msgFile');
-  const files1 = $('#files1');
-  const files2 = $('#files2');
-  const clear1 = $('#clear1');
-  const clear2 = $('#clear2');
-  const clearMsgs = $('#clearMsgs');
-  const s1count = $('#s1count');
-  const s2count = $('#s2count');
-  const msgStatus = $('#msgStatus');
+  const msgFile=$('#msgFile'), files1=$('#files1'), files2=$('#files2'), clear1=$('#clear1'), clear2=$('#clear2'), clearMsgs=$('#clearMsgs');
+  const s1count=$('#s1count'), s2count=$('#s2count'), msgStatus=$('#msgStatus');
+  const name1=$('#name1'), name2=$('#name2'), save1=$('#save1'), save2=$('#save2');
+  const tab1=$('#tab1'), tab2=$('#tab2');
 
   /* State */
-  let currentGame = 0;
-  let sounds = [];
-  let firstClick = null;
-  let matched = new Set();
-  let matches = 0, attempts = 0;
-  let muted = false;
-  let audioCtx = null, playing = [];
-  let gameStart = null, gameTimer = null, currentTime = 0;
-  const customBuffers = [new Map(), new Map()];
-  const freqs = [220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
+  let currentGame=0, sounds=[], firstClick=null, matched=new Set(), matches=0, attempts=0;
+  let muted=false, audioCtx=null, playing=[], gameStart=null, gameTimer=null, currentTime=0;
+  const customBuffers=[new Map(), new Map()];
+  const freqs=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
 
-  function ensureAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} } if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
+  /* Audio helpers */
+  function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch{} } if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }
   function stopAll(){ playing.forEach(s=>{try{s.stop()}catch{}}); playing=[]; }
-  function playTone(f,d=.45){ if(muted) return; ensureAudio(); if(!audioCtx) return; stopAll();
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.type='sine'; o.frequency.value=f;
-    g.gain.setValueAtTime(0,audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0.14,audioCtx.currentTime+.03);
-    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
-    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); playing.push(o);
-  }
-  function playBuffer(buf){ if(muted) return; ensureAudio(); if(!audioCtx||!buf) return; stopAll();
-    const s=audioCtx.createBufferSource(), g=audioCtx.createGain();
-    s.buffer=buf; s.connect(g); g.connect(audioCtx.destination); g.gain.value=.7; s.start(); playing.push(s);
-  }
+  function playTone(f,d=.45){ if(muted) return; ensureAudio(); if(!audioCtx) return; stopAll(); const o=audioCtx.createOscillator(), g=audioCtx.createGain(); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0,audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.14,audioCtx.currentTime+.03); g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+d); playing.push(o); }
+  function playBuffer(buf){ if(muted) return; ensureAudio(); if(!audioCtx||!buf) return; stopAll(); const s=audioCtx.createBufferSource(), g=audioCtx.createGain(); s.buffer=buf; s.connect(g); g.connect(audioCtx.destination); g.gain.value=.7; s.start(); playing.push(s); }
 
-  function shuffle(a){const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x;}
-  function pairs(){const a=[]; for(let i=0;i<18;i++) a.push(i,i); return shuffle(a);}
-  function fmt(sec){const m=Math.floor(sec/60),s=sec%60; return `${m}:${String(s).padStart(2,'0')}`;}
+  /* Utils */
+  const shuffle=a=>{const x=a.slice(); for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]];} return x;};
+  const pairs=()=>{const a=[]; for(let i=0;i<18;i++) a.push(i,i); return shuffle(a);};
+  const fmt=sec=>{const m=Math.floor(sec/60),s=sec%60; return `${m}:${String(s).padStart(2,'0')}`;};
 
+  /* Render */
   function makeGrid(){
     gridEl.innerHTML='';
     for(let i=0;i<36;i++){
       const b=document.createElement('button');
-      b.className='btn';
+      b.className='btn'; b.type='button'; b.setAttribute('tabindex','0');
       b.innerHTML=`<span>${i+1}</span>`;
       b.addEventListener('click',()=>onCell(i));
+      b.addEventListener('mousedown',e=>e.preventDefault()); // avoid focus-latch glow
       gridEl.appendChild(b);
     }
   }
-
+  function clearAllButtonClasses(){
+    $$('.btn').forEach((b,i)=>{ b.className='btn'; b.innerHTML=`<span>${i+1}</span>`; b.blur(); });
+  }
   function refreshPlaceholders(){
-    const btns = $$('.btn');
+    const btns=$$('.btn');
     btns.forEach(b=>b.classList.remove('placeholder'));
     if(currentGame===1 && customBuffers[0].size<18) btns.forEach(b=>b.classList.add('placeholder'));
     if(currentGame===2 && customBuffers[1].size<18) btns.forEach(b=>b.classList.add('placeholder'));
   }
-
   function updStats(){
-    matchesEl.textContent = matches;
-    attemptsEl.textContent = attempts;
-    const acc = attempts===0?100:Math.round(matches/attempts*100);
-    accuracyEl.textContent = acc + '%';
+    matchesEl.textContent=matches; attemptsEl.textContent=attempts;
+    const acc=attempts===0?100:Math.round(matches/attempts*100); accuracyEl.textContent=acc+'%';
   }
-  function startTimer(){ if(gameTimer) return; gameStart=Date.now(); gameTimer=setInterval(()=>{ currentTime = Math.floor((Date.now()-gameStart)/1000); timerEl.textContent=`Time: ${fmt(currentTime)} | Attempts: ${attempts}`; },1000); }
+  function startTimer(){ if(gameTimer) return; gameStart=Date.now(); gameTimer=setInterval(()=>{ currentTime=Math.floor((Date.now()-gameStart)/1000); timerEl.textContent=`Time: ${fmt(currentTime)} | Attempts: ${attempts}`; },1000); }
   function stopTimer(){ if(gameTimer){ clearInterval(gameTimer); gameTimer=null; } }
 
   function playToken(t){ if(currentGame===0) playTone(freqs[t%18]); else { const set=currentGame-1; const buf=customBuffers[set].get(t%18); if(buf) playBuffer(buf); } }
@@ -307,20 +265,21 @@ function dbIndex(){
     if(!gameStart) startTimer();
     playToken(sounds[i]);
 
-    const btns=$$('.btn');
-    btns[i].style.transform='translateY(-2px)'; setTimeout(()=>btns[i].style.transform='',110);
+    const btn=$$('.btn')[i];
+    btn.style.transform='translateY(-1px)'; setTimeout(()=>btn.style.transform='',90);
 
     if(firstClick===null){ firstClick=i; return; }
     attempts++; updStats();
 
     if(sounds[firstClick]===sounds[i] && firstClick!==i){
       matched.add(firstClick); matched.add(i);
-      btns[firstClick].classList.add('matched'); btns[i].classList.add('matched');
+      const b1=$$('.btn')[firstClick], b2=$$('.btn')[i];
+      b1.classList.add('matched'); b2.classList.add('matched');
       matches++; updStats();
       if(matches===18){
         stopTimer();
-        const acc = attempts===0?100:Math.round(matches/attempts*100);
-        $('#winStats').textContent = `Completed in ${fmt(currentTime)} with ${attempts} attempts (${acc}% accuracy)`;
+        const acc=attempts===0?100:Math.round(matches/attempts*100);
+        $('#winStats').textContent=`Completed in ${fmt(currentTime)} with ${attempts} attempts (${acc}% accuracy)`;
         $('#win').style.display='flex';
         await saveRecord(currentGame,currentTime,attempts);
       }
@@ -329,13 +288,15 @@ function dbIndex(){
   }
 
   function resetGame(){
-    try{
-      stopTimer();
-      sounds=pairs();
-      matched=new Set(); firstClick=null; matches=0; attempts=0; currentTime=0;
-      $$('.btn').forEach((b,i)=>{ b.className='btn'; b.innerHTML=`<span>${i+1}</span>`; });
-      updStats(); timerEl.textContent='Time: 0:00 | Attempts: 0';
-    }catch(err){ console.error('resetGame',err); }
+    stopTimer();
+    sounds=pairs();
+    matched.clear();
+    firstClick=null;
+    matches=0; attempts=0; currentTime=0;
+    clearAllButtonClasses();
+    updStats();
+    timerEl.textContent='Time: 0:00 | Attempts: 0';
+    refreshPlaceholders();
   }
 
   async function saveRecord(gameId,time,att){
@@ -352,11 +313,10 @@ function dbIndex(){
   async function getMsgs(){ try{ const db=await dbIndex(); const msgs=await db.get('meta','messages'); return Array.isArray(msgs)&&msgs.length?msgs:null; }catch{return null;} }
   async function startTicker(){
     clearTicker();
-    const msgs = await getMsgs();
-    const el = tickerEl;
+    const msgs=await getMsgs(); const el=tickerEl;
     el.textContent="Welcome to the audio memory challenge!";
     t1=setTimeout(()=>{ el.textContent="Click buttons to hear sounds, find matching pairs!";
-      t2=setTimeout(()=>{ if(msgs && msgs.length){ const show=()=>{ const m=msgs[Math.floor(Math.random()*msgs.length)]; el.textContent=m; if(blankT) clearTimeout(blankT); blankT=setTimeout(()=>{ el.textContent=''; },10000); }; show(); tickerInt=setInterval(show,20000); msgStatus.textContent=`${msgs.length} message(s) loaded`; } else { el.textContent="Welcome to the audio memory challenge!"; } },20000);
+      t2=setTimeout(()=>{ if(msgs && msgs.length){ const show=()=>{ const m=msgs[Math.floor(Math.random()*msgs.length)]; el.textContent=m; if(blankT) clearTimeout(blankT); blankT=setTimeout(()=>{ el.textContent=''; },10000); }; show(); tickerInt=setInterval(show,20000); msgStatus.textContent=`${msgs.length} message(s) loaded`; } else { el.textContent=""; } },20000);
     },10000);
   }
 
@@ -378,9 +338,9 @@ function dbIndex(){
   $('#playAgain').onclick=()=>{ $('#win').style.display='none'; resetGame(); };
   $('#hideWin').onclick=()=>{ $('#win').style.display='none'; };
 
-  adminBtn.onclick = () => adminPanel.style.display='flex';
-  openAdmin.onclick = () => adminPanel.style.display='flex';
-  closeAdmin.onclick = () => adminPanel.style.display='none';
+  const showAdmin = () => adminPanel.style.display='flex';
+  const hideAdmin = () => adminPanel.style.display='none';
+  adminBtn.onclick = showAdmin; openAdmin.onclick = showAdmin; closeAdmin.onclick = hideAdmin;
 
   msgFile.onchange = async e=>{
     try{
@@ -413,9 +373,21 @@ function dbIndex(){
         customBuffers[setIdx].set(i,buf); i++;
       }
       if(setIdx===0) s1count.textContent=`(${customBuffers[0].size}/18)`; else s2count.textContent=`(${customBuffers[1].size}/18)`;
-      refreshPlaceholders(); alert(`Loaded ${i} file(s) into Custom Set ${setIdx+1}.`);
+      refreshPlaceholders(); alert(`Loaded ${i} file(s) into ${setIdx===0 ? (name1.value||'Custom Set 1') : (name2.value||'Custom Set 2')}.`);
     }catch(err){ console.error('uploadSet',err); alert('Audio upload failed'); }
   }
+
+  // Save / load custom names
+  async function loadNames(){
+    try{
+      const db=await dbIndex();
+      const n1=await db.get('meta','name1')||'Custom Set 1';
+      const n2=await db.get('meta','name2')||'Custom Set 2';
+      name1.value=n1; name2.value=n2; tab1.textContent=n1; tab2.textContent=n2;
+    }catch{}
+  }
+  save1.onclick = async ()=>{ const v=name1.value.trim()||'Custom Set 1'; const db=await dbIndex(); await db.put('meta','name1',v); tab1.textContent=v; alert('Name saved.'); };
+  save2.onclick = async ()=>{ const v=name2.value.trim()||'Custom Set 2'; const db=await dbIndex(); await db.put('meta','name2',v); tab2.textContent=v; alert('Name saved.'); };
 
   /* Tabs & Controls */
   $$('.tab').forEach(tab=>{
@@ -423,30 +395,23 @@ function dbIndex(){
       $$('.tab').forEach(t=>t.classList.remove('active'));
       tab.classList.add('active');
       currentGame = Number(tab.dataset.game);
-      resetGame(); refreshPlaceholders();
+      resetGame();
     });
   });
-  btnNew.onclick = () => resetGame();
-  btnScramble.onclick = () => { sounds = shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; updStats(); };
+  btnNew.onclick = resetGame;
+  btnScramble.onclick = ()=>{ sounds=shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; updStats(); clearAllButtonClasses(); refreshPlaceholders(); };
   btnAudio.onclick = e => { muted=!muted; e.currentTarget.textContent = muted ? '🔇 Audio Off' : '🔊 Audio On'; };
 
   /* Boot */
   function boot(){
-    try{
-      makeGrid();                 // <-- this guarantees keys render
-      resetGame();
-      loadSet(0).then(()=>refreshPlaceholders());
-      loadSet(1).then(()=>refreshPlaceholders());
-      startTicker();
-    }catch(err){
-      console.error('boot',err);
-      // render placeholder keys so you still see the grid
-      if(!gridEl.children.length){ makeGrid(); }
-    }
+    makeGrid();
+    resetGame();
+    loadSet(0).then(refreshPlaceholders);
+    loadSet(1).then(refreshPlaceholders);
+    loadNames();
+    startTicker();
   }
   document.addEventListener('DOMContentLoaded', boot);
-
-  // iOS resume
   document.addEventListener('click',()=>{ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); },{once:true});
 })();
 </script>
