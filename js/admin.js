@@ -1,15 +1,16 @@
-import { $, shuffle } from './utils.js';
+import { $ } from './utils.js';
 import { initAudio, getCtx, normalize } from './audio.js';
 import { loadMessages, saveMessages, clearMessages as clearMsgsStore, loadNames, saveNames } from './storage.js';
-import { PASSWORD, getCustomBuffers, setCustomBuffers, switchGame, getCurrentGame, setGameNames } from './game.js';
+import { PASSWORD, getCustomBuffers, setCustomBuffers, switchGame, setGameNames } from './game.js';
 
 let funnyMessages = loadMessages();
+
 function updateMessageStatus(){
   $('messageStatus').textContent = funnyMessages.length ? `${funnyMessages.length} messages loaded` : 'No messages loaded';
   $('messageStatus').className = 'slot-status ' + (funnyMessages.length ? 'ready' : '');
 }
 
-// open/close
+// open/close admin
 export function showAdmin() {
   const pass = prompt('Enter admin password:');
   if (pass !== PASSWORD) { if (pass !== null) alert('Incorrect password'); return; }
@@ -22,12 +23,13 @@ export function hideAdmin() {
   $('adminBackdrop').setAttribute('aria-hidden','true');
 }
 
-// refresh fields
+// refresh view
 function refreshAdmin(){
   const [n1, n2] = loadNames();
   $('name1').value = n1; $('name2').value = n2;
   updateSlotStatus(1); updateSlotStatus(2);
   updateMessageStatus();
+  bindNameInputsOnce();
 }
 
 // slot status
@@ -39,21 +41,22 @@ function updateSlotStatus(slot){
   else { el.textContent = 'Empty (0/18)'; el.className = 'slot-status'; }
 }
 
-// names
-function bindNameInputs(){
-  $('name1').addEventListener('input', ()=>{
+// bind names (once)
+let namesBound = false;
+function bindNameInputsOnce(){
+  if (namesBound) return;
+  namesBound = true;
+  const handler = ()=>{
     const names = [ $('name1').value || 'Custom Set 1', $('name2').value || 'Custom Set 2' ];
     saveNames(names); setGameNames(names);
     document.getElementById('tab1').textContent = names[0];
-  });
-  $('name2').addEventListener('input', ()=>{
-    const names = [ $('name1').value || 'Custom Set 1', $('name2').value || 'Custom Set 2' ];
-    saveNames(names); setGameNames(names);
     document.getElementById('tab2').textContent = names[1];
-  });
+  };
+  $('name1').addEventListener('input', handler);
+  $('name2').addEventListener('input', handler);
 }
 
-// audio file processing
+// file processing for custom sets
 async function processFiles(files, slot){
   initAudio(); if (!getCtx()) { alert('Audio context not available. Please try again.'); return; }
   const idx = slot - 1;
@@ -68,7 +71,7 @@ async function processFiles(files, slot){
       const ab = await files[i].arrayBuffer();
       const decoded = await getCtx().decodeAudioData(ab);
       buffers.push(normalize(decoded));
-      await new Promise(r=>setTimeout(r,40));
+      await new Promise(r=>setTimeout(r,35));
     }
     setCustomBuffers(idx, buffers);
     updateSlotStatus(slot);
@@ -80,7 +83,7 @@ async function processFiles(files, slot){
   }
 }
 
-// bind admin DOM
+// public binder for app.js
 export function bindAdminUI(){
   $('adminBtn').addEventListener('click', showAdmin);
   $('closeAdminBtn').addEventListener('click', hideAdmin);
@@ -93,6 +96,7 @@ export function bindAdminUI(){
     if (!lines.length) { alert('No valid messages (1–150 chars each).'); return; }
     funnyMessages = lines; saveMessages(funnyMessages); updateMessageStatus(); alert(`Loaded ${funnyMessages.length} messages.`); e.target.value='';
   });
+  // drag/drop
   $('messageDrop').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('dragover'); });
   $('messageDrop').addEventListener('dragleave', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.remove('dragover'); });
   $('messageDrop').addEventListener('drop', async (ev)=>{
@@ -126,8 +130,6 @@ export function bindAdminUI(){
   };
   bindDrop('drop1','files1',1,'clear1Btn','test1Btn');
   bindDrop('drop2','files2',2,'clear2Btn','test2Btn');
-
-  bindNameInputs();
 }
 
 // expose funny messages to ticker
