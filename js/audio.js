@@ -4,7 +4,7 @@ let currentSources = [];
 export function initAudio() {
   if (!audioContext) {
     try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch { /* ignore */ }
+    catch { /* no audio */ }
   }
 }
 export function getCtx() { return audioContext; }
@@ -52,7 +52,7 @@ export function normalize(buffer) {
   return out;
 }
 
-// resume on first click (mobile)
+// resume once (mobile), stop on hide
 document.addEventListener('click', () => {
   if (audioContext && audioContext.state === 'suspended') audioContext.resume();
 }, { once: true });
