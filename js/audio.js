@@ -1,5 +1,7 @@
 let audioContext = null;
 let currentSources = [];
+let onStart = null;
+let onStop = null;
 
 export function getContext() {
   if (!audioContext) {
@@ -10,9 +12,18 @@ export function getContext() {
   return audioContext;
 }
 
+export function setAudioCallbacks(startCb, stopCb) {
+  onStart = startCb;
+  onStop = stopCb;
+}
+
+function notifyStart(label) { if (onStart) onStart(label); }
+function notifyStop() { if (onStop) onStop(); }
+
 export function stopAll() {
   currentSources.forEach(s => { try { s.stop(); } catch {} });
   currentSources = [];
+  notifyStop();
 }
 
 export function playTone(freq, muted, duration = 0.45) {
@@ -27,7 +38,9 @@ export function playTone(freq, muted, duration = 0.45) {
   g.gain.setValueAtTime(0, ac.currentTime);
   g.gain.linearRampToValueAtTime(0.16, ac.currentTime + 0.02);
   g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+  notifyStart(`Tone ${Math.round(freq)} Hz`);
   osc.start(); osc.stop(ac.currentTime + duration);
+  osc.onended = () => notifyStop();
   currentSources.push(osc);
 }
 
@@ -63,4 +76,10 @@ export function playBuffer(buf, muted) {
   const src = ac.createBufferSource();
   const g = ac.createGain();
   src.buffer = buf;
-  src.connec
+  src.connect(g); g.connect(ac.destination);
+  g.gain.value = 0.9;
+  notifyStart('Custom sample');
+  src.start();
+  src.onended = () => notifyStop();
+  currentSources.push(src);
+}
