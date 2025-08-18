@@ -59,6 +59,12 @@
     </div>
   </div>
 
+  <!-- Player bar -->
+  <div class="player-bar" id="playerBar" aria-live="polite">
+    <div class="led" id="led"></div>
+    <div class="player-text" id="playerText">Ready</div>
+  </div>
+
   <!-- Win Modal -->
   <div class="win" id="win">
     <div class="win-content">
@@ -83,7 +89,7 @@
           <div style="font-weight:700">Funny Messages</div>
           <div class="slot-status" id="messageStatus">No messages loaded</div>
         </div>
-        <div class="upload" id="messageDrop" tabindex="0">
+        <div class="upload" id="messageDrop" tabindex="0" aria-label="Upload messages">
           <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
           <div class="upload-hint">Plain .txt recommended</div>
           <input class="hidden-file" type="file" id="messageFile" accept=".txt"/>
@@ -109,7 +115,7 @@
           <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name"/>
           <div class="slot-status" id="status1">Empty (0/18)</div>
         </div>
-        <div class="upload" id="drop1" tabindex="0">
+        <div class="upload" id="drop1" tabindex="0" aria-label="Upload audio for Custom Set 1">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
           <input class="hidden-file" type="file" id="files1" multiple accept="audio/*"/>
@@ -126,7 +132,7 @@
           <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name"/>
           <div class="slot-status" id="status2">Empty (0/18)</div>
         </div>
-        <div class="upload" id="drop2" tabindex="0">
+        <div class="upload" id="drop2" tabindex="0" aria-label="Upload audio for Custom Set 2">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
           <input class="hidden-file" type="file" id="files2" multiple accept="audio/*"/>
