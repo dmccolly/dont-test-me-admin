@@ -769,6 +769,11 @@
         let funnyMessages = [];
         let messageTimer = null;
         let currentMessageIndex = 0;
+        let gameStates = {
+            0: null, // Tones game state
+            1: null, // Custom Set 1 state  
+            2: null  // Custom Set 2 state
+        };
         let bestRecords = {
             0: { time: null, attempts: null },
             1: { time: null, attempts: null },
@@ -1330,7 +1335,81 @@
             currentAudioSources = [];
         }
 
-        function playSound(index) {
+        // Game state management
+        function saveCurrentGameState() {
+            if (sounds.length === 0) return; // No game in progress
+
+            gameStates[currentGame] = {
+                sounds: [...sounds],
+                matched: Array.from(matched),
+                firstClick: firstClick,
+                matches: matches,
+                attempts: attempts,
+                gameStartTime: gameStartTime,
+                currentTime: currentTime,
+                hasGameState: true
+            };
+            
+            console.log(`💾 Saved state for game ${currentGame}`);
+        }
+
+        function loadGameState(gameIndex) {
+            const state = gameStates[gameIndex];
+            
+            if (!state || !state.hasGameState) {
+                // No saved state, start fresh
+                resetGameVariables();
+                generateSounds();
+                createGrid();
+                updateStats();
+                updateTimerDisplay();
+                console.log(`🆕 Starting fresh game ${gameIndex}`);
+                return;
+            }
+
+            // Restore saved state
+            sounds = [...state.sounds];
+            matched = new Set(state.matched);
+            firstClick = state.firstClick;
+            matches = state.matches;
+            attempts = state.attempts;
+            gameStartTime = state.gameStartTime;
+            currentTime = state.currentTime;
+
+            // Recreate grid with saved state
+            createGrid();
+            
+            // Apply matched state to buttons
+            state.matched.forEach(index => {
+                const btn = document.querySelectorAll('.btn')[index];
+                if (btn) btn.classList.add('matched');
+            });
+
+            // Resume timer if game was in progress
+            if (gameStartTime && matches < 18) {
+                startTimer();
+            }
+
+            updateStats();
+            updateTimerDisplay();
+            console.log(`🔄 Restored state for game ${gameIndex}: ${matches}/18 matches, ${attempts} attempts`);
+        }
+
+        function clearGameState(gameIndex) {
+            gameStates[gameIndex] = null;
+            console.log(`🗑️ Cleared state for game ${gameIndex}`);
+        }
+
+        function resetGameVariables() {
+            sounds = [];
+            matched = new Set();
+            firstClick = null;
+            matches = 0;
+            attempts = 0;
+            gameStartTime = null;
+            currentTime = 0;
+            stopTimer();
+        }
             if (currentGame === 0) {
                 const buffer = generateTone(frequencies[index]);
                 if (buffer) playAudioBuffer(buffer);
@@ -1371,6 +1450,18 @@
             sounds = soundIndices;
         }
 
+        function playSound(index) {
+            if (currentGame === 0) {
+                const buffer = generateTone(frequencies[index]);
+                if (buffer) playAudioBuffer(buffer);
+            } else {
+                const slotIndex = currentGame - 1;
+                if (customBuffers[slotIndex] && customBuffers[slotIndex][index]) {
+                    playAudioBuffer(customBuffers[slotIndex][index]);
+                }
+            }
+        }
+
         function handleClick(index) {
             if (matched.has(index)) return;
 
@@ -1403,11 +1494,21 @@
                     btn1.classList.add('matched');
                     btn2.classList.add('matched');
 
+                    // Play success sound for match
+                    playSuccessSound();
+
                     if (matches === 18) {
                         stopTimer();
                         showWin();
                         updateBestRecord();
+                        clearGameState(currentGame); // Clear completed game state
+                    } else {
+                        // Save progress after each match
+                        saveCurrentGameState();
                     }
+                } else {
+                    // Save progress after each attempt
+                    saveCurrentGameState();
                 }
 
                 firstClick = null;
