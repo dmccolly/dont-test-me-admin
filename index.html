@@ -1,1178 +1,4 @@
-<button class="admin-btn-action secondary" onclick="autoPopulate(1)">🎲 Auto-Populate Keys</button>
-                <button class="admin-btn-action secondary" onclick="testGame(1)">🎮 Test Game</button>
-                <button class="admin-btn-action secondary" onclick="clearSlot(1)">🗑️ Clear All</button>
-            </div>
-        </div>
-
-        <div class="slot">
-            <div class="slot-header">
-                <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name" onchange="updateGameName(2)">
-                <div class="slot-status" id="status2">Empty (0/18)</div>
-            </div>
-            <div class="upload" onclick="document.getElementById('files2').click()" 
-                 ondrop="handleDrop(event, 2)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
-                <div class="upload-hint">Supports: MP3, WAV, OGG, M4A, FLAC</div>
-                <input type="file" id="files2" multiple accept="audio/*" style="display: none;" onchange="handleFiles(event, 2)">
-            </div>
-            <div class="progress-bar" id="progress2">
-                <div class="progress-fill" id="progressFill2"></div>
-            </div>
-            <div class="file-preview" id="filePreview2"></div>
-            <div class="admin-actions">
-                <button class="admin-btn-action secondary" onclick="autoPopulate(2)">🎲 Auto-Populate Keys</button>
-                <button class="admin-btn-action secondary" onclick="testGame(2)">🎮 Test Game</button>
-                <button class="admin-btn-action secondary" onclick="clearSlot(2)">🗑️ Clear All</button>
-            </div>
-        </div>
-
-        <div class="admin-actions">
-            <button class="admin-btn-action secondary" onclick="exportGameData()">💾 Export Games</button>
-            <button class="admin-btn-action primary" onclick="document.getElementById('importInput').click()">📂 Import Games</button>
-            <button class="admin-btn-action secondary" onclick="hideAdmin()">Close Admin</button>
-            <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importGameData(event)">
-        </div>
-    </div>
-
-    <div class="win" id="win">
-        <div class="win-content">
-            <div class="win-title">Perfect Match!</div>
-            <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
-            <div class="win-actions">
-                <button class="win-btn" onclick="playAgain()">Play Again</button>
-                <button class="win-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
-                <button class="win-btn" onclick="showGameOptions()">Other Games</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Game state
-        let currentGame = 0;
-        let sounds = [];
-        let matched = new Set();
-        let firstClick = null;
-        let matches = 0;
-        let attempts = 0;
-        let muted = false;
-        let audioContext = null;
-        let currentAudioSources = [];
-        let gameStartTime = null;
-        let gameTimer = null;
-        let currentTime = 0;
-        let customBuffers = [[], []];
-        let fileMetadata = [[], []];
-        let gameNames = ["Custom Set 1", "Custom Set 2"];
-        let adminVisible = false;
-        let funnyMessages = [];
-        let messageTimer = null;
-        let bestRecords = {
-            0: { time: null, attempts: null },
-            1: { time: null, attempts: null },
-            2: { time: null, attempts: null }
-        };
-        const frequencies = [220, 246, 261, 293, 329, 349, 392, 440, 493, 523, 587, 659, 698, 783, 880, 987, 1046, 1174];
-
-        // Message rotation system
-        function startMessageRotation() {
-            if (funnyMessages.length === 0) return;
-            
-            if (messageTimer) clearInterval(messageTimer);
-            
-            showRandomMessage();
-            messageTimer = setInterval(showRandomMessage, 40000);
-        }
-
-        function stopMessageRotation() {
-            if (messageTimer) {
-                clearInterval(messageTimer);
-                messageTimer = null;
-            }
-        }
-
-        function showRandomMessage() {
-            if (funnyMessages.length === 0) return;
-            
-            const randomIndex = Math.floor(Math.random() * funnyMessages.length);
-            const message = funnyMessages[randomIndex];
-            
-            const messageEl = document.getElementById('rotatingMessage');
-            messageEl.textContent = message;
-        }
-
-        function handleMessageFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const text = e.target.result;
-                    const lines = text.split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line.length > 0 && line.length <= 40);
-
-                    if (lines.length === 0) {
-                        alert('No valid messages found. Each line should be 1-40 characters.');
-                        return;
-                    }
-
-                    funnyMessages = lines;
-                    await saveMessages();
-                    
-                    document.getElementById('messageStatus').textContent = 
-                        `${funnyMessages.length} messages loaded`;
-                    
-                    startMessageRotation();
-                    alert(`Successfully loaded ${funnyMessages.length} funny messages!`);
-
-                } catch (error) {
-                    console.error('Error loading messages:', error);
-                    alert('Error reading message file');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        async function saveMessages() {
-            try {
-                if (db) {
-                    await saveToIndexedDB('funnyMessages', funnyMessages);
-                } else {
-                    localStorage.setItem('dontTestMeMessages', JSON.stringify(funnyMessages));
-                }
-                console.log('✅ Messages saved');
-            } catch (error) {
-                console.error('❌ Failed to save messages:', error);
-            }
-        }
-
-        async function loadMessages() {
-            try {
-                let messages = null;
-                
-                if (db) {
-                    messages = await loadFromIndexedDB('funnyMessages');
-                }
-                
-                if (!messages) {
-                    const lsData = localStorage.getItem('dontTestMeMessages');
-                    if (lsData) {
-                        messages = JSON.parse(lsData);
-                    }
-                }
-
-                if (messages && Array.isArray(messages) && messages.length > 0) {
-                    funnyMessages = messages;
-                    document.getElementById('messageStatus').textContent = 
-                        `${funnyMessages.length} messages loaded`;
-                    startMessageRotation();
-                    console.log(`✅ Loaded ${funnyMessages.length} messages`);
-                }
-            } catch (error) {
-                console.error('❌ Failed to load messages:', error);
-            }
-        }
-
-        function previewMessages() {
-            if (funnyMessages.length === 0) {
-                alert('No messages loaded. Please upload a message file first.');
-                return;
-            }
-
-            const preview = funnyMessages.slice(0, 10).join('\n');
-            const more = funnyMessages.length > 10 ? `\n\n... and ${funnyMessages.length - 10} more messages` : '';
-            
-            alert(`Preview of your messages:\n\n${preview}${more}`);
-        }
-
-        async function clearMessages() {
-            if (confirm('Clear all funny messages?')) {
-                funnyMessages = [];
-                stopMessageRotation();
-                
-                try {
-                    if (db) {
-                        const transaction = db.transaction([STORE_NAME], 'readwrite');
-                        const store = transaction.objectStore(STORE_NAME);
-                        await store.delete('funnyMessages');
-                    }
-                    localStorage.removeItem('dontTestMeMessages');
-                } catch (error) {
-                    console.error('Error clearing messages:', error);
-                }
-                
-                document.getElementById('messageStatus').textContent = 'No messages loaded';
-                document.getElementById('rotatingMessage').textContent = 'Welcome to the audio memory challenge!';
-            }
-        }
-
-        // Persistent storage system
-        let db = null;
-        const DB_NAME = 'DontTestMeDB';
-        const DB_VERSION = 2;
-        const STORE_NAME = 'audioGames';
-
-        async function initIndexedDB() {
-            return new Promise((resolve, reject) => {
-                console.log('🔄 Initializing IndexedDB...');
-                
-                if (!window.indexedDB) {
-                    console.error('❌ IndexedDB not supported');
-                    updateStorageStatus('error', 'IndexedDB not supported - using localStorage fallback');
-                    reject(new Error('IndexedDB not supported'));
-                    return;
-                }
-
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-                request.onerror = (event) => {
-                    console.error('❌ IndexedDB failed to open:', event.target.error);
-                    updateStorageStatus('error', 'IndexedDB failed to initialize - using localStorage fallback');
-                    reject(event.target.error);
-                };
-
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    console.log('✅ IndexedDB opened successfully');
-                    updateStorageStatus('success', 'IndexedDB initialized - Your audio files will persist across sessions');
-                    
-                    db.onerror = (event) => {
-                        console.error('IndexedDB error:', event.target.error);
-                    };
-                    
-                    resolve(db);
-                };
-
-                request.onupgradeneeded = (event) => {
-                    console.log('🔄 Upgrading IndexedDB schema...');
-                    db = event.target.result;
-
-                    if (db.objectStoreNames.contains(STORE_NAME)) {
-                        db.deleteObjectStore(STORE_NAME);
-                    }
-
-                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    store.createIndex('timestamp', 'timestamp', { unique: false });
-                    store.createIndex('type', 'type', { unique: false });
-                    
-                    console.log('✅ IndexedDB schema upgraded');
-                };
-
-                request.onblocked = () => {
-                    console.warn('⚠️ IndexedDB upgrade blocked - close other tabs');
-                    updateStorageStatus('error', 'Database upgrade blocked - close other tabs and refresh');
-                };
-            });
-        }
-
-        function updateStorageStatus(type, message) {
-            const statusEl = document.getElementById('storageStatus');
-            if (statusEl) {
-                statusEl.className = `storage-status ${type}`;
-                statusEl.innerHTML = type === 'success' ? `✅ ${message}` : `❌ ${message}`;
-            }
-        }
-
-        async function saveToIndexedDB(id, data) {
-            if (!db) throw new Error('IndexedDB not available');
-
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const store = transaction.objectStore(STORE_NAME);
-
-                const saveData = {
-                    id: id,
-                    data: data,
-                    timestamp: Date.now(),
-                    type: 'gameData'
-                };
-
-                const request = store.put(saveData);
-
-                transaction.oncomplete = () => {
-                    console.log(`✅ Saved ${id} to IndexedDB`);
-                    resolve();
-                };
-
-                transaction.onerror = (event) => {
-                    console.error(`❌ Failed to save ${id} to IndexedDB:`, event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        async function loadFromIndexedDB(id) {
-            if (!db) throw new Error('IndexedDB not available');
-
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction([STORE_NAME], 'readonly');
-                const store = transaction.objectStore(STORE_NAME);
-                const request = store.get(id);
-
-                request.onsuccess = () => {
-                    const result = request.result;
-                    if (result) {
-                        console.log(`✅ Loaded ${id} from IndexedDB`);
-                        resolve(result.data);
-                    } else {
-                        console.log(`ℹ️ No data found for ${id} in IndexedDB`);
-                        resolve(null);
-                    }
-                };
-
-                request.onerror = (event) => {
-                    console.error(`❌ Failed to load ${id} from IndexedDB:`, event.target.error);
-                    reject(event.target.error);
-                };
-            });
-        }
-
-        async function saveAudioFile(slotIndex, fileIndex, audioBuffer, metadata) {
-            const id = `audio_${slotIndex}_${fileIndex}`;
-            
-            const channels = [];
-            for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-                channels.push(Array.from(audioBuffer.getChannelData(i)));
-            }
-            
-            const audioData = {
-                sampleRate: audioBuffer.sampleRate,
-                length: audioBuffer.length,
-                numberOfChannels: audioBuffer.numberOfChannels,
-                channels: channels,
-                metadata: metadata
-            };
-
-            await saveToIndexedDB(id, audioData);
-        }
-
-        async function loadAudioFile(slotIndex, fileIndex) {
-            const id = `audio_${slotIndex}_${fileIndex}`;
-            
-            try {
-                const audioData = await loadFromIndexedDB(id);
-                if (!audioData) return null;
-
-                const audioBuffer = audioContext.createBuffer(
-                    audioData.numberOfChannels,
-                    audioData.length,
-                    audioData.sampleRate
-                );
-
-                for (let i = 0; i < audioData.numberOfChannels; i++) {
-                    const channelData = audioBuffer.getChannelData(i);
-                    for (let j = 0; j < audioData.channels[i].length; j++) {
-                        channelData[j] = audioData.channels[i][j];
-                    }
-                }
-
-                return { buffer: audioBuffer, metadata: audioData.metadata };
-            } catch (error) {
-                console.error(`Failed to load audio file ${id}:`, error);
-                return null;
-            }
-        }
-
-        async function saveGameConfig() {
-            const config = {
-                gameNames: gameNames,
-                fileMetadata: fileMetadata,
-                bestRecords: bestRecords,
-                audioFileCounts: [customBuffers[0].length, customBuffers[1].length]
-            };
-
-            try {
-                if (db) {
-                    await saveToIndexedDB('gameConfig', config);
-                } else {
-                    localStorage.setItem('dontTestMeConfig', JSON.stringify(config));
-                }
-                console.log('✅ Game configuration saved');
-            } catch (error) {
-                console.error('❌ Failed to save game configuration:', error);
-                try {
-                    localStorage.setItem('dontTestMeConfig', JSON.stringify(config));
-                    console.log('✅ Game configuration saved to localStorage fallback');
-                } catch (lsError) {
-                    console.error('❌ localStorage fallback also failed:', lsError);
-                }
-            }
-        }
-
-        async function loadGameConfig() {
-            try {
-                let config = null;
-                
-                if (db) {
-                    config = await loadFromIndexedDB('gameConfig');
-                }
-                
-                if (!config) {
-                    const lsData = localStorage.getItem('dontTestMeConfig');
-                    if (lsData) {
-                        config = JSON.parse(lsData);
-                        console.log('📁 Loaded config from localStorage fallback');
-                    }
-                }
-
-                if (config) {
-                    if (config.gameNames) {
-                        gameNames = config.gameNames;
-                        document.getElementById('name1').value = gameNames[0];
-                        document.getElementById('name2').value = gameNames[1];
-                        document.getElementById('tab1').textContent = gameNames[0];
-                        document.getElementById('tab2').textContent = gameNames[1];
-                    }
-
-                    if (config.fileMetadata) {
-                        fileMetadata = config.fileMetadata;
-                    }
-
-                    if (config.bestRecords) {
-                        bestRecords = { ...bestRecords, ...config.bestRecords };
-                    }
-
-                    console.log('✅ Game configuration loaded');
-                    return config;
-                }
-            } catch (error) {
-                console.error('❌ Failed to load game configuration:', error);
-            }
-            
-            return null;
-        }
-
-        async function loadSlotAudio(slotIndex) {
-            console.log(`🔄 Loading audio for slot ${slotIndex + 1}...`);
-            
-            customBuffers[slotIndex] = [];
-            const expectedCount = fileMetadata[slotIndex] ? fileMetadata[slotIndex].length : 0;
-            
-            if (expectedCount === 0) {
-                console.log(`ℹ️ No audio files expected for slot ${slotIndex + 1}`);
-                return;
-            }
-
-            let loadedCount = 0;
-            for (let i = 0; i < expectedCount; i++) {
-                try {
-                    const audioFile = await loadAudioFile(slotIndex, i);
-                    if (audioFile) {
-                        customBuffers[slotIndex].push(audioFile.buffer);
-                        loadedCount++;
-                    } else {
-                        console.warn(`❌ Failed to load audio file ${i} for slot ${slotIndex + 1}`);
-                        customBuffers[slotIndex].push(null);
-                    }
-                } catch (error) {
-                    console.error(`❌ Error loading audio file ${i} for slot ${slotIndex + 1}:`, error);
-                    customBuffers[slotIndex].push(null);
-                }
-            }
-
-            console.log(`✅ Loaded ${loadedCount}/${expectedCount} audio files for slot ${slotIndex + 1}`);
-            
-            // DO NOT call refreshFilePreview or updateAdminStatus during initialization
-            // These will be called when admin panel is actually opened
-        }
-
-        function initAudio() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('✅ Audio context initialized');
-            } catch (error) {
-                console.error('❌ Audio context not supported:', error);
-            }
-        }
-
-        function generateTone(frequency, duration = 0.5) {
-            if (!audioContext) return null;
-
-            const sampleRate = audioContext.sampleRate;
-            const numSamples = sampleRate * duration;
-            const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
-            const channelData = buffer.getChannelData(0);
-
-            for (let i = 0; i < numSamples; i++) {
-                const t = i / sampleRate;
-                const envelope = Math.exp(-t * 2);
-                channelData[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
-            }
-
-            return buffer;
-        }
-
-        function playAudioBuffer(buffer) {
-            if (!audioContext || !buffer || muted) return;
-
-            stopAllAudio();
-
-            const source = audioContext.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audioContext.destination);
-            source.start();
-
-            currentAudioSources.push(source);
-
-            source.onended = () => {
-                const index = currentAudioSources.indexOf(source);
-                if (index > -1) {
-                    currentAudioSources.splice(index, 1);
-                }
-            };
-        }
-
-        function stopAllAudio() {
-            currentAudioSources.forEach(source => {
-                try {
-                    source.stop();
-                } catch (e) {}
-            });
-            currentAudioSources = [];
-        }
-
-        function playSound(index) {
-            if (currentGame === 0) {
-                const buffer = generateTone(frequencies[index]);
-                if (buffer) playAudioBuffer(buffer);
-            } else {
-                const slotIndex = currentGame - 1;
-                if (customBuffers[slotIndex] && customBuffers[slotIndex][index]) {
-                    playAudioBuffer(customBuffers[slotIndex][index]);
-                }
-            }
-        }
-
-        function createGrid() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-
-            for (let i = 0; i < 36; i++) {
-                const btn = document.createElement('button');
-                btn.className = `btn row-${Math.floor(i / 6)}`;
-                btn.onclick = () => handleClick(i);
-                btn.setAttribute('data-icon', '🔊');
-                grid.appendChild(btn);
-            }
-        }
-
-        function generateSounds() {
-            sounds = [];
-            const soundIndices = [];
-
-            for (let i = 0; i < 18; i++) {
-                soundIndices.push(i, i);
-            }
-
-            for (let i = soundIndices.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [soundIndices[i], soundIndices[j]] = [soundIndices[j], soundIndices[i]];
-            }
-
-            sounds = soundIndices;
-        }
-
-        function handleClick(index) {
-            if (matched.has(index)) return;
-
-            const btn = document.querySelectorAll('.btn')[index];
-            btn.classList.add('clicked');
-            setTimeout(() => btn.classList.remove('clicked'), 600);
-
-            if (!gameStartTime) {
-                gameStartTime = Date.now();
-                startTimer();
-            }
-
-            playSound(sounds[index]);
-
-            if (firstClick === null) {
-                firstClick = index;
-            } else if (firstClick === index) {
-                firstClick = null;
-            } else {
-                attempts++;
-                updateStats();
-
-                if (sounds[firstClick] === sounds[index]) {
-                    matched.add(firstClick);
-                    matched.add(index);
-                    matches++;
-
-                    const btn1 = document.querySelectorAll('.btn')[firstClick];
-                    const btn2 = document.querySelectorAll('.btn')[index];
-                    btn1.classList.add('matched');
-                    btn2.classList.add('matched');
-
-                    if (matches === 18) {
-                        stopTimer();
-                        showWin();
-                        updateBestRecord();
-                    }
-                }
-
-                firstClick = null;
-            }
-        }
-
-        function startTimer() {
-            gameTimer = setInterval(() => {
-                currentTime = Math.floor((Date.now() - gameStartTime) / 1000);
-                updateTimerDisplay();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (gameTimer) {
-                clearInterval(gameTimer);
-                gameTimer = null;
-            }
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(currentTime / 60);
-            const seconds = currentTime % 60;
-            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-            const currentStats = document.querySelector('.current-stats');
-            if (currentStats) {
-                currentStats.textContent = `Time: ${timeStr} | Attempts: ${attempts}`;
-            }
-        }
-
-        function updateStats() {
-            document.getElementById('matches').textContent = `${matches}/18`;
-            document.getElementById('attempts').textContent = attempts;
-
-            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
-            document.getElementById('accuracy').textContent = `${accuracy}%`;
-        }
-
-        function updateBestStats() {
-            const record = bestRecords[currentGame];
-            const bestStatsEl = document.getElementById('bestStats');
-
-            if (record.time !== null && record.attempts !== null) {
-                const minutes = Math.floor(record.time / 60);
-                const seconds = record.time % 60;
-                const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                bestStatsEl.textContent = `Best Time: ${timeStr} | Best Attempts: ${record.attempts}`;
-            } else {
-                bestStatsEl.textContent = 'Best Time: -- | Best Attempts: --';
-            }
-        }
-
-        function updateBestRecord() {
-            const record = bestRecords[currentGame];
-            const isNewRecord = record.time === null || currentTime < record.time || 
-                              (currentTime === record.time && attempts < record.attempts);
-
-            if (isNewRecord) {
-                bestRecords[currentGame] = { time: currentTime, attempts: attempts };
-                saveGameConfig();
-                updateBestStats();
-            }
-        }
-
-        function showWin() {
-            const minutes = Math.floor(currentTime / 60);
-            const seconds = currentTime % 60;
-            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            const accuracy = Math.round((matches / attempts) * 100);
-
-            document.getElementById('winStats').textContent = 
-                `Completed in ${timeStr} with ${attempts} attempts (${accuracy}% accuracy)`;
-            document.getElementById('win').classList.add('show');
-        }
-
-        function hideWin() {
-            document.getElementById('win').classList.remove('show');
-        }
-
-        function playAgain() {
-            hideWin();
-            resetGame();
-        }
-
-        function showGameOptions() {
-            hideWin();
-            alert('Use the game tabs above to switch between different sound sets!');
-        }
-
-        function resetGame() {
-            stopTimer();
-            sounds = [];
-            matched = new Set();
-            firstClick = null;
-            matches = 0;
-            attempts = 0;
-            gameStartTime = null;
-            currentTime = 0;
-            hideWin();
-            generateSounds();
-            createGrid();
-            updateStats();
-            updateTimerDisplay();
-            updateBestStats();
-        }
-
-        function scrambleGame() {
-            if (sounds.length === 0) {
-                resetGame();
-                return;
-            }
-
-            stopTimer();
-
-            for (let i = sounds.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [sounds[i], sounds[j]] = [sounds[j], sounds[i]];
-            }
-
-            matched = new Set();
-            firstClick = null;
-            matches = 0;
-            attempts = 0;
-            gameStartTime = null;
-            currentTime = 0;
-            hideWin();
-
-            const btns = document.querySelectorAll('.btn');
-            btns.forEach((btn, i) => {
-                const row = Math.floor(i / 6);
-                btn.className = `btn row-${row}`;
-            });
-            updateStats();
-            updateTimerDisplay();
-            updateBestStats();
-        }
-
-        function toggleAudio() {
-            muted = !muted;
-            const btn = document.getElementById('muteBtn');
-            btn.innerHTML = muted ? '🔇 Audio Off' : '🔊 Audio On';
-        }
-
-        async function switchGame(gameIndex) {
-            currentGame = gameIndex;
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach((tab, i) => {
-                tab.classList.toggle('active', i === gameIndex);
-            });
-
-            resetGame();
-            updateBestStats();
-        }
-
-        function showAdmin() {
-            const pass = prompt('Enter admin password:');
-            if (pass === 'MUSIC') {
-                document.getElementById('adminPanel').classList.add('show');
-                adminVisible = true;
-                updateAdminStatus(); // Only update when admin is actually opened
-            } else if (pass !== null) {
-                alert('Incorrect password');
-            }
-        }
-
-        function hideAdmin() {
-            document.getElementById('adminPanel').classList.remove('show');
-            adminVisible = false;
-        }
-
-        async function updateGameName(slotIndex) {
-            const nameInput = document.getElementById(`name${slotIndex}`);
-            const tab = document.getElementById(`tab${slotIndex}`);
-
-            gameNames[slotIndex - 1] = nameInput.value;
-            tab.textContent = nameInput.value;
-
-            await saveGameConfig();
-        }
-
-        function handleFiles(event, slotIndex) {
-            const files = Array.from(event.target.files);
-            processFiles(files, slotIndex);
-        }
-
-        function handleDrop(event, slotIndex) {
-            event.preventDefault();
-            event.currentTarget.classList.remove('dragover');
-
-            const files = Array.from(event.dataTransfer.files);
-            processFiles(files, slotIndex);
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            event.currentTarget.classList.add('dragover');
-        }
-
-        function handleDragLeave(event) {
-            event.preventDefault();
-            event.currentTarget.classList.remove('dragover');
-        }
-
-        async function processFiles(files, slotIndex) {
-            const audioFiles = files.filter(file => file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a|flac)$/i));
-
-            if (audioFiles.length === 0) {
-                alert('No audio files found. Please select audio files (MP3, WAV, OGG, M4A, FLAC).');
-                return;
-            }
-
-            if (audioFiles.length > 18) {
-                alert('Too many files. Please select exactly 18 audio files.');
-                return;
-            }
-
-            const progressBar = document.getElementById(`progress${slotIndex}`);
-            const progressFill = document.getElementById(`progressFill${slotIndex}`);
-            const preview = document.getElementById(`filePreview${slotIndex}`);
-
-            progressBar.style.display = 'block';
-            preview.innerHTML = '';
-
-            customBuffers[slotIndex - 1] = [];
-            fileMetadata[slotIndex - 1] = [];
-
-            let successCount = 0;
-            let errorFiles = [];
-
-            for (let i = 0; i < audioFiles.length; i++) {
-                const file = audioFiles[i];
-                const progress = ((i + 1) / audioFiles.length) * 100;
-                progressFill.style.width = `${progress}%`;
-
-                try {
-                    if (file.size > 10 * 1024 * 1024) {
-                        throw new Error('File too large (max 10MB)');
-                    }
-
-                    const arrayBuffer = await file.arrayBuffer();
-                    let audioBuffer;
-                    try {
-                        audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice());
-                    } catch (decodeError) {
-                        const bufferCopy = arrayBuffer.slice();
-                        audioBuffer = await audioContext.decodeAudioData(bufferCopy);
-                    }
-
-                    if (audioBuffer.duration < 0.1 || audioBuffer.duration > 30) {
-                        throw new Error(`Invalid duration: ${audioBuffer.duration.toFixed(1)}s (must be 0.1-30s)`);
-                    }
-
-                    customBuffers[slotIndex - 1].push(audioBuffer);
-
-                    const metadata = {
-                        name: file.name,
-                        duration: audioBuffer.duration.toFixed(1) + 's',
-                        type: file.type || 'audio/mpeg',
-                        size: file.size
-                    };
-
-                    fileMetadata[slotIndex - 1].push(metadata);
-                    await saveAudioFile(slotIndex - 1, successCount, audioBuffer, metadata);
-
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    fileItem.innerHTML = `
-                        <div class="file-info">
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-duration">${audioBuffer.duration.toFixed(1)}s</div>
-                        </div>
-                        <div class="file-actions">
-                            <button class="file-btn" onclick="playFilePreview(${slotIndex - 1}, ${successCount})">▶</button>
-                            <button class="file-btn remove" onclick="removeFile(${slotIndex}, ${successCount})">✕</button>
-                        </div>
-                    `;
-                    preview.appendChild(fileItem);
-                    successCount++;
-
-                } catch (error) {
-                    console.error('Error processing file:', file.name, error);
-                    errorFiles.push(`${file.name}: ${error.message}`);
-
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    fileItem.style.background = 'rgba(239, 68, 68, 0.1)';
-                    fileItem.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                    fileItem.innerHTML = `
-                        <div class="file-info">
-                            <div class="file-name" style="color: #ef4444;">${file.name}</div>
-                            <div class="file-duration" style="color: #ef4444;">Error: ${error.message}</div>
-                        </div>
-                        <div class="file-actions">
-                            <button class="file-btn remove" onclick="this.parentElement.parentElement.remove()">✕</button>
-                        </div>
-                    `;
-                    preview.appendChild(fileItem);
-                }
-            }
-
-            setTimeout(async () => {
-                progressBar.style.display = 'none';
-                progressFill.style.width = '0%';
-
-                if (errorFiles.length > 0) {
-                    const errorMessage = `Upload completed with ${successCount} successful files and ${errorFiles.length} errors:\n\n` +
-                                       errorFiles.join('\n') + 
-                                       '\n\nTip: Try re-encoding problematic files or use different audio files.';
-                    alert(errorMessage);
-                } else if (successCount > 0) {
-                    alert(`Successfully uploaded and saved ${successCount} audio files!`);
-                }
-
-                await saveGameConfig();
-                updateAdminStatus();
-
-            }, 500);
-        }
-
-        function playFilePreview(slotIndex, fileIndex) {
-            if (customBuffers[slotIndex] && customBuffers[slotIndex][fileIndex]) {
-                playAudioBuffer(customBuffers[slotIndex][fileIndex]);
-            }
-        }
-
-        async function removeFile(slotIndex, fileIndex) {
-            const arrayIndex = slotIndex - 1;
-            
-            customBuffers[arrayIndex].splice(fileIndex, 1);
-            fileMetadata[arrayIndex].splice(fileIndex, 1);
-
-            if (db) {
-                try {
-                    const transaction = db.transaction([STORE_NAME], 'readwrite');
-                    const store = transaction.objectStore(STORE_NAME);
-                    
-                    await store.delete(`audio_${arrayIndex}_${fileIndex}`);
-                    
-                    for (let i = fileIndex + 1; i < customBuffers[arrayIndex].length + 1; i++) {
-                        const oldKey = `audio_${arrayIndex}_${i}`;
-                        const newKey = `audio_${arrayIndex}_${i - 1}`;
-                        
-                        const data = await loadFromIndexedDB(oldKey);
-                        if (data) {
-                            await saveToIndexedDB(newKey, data);
-                            await store.delete(oldKey);
-                        }
-                    }
-                    
-                    console.log(`✅ Removed file ${fileIndex} and shifted remaining files`);
-                } catch (error) {
-                    console.error('Error removing file from IndexedDB:', error);
-                }
-            }
-
-            refreshFilePreview(slotIndex);
-            updateAdminStatus();
-            await saveGameConfig();
-        }
-
-        function refreshFilePreview(slotIndex) {
-            const preview = document.getElementById(`filePreview${slotIndex}`);
-            preview.innerHTML = '';
-
-            fileMetadata[slotIndex - 1].forEach((file, i) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-name">${file.name}</div>
-                        <div class="file-duration">${file.duration}</div>
-                    </div>
-                    <div class="file-actions">
-                        <button class="file-btn" onclick="playFilePreview(${slotIndex - 1}, ${i})">▶</button>
-                        <button class="file-btn remove" onclick="removeFile(${slotIndex}, ${i})">✕</button>
-                    </div>
-                `;
-                preview.appendChild(fileItem);
-            });
-        }
-
-        function autoPopulate(slotIndex) {
-            const bufferIndex = slotIndex - 1;
-            if (!customBuffers[bufferIndex] || customBuffers[bufferIndex].length === 0) {
-                alert(`No audio files loaded for ${gameNames[bufferIndex]}. Please upload files first.`);
-                return;
-            }
-
-            if (customBuffers[bufferIndex].length !== 18) {
-                alert(`Need exactly 18 files for auto-populate. Currently have ${customBuffers[bufferIndex].length} files.`);
-                return;
-            }
-
-            switchGame(slotIndex);
-            alert(`Auto-populated ${gameNames[bufferIndex]} with random key assignments!`);
-        }
-
-        function testGame(slotIndex) {
-            const bufferIndex = slotIndex - 1;
-            if (!customBuffers[bufferIndex] || customBuffers[bufferIndex].length === 0) {
-                alert(`No audio files loaded for ${gameNames[bufferIndex]}. Please upload files first.`);
-                return;
-            }
-
-            hideAdmin();
-            switchGame(slotIndex);
-        }
-
-        async function clearSlot(slotIndex) {
-            if (confirm(`Clear all files from ${gameNames[slotIndex - 1]}?`)) {
-                const arrayIndex = slotIndex - 1;
-                
-                const fileCount = customBuffers[arrayIndex].length;
-                customBuffers[arrayIndex] = [];
-                fileMetadata[arrayIndex] = [];
-
-                if (db) {
-                    try {
-                        const transaction = db.transaction([STORE_NAME], 'readwrite');
-                        const store = transaction.objectStore(STORE_NAME);
-                        
-                        for (let i = 0; i < fileCount; i++) {
-                            await store.delete(`audio_${arrayIndex}_${i}`);
-                        }
-                        
-                        console.log(`✅ Cleared ${fileCount} files from IndexedDB`);
-                    } catch (error) {
-                        console.error('Error clearing files from IndexedDB:', error);
-                    }
-                }
-
-                document.getElementById(`filePreview${slotIndex}`).innerHTML = '';
-                updateAdminStatus();
-                await saveGameConfig();
-            }
-        }
-
-        function updateAdminStatus() {
-            for (let i = 1; i <= 2; i++) {
-                const status = document.getElementById(`status${i}`);
-                const count = customBuffers[i - 1].length;
-                status.textContent = count === 0 ? 'Empty (0/18)' : 
-                                   count === 18 ? 'Ready (18/18)' : 
-                                   `Loading (${count}/18)`;
-            }
-        }
-
-        function exportGameData() {
-            const data = {
-                gameNames: gameNames,
-                fileMetadata: fileMetadata,
-                bestRecords: bestRecords,
-                exportDate: new Date().toISOString(),
-                note: 'Audio files not included in export - they remain in your browser storage'
-            };
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'dont-test-me-config.json';
-            a.click();
-            URL.revokeObjectURL(url);
-
-            alert('Game configuration exported! Note: Audio files remain safely stored in your browser and are not included in the export file.');
-        }
-
-        async function importGameData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-
-                    if (data.gameNames) {
-                        gameNames = data.gameNames;
-                        document.getElementById('name1').value = gameNames[0];
-                        document.getElementById('name2').value = gameNames[1];
-                        document.getElementById('tab1').textContent = gameNames[0];
-                        document.getElementById('tab2').textContent = gameNames[1];
-                    }
-
-                    if (data.bestRecords) {
-                        bestRecords = { ...bestRecords, ...data.bestRecords };
-                    }
-
-                    await saveGameConfig();
-                    updateAdminStatus();
-                    alert('Game configuration imported successfully! Your existing audio files are preserved.');
-
-                } catch (error) {
-                    console.error('Import error:', error);
-                    alert('Error importing file: Invalid format');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        // Initialize game
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🎮 Initializing game...');
-            
-            // Force hide admin panel on startup
-            const adminPanel = document.getElementById('adminPanel');
-            adminPanel.style.display = 'none';
-            adminPanel.classList.remove('show');
-            adminVisible = false;
-            
-            initAudio();
-            
-            try {
-                await initIndexedDB();
-            } catch (error) {
-                console.warn('⚠️ IndexedDB failed, using localStorage fallback');
-                // Don't update storage status during init - it shows admin content
-            }
-
-            await loadGameConfig();
-            await loadSlotAudio(0);
-            await loadSlotAudio(1);
-            await loadMessages();
-            
-            generateSounds();
-            createGrid();
-            updateStats();
-            updateTimerDisplay();
-            updateBestStats();
-            // DO NOT call updateAdminStatus() here - it shows admin content
-            
-            console.log('✅ Game initialization complete');
-        });
-
-        document.addEventListener('click', () => {
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                stopAllAudio();
-            }
-        });
-
-        window.addEventListener('beforeunload', async () => {
-            stopMessageRotation();
-            if (db) {
-                try {
-                    await saveGameConfig();
-                    await saveMessages();
-                } catch (error) {
-                    console.error('Failed to save on unload:', error);
-                }
-            }
-        });
-    </script>
-</body>
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1570,7 +396,7 @@
         }
         .admin-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.05); color: #888; }
         .admin-panel {
-            display: none !important;
+            display: none;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1584,9 +410,7 @@
             max-width: 800px;
             margin: 20px auto;
         }
-        .admin-panel.show { 
-            display: block !important; 
-        }
+        .admin-panel.show { display: block; }
         .admin-title {
             font-size: 2rem;
             font-weight: 200;
@@ -1612,16 +436,6 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 10px;
-        }
-        .slot-name {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 500;
-            min-width: 200px;
         }
         .slot-status {
             color: #888;
@@ -1649,75 +463,6 @@
             font-size: 0.9rem;
             color: #888;
         }
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            display: none;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #059669);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .file-preview {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .file-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .file-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .file-name {
-            font-size: 0.9rem;
-            color: #ccc;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .file-duration {
-            font-size: 0.8rem;
-            color: #888;
-        }
-        .file-actions {
-            display: flex;
-            gap: 5px;
-        }
-        .file-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #ccc;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .file-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .file-btn.remove {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-        .file-btn.remove:hover {
-            background: rgba(239, 68, 68, 0.3);
-        }
         .admin-actions {
             display: flex;
             gap: 10px;
@@ -1734,14 +479,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        .admin-btn-action.primary {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #10b981;
-        }
-        .admin-btn-action.primary:hover {
-            background: rgba(16, 185, 129, 0.3);
-        }
         .admin-btn-action.secondary {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1751,22 +488,6 @@
             background: rgba(255, 255, 255, 0.12);
             color: #fff;
         }
-        .storage-status {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-        .storage-status.error {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-        .storage-status.success {
-            color: #10b981;
-        }
         @media (max-width: 768px) {
             .title { font-size: 2.5rem; }
             .grid { gap: 6px; }
@@ -1774,7 +495,6 @@
             .tab { width: 100%; max-width: 200px; }
             .admin-panel { width: 95%; padding: 20px; }
             .slot-header { flex-direction: column; align-items: stretch; }
-            .slot-name { min-width: auto; }
         }
     </style>
 </head>
@@ -1821,55 +541,189 @@
                 <button class="ctrl-btn" id="muteBtn" onclick="toggleAudio()">🔊 Audio On</button>
             </div>
         </div>
+
+        <!-- Admin panel - only shows when password entered -->
+        <div class="admin-panel" id="adminPanel">
+            <h2 class="admin-title">Message Manager</h2>
+            
+            <div class="slot">
+                <div class="slot-header">
+                    <div style="font-size: 1.3rem; color: #fff;">Funny Messages</div>
+                    <div class="slot-status" id="messageStatus">No messages loaded</div>
+                </div>
+                <div class="upload" onclick="document.getElementById('messageFile').click()">
+                    <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
+                    <div class="upload-hint">Text file with your funny phrases</div>
+                    <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
+                </div>
+                <div class="admin-actions">
+                    <button class="admin-btn-action secondary" onclick="previewMessages()">👀 Preview Messages</button>
+                    <button class="admin-btn-action secondary" onclick="clearMessages()">🗑️ Clear Messages</button>
+                    <button class="admin-btn-action secondary" onclick="hideAdmin()">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="admin-panel" id="adminPanel">
-        <h2 class="admin-title">Game Management System</h2>
-        
-        <div class="storage-status" id="storageStatus">
-            ✅ IndexedDB initialized - Your audio files will persist across sessions
-        </div>
-
-        <div class="slot">
-            <div class="slot-header">
-                <div style="font-size: 1.3rem; color: #fff;">Game 1: Tones</div>
-                <div class="slot-status">Built-in (18 frequencies)</div>
-            </div>
-            <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-                This is the permanent tone-based game and cannot be modified.
+    <div class="win" id="win">
+        <div class="win-content">
+            <div class="win-title">Perfect Match!</div>
+            <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
+            <div class="win-actions">
+                <button class="win-btn" onclick="playAgain()">Play Again</button>
+                <button class="win-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
+                <button class="win-btn" onclick="showGameOptions()">Other Games</button>
             </div>
         </div>
+    </div>
 
-        <div class="slot">
-            <div class="slot-header">
-                <div style="font-size: 1.3rem; color: #fff;">Funny Messages</div>
-                <div class="slot-status" id="messageStatus">No messages loaded</div>
-            </div>
-            <div class="upload" onclick="document.getElementById('messageFile').click()">
-                <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
-                <div class="upload-hint">Text file with your funny phrases</div>
-                <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
-            </div>
-            <div class="admin-actions">
-                <button class="admin-btn-action secondary" onclick="previewMessages()">👀 Preview Messages</button>
-                <button class="admin-btn-action secondary" onclick="clearMessages()">🗑️ Clear Messages</button>
-            </div>
-        </div>
+    <script>
+        // Game state
+        let currentGame = 0;
+        let sounds = [];
+        let matched = new Set();
+        let firstClick = null;
+        let matches = 0;
+        let attempts = 0;
+        let muted = false;
+        let audioContext = null;
+        let currentAudioSources = [];
+        let gameStartTime = null;
+        let gameTimer = null;
+        let currentTime = 0;
+        let customBuffers = [[], []];
+        let fileMetadata = [[], []];
+        let gameNames = ["Custom Set 1", "Custom Set 2"];
+        let adminVisible = false;
+        let funnyMessages = [];
+        let messageTimer = null;
+        let bestRecords = {
+            0: { time: null, attempts: null },
+            1: { time: null, attempts: null },
+            2: { time: null, attempts: null }
+        };
+        const frequencies = [220, 246, 261, 293, 329, 349, 392, 440, 493, 523, 587, 659, 698, 783, 880, 987, 1046, 1174];
 
-        <div class="slot">
-            <div class="slot-header">
-                <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name" onchange="updateGameName(1)">
-                <div class="slot-status" id="status1">Empty (0/18)</div>
-            </div>
-            <div class="upload" onclick="document.getElementById('files1').click()" 
-                 ondrop="handleDrop(event, 1)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-                <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
-                <div class="upload-hint">Supports: MP3, WAV, OGG, M4A, FLAC</div>
-                <input type="file" id="files1" multiple accept="audio/*" style="display: none;" onchange="handleFiles(event, 1)">
-            </div>
-            <div class="progress-bar" id="progress1">
-                <div class="progress-fill" id="progressFill1"></div>
-            </div>
-            <div class="file-preview" id="filePreview1"></div>
-            <div class="admin-actions">
-                <button class="admin-btn-action secondary" onclick="autoPopulate(1)">🎲 Auto-Populate Keys
+        // Message rotation system
+        function startMessageRotation() {
+            if (funnyMessages.length === 0) return;
+            
+            if (messageTimer) clearInterval(messageTimer);
+            
+            showRandomMessage();
+            messageTimer = setInterval(showRandomMessage, 40000); // 40 seconds
+        }
+
+        function stopMessageRotation() {
+            if (messageTimer) {
+                clearInterval(messageTimer);
+                messageTimer = null;
+            }
+        }
+
+        function showRandomMessage() {
+            if (funnyMessages.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * funnyMessages.length);
+            const message = funnyMessages[randomIndex];
+            
+            const messageEl = document.getElementById('rotatingMessage');
+            messageEl.textContent = message;
+        }
+
+        function handleMessageFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0 && line.length <= 40);
+
+                    if (lines.length === 0) {
+                        alert('No valid messages found. Each line should be 1-40 characters.');
+                        return;
+                    }
+
+                    funnyMessages = lines;
+                    saveMessages();
+                    
+                    document.getElementById('messageStatus').textContent = 
+                        `${funnyMessages.length} messages loaded`;
+                    
+                    startMessageRotation();
+                    alert(`Successfully loaded ${funnyMessages.length} funny messages!`);
+
+                } catch (error) {
+                    console.error('Error loading messages:', error);
+                    alert('Error reading message file');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function saveMessages() {
+            try {
+                localStorage.setItem('dontTestMeMessages', JSON.stringify(funnyMessages));
+                console.log('✅ Messages saved');
+            } catch (error) {
+                console.error('❌ Failed to save messages:', error);
+            }
+        }
+
+        function loadMessages() {
+            try {
+                const lsData = localStorage.getItem('dontTestMeMessages');
+                if (lsData) {
+                    const messages = JSON.parse(lsData);
+                    if (messages && Array.isArray(messages) && messages.length > 0) {
+                        funnyMessages = messages;
+                        document.getElementById('messageStatus').textContent = 
+                            `${funnyMessages.length} messages loaded`;
+                        startMessageRotation();
+                        console.log(`✅ Loaded ${funnyMessages.length} messages`);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to load messages:', error);
+            }
+        }
+
+        function previewMessages() {
+            if (funnyMessages.length === 0) {
+                alert('No messages loaded. Please upload a message file first.');
+                return;
+            }
+
+            const preview = funnyMessages.slice(0, 10).join('\n');
+            const more = funnyMessages.length > 10 ? `\n\n... and ${funnyMessages.length - 10} more messages` : '';
+            
+            alert(`Preview of your messages:\n\n${preview}${more}`);
+        }
+
+        function clearMessages() {
+            if (confirm('Clear all funny messages?')) {
+                funnyMessages = [];
+                stopMessageRotation();
+                
+                try {
+                    localStorage.removeItem('dontTestMeMessages');
+                } catch (error) {
+                    console.error('Error clearing messages:', error);
+                }
+                
+                document.getElementById('messageStatus').textContent = 'No messages loaded';
+                document.getElementById('rotatingMessage').textContent = 'Welcome to the audio memory challenge!';
+            }
+        }
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (error) {
+                console.error('Audio context not supported:', error);
+            }
