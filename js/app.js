@@ -2,7 +2,7 @@ import { $, qsa } from './utils.js';
 import { openDB, loadMeta, loadAudioSet, saveMeta } from './storage.js';
 import { decodeBlobsToBuffers } from './audio.js';
 import {
-  state, FREQUENCIES, switchGame, resetGame, scrambleGame, toggleAudio,
+  state, switchGame, resetGame, scrambleGame, toggleAudio,
   playAgain, showOtherGames, updateBestStats, updateTimerDisplay
 } from './game.js';
 import { wireAdmin } from './admin.js';
@@ -28,7 +28,6 @@ async function pullFromServer() {
           for (const url of data.audio[k].slice(0,18)) {
             const resp = await fetch(url); blobs.push(await resp.blob());
           }
-          // let storage.js handle saving; admin.js path saves; here we only hydrate runtime
           const bufs = await decodeBlobsToBuffers(blobs);
           state.customBuffers[parseInt(k,10)-1] = bufs;
         }
@@ -85,59 +84,8 @@ async function init() {
   // Wire admin, tabs, controls
   wireAdmin();
 
-  // Tab buttons
   qsa('.tab').forEach(btn => {
     btn.addEventListener('click', () => switchGame(parseInt(btn.dataset.game, 10)));
   });
 
-  $('#newGame').addEventListener('click', resetGame);
-  $('#scrambleBtn').addEventListener('click', scrambleGame);
-  $('#muteBtn').addEventListener('click', toggleAudio);
-
-  $('#playAgain').addEventListener('click', playAgain);
-  $('#scrambleInWin').addEventListener('click', ()=>{ scrambleGame(); $('#win').classList.remove('show'); });
-  $('#otherGames').addEventListener('click', showOtherGames);
-
-  // Reflect names to tabs
-  $('#tab1').textContent = state.gameNames[0] || 'Custom Set 1';
-  $('#tab2').textContent = state.gameNames[1] || 'Custom Set 2';
-
-  // Records hook → persist
-  import('./game.js').then(mod=>{
-    mod.onNewRecords = async () => {
-      await saveMeta({
-        names: state.gameNames,
-        records: state.bestRecords,
-        messages: state.funnyMessages || [],
-      });
-      pushToServerDebounced();
-    };
-  });
-
-  // Build initial game
-  resetGame();
-  updateBestStats();
-  updateTimerDisplay();
-
-  // Start ticker after UI is ready
-  startTicker(()=>state.funnyMessages || []);
-
-  // Resume audio on first user click (iOS)
-  document.addEventListener('click', ()=>{
-    const ac = window.__ac || null;
-  }, { once: true });
-
-  // Persist meta before unload
-  window.addEventListener('beforeunload', async ()=>{
-    try {
-      await saveMeta({
-        names: state.gameNames,
-        records: state.bestRecords,
-        messages: state.funnyMessages || [],
-      });
-    } catch {}
-  });
-}
-
-document.addEventListener('visibilitychange', ()=>{ if (document.hidden) { /* audio stop handled in audio.js consumers */ } });
-document.addEventListener('DOMContentLoaded', init);
+  $('#newGame').addEventListener('click', resetGa
