@@ -2,100 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>DON'T TEST ME</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{--glass:rgba(255,255,255,.06);--glass2:rgba(255,255,255,.02)}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-      background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%);
-      background-attachment:fixed;min-height:100vh;display:flex;flex-direction:column;align-items:center;color:#fff;position:relative
-    }
-    body::before{
-      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-      background:
-        radial-gradient(circle at 20% 50%,rgba(120,119,198,.15) 0%,transparent 50%),
-        radial-gradient(circle at 80% 20%,rgba(255,119,198,.15) 0%,transparent 50%),
-        radial-gradient(circle at 40% 80%,rgba(119,255,198,.15) 0%,transparent 50%)
-    }
-    .container{position:relative;z-index:1;width:100%;max-width:560px;padding:40px 20px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(0,0,0,.1)}
-    .header{text-align:center;margin-bottom:24px;position:relative}
-    .header::before{content:'';position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:300px;height:60px;background:radial-gradient(ellipse,rgba(16,185,129,.25) 0%,transparent 70%);filter:blur(20px);z-index:-1}
-    .title{font-size:3.2rem;font-weight:200;background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;letter-spacing:-.03em}
-    .subtitle{font-size:1.05rem;color:#9a9a9a;font-weight:300;letter-spacing:.3px}
-    .highlight{-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%)}
-    .message-ticker{margin:16px 0 4px;min-height:28px;display:flex;align-items:center;justify-content:center}
-    .rotating-message{font-size:.95rem;font-weight:500;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 2px 4px rgba(0,0,0,.5);max-width:90%;text-align:center}
-    .tabs{display:flex;justify-content:center;gap:12px;margin:14px 0 20px;flex-wrap:wrap}
-    .tab{padding:10px 16px;min-width:120px;border:none;border-radius:12px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:#9a9a9a;font-weight:600;transition:.2s}
-    .tab.active{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#10b981}
-    .tab:hover:not(.active){background:rgba(255,255,255,.08);color:#cfcfcf}
-    .panel{background:rgba(255,255,255,.02);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;box-shadow:0 8px 32px rgba(0,0,0,.3)}
-    .stats{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 18px;background:rgba(0,0,0,.15);border-radius:14px;border:1px solid rgba(255,255,255,.05)}
-    .stat{display:flex;flex-direction:column;align-items:center;gap:4px}
-    .stat-label{font-size:.75rem;color:#7a7a7a;text-transform:uppercase;letter-spacing:.8px;font-weight:700}
-    .stat-value{font-size:1.4rem;font-weight:300;color:#fff}
-    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px}
-    .btn{aspect-ratio:1;border:none;border-radius:16px;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);box-shadow:0 6px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.1);transition:transform .12s ease, box-shadow .2s ease, opacity .2s ease}
-    .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.2)}
-    .btn.matched{cursor:default;opacity:.9}
-    .btn svg{width:28px;height:28px;fill:currentColor}
-    .btn.row-0{background:linear-gradient(145deg,rgba(219,154,154,.3),rgba(219,154,154,.12));border-color:rgba(219,154,154,.4)}
-    .btn.row-1{background:linear-gradient(145deg,rgba(154,219,168,.3),rgba(154,219,168,.12));border-color:rgba(154,219,168,.4)}
-    .btn.row-2{background:linear-gradient(145deg,rgba(154,168,219,.3),rgba(154,168,219,.12));border-color:rgba(154,168,219,.4)}
-    .btn.row-3{background:linear-gradient(145deg,rgba(219,195,154,.3),rgba(219,195,154,.12));border-color:rgba(219,195,154,.4)}
-    .btn.row-4{background:linear-gradient(145deg,rgba(160,160,160,.3),rgba(160,160,160,.12));border-color:rgba(160,160,160,.4)}
-    .btn.row-5{background:linear-gradient(145deg,rgba(240,240,240,.28),rgba(240,240,240,.12));border-color:rgba(240,240,240,.35);color:#222}
-    .controls{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
-    .ctrl-btn{padding:12px 18px;border:none;border-radius:12px;cursor:pointer;font-weight:600;background:linear-gradient(145deg,var(--glass) 0%,var(--glass2) 100%);border:1px solid rgba(255,255,255,.12);color:#fff;transition:.2s}
-    .ctrl-btn:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.28)}
-    .timer-display{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 16px;background:linear-gradient(145deg,var(--glass) 0%,var(--glass2) 100%);border:1px solid rgba(255,255,255,.12);border-radius:12px;min-width:180px}
-    .current-stats{font-weight:600}
-    .win{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:2000}
-    .win.show{display:flex}
-    .win-content{width:min(92vw,440px);background:rgba(0,0,0,.88);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:38px 30px;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.7)}
-    .win-title{font-size:2.3rem;font-weight:200;margin-bottom:10px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-    .win-stats{color:#cfcfcf;margin:12px 0 20px}
-    .win-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-    .admin-btn{position:absolute;top:10px;right:10px;padding:6px 10px;border:none;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);cursor:pointer;opacity:.55;transition:.2s}
-    .admin-btn:hover{opacity:1;background:rgba(255,255,255,.06)}
-    .admin-backdrop{position:fixed;inset:0;display:none;place-items:center;z-index:3000;background:rgba(0,0,0,.55)}
-    .admin-backdrop.show{display:grid}
-    .admin-panel{width:min(92vw,720px);max-height:86vh;overflow:auto;background:rgba(0,0,0,.95);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:26px}
-    .admin-title{font-size:1.8rem;font-weight:200;text-align:center;margin-bottom:18px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-    .slot{margin-bottom:18px;padding:18px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
-    .slot-header{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px}
-    .slot-name{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#fff;padding:8px 10px;border-radius:8px;width:220px;font-weight:600}
-    .slot-status{padding:6px 10px;border-radius:8px;color:#9a9a9a;background:rgba(0,0,0,.3);font-weight:700}
-    .slot-status.ready{color:#10b981;background:rgba(16,185,129,.12)}
-    .slot-status.partial{color:#f59e0b;background:rgba(245,158,11,.12)}
-    .upload{border:2px dashed rgba(255,255,255,.22);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:.2s;background:rgba(0,0,0,.15)}
-    .upload:hover{border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.04);transform:translateY(-1px)}
-    .upload.dragover{border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.05);transform:scale(1.01)}
-    .upload-text{color:#d0d0d0;margin-bottom:6px}
-    .upload-hint{color:#8a8a8a;font-size:.9rem;font-style:italic}
-    .admin-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
-    .hidden-file{display:none}
-    @media (max-width:768px){
-      .title{font-size:2.4rem}.tabs{gap:10px}.tab{width:100%;max-width:220px}.panel{padding:16px}.grid{gap:6px}.controls{flex-direction:column}.ctrl-btn{width:100%;max-width:240px}
-    }
-  </style>
+  <link rel="stylesheet" href="css/styles.css"/>
 </head>
 <body>
   <div class="container">
-    <button class="admin-btn" onclick="showAdmin()">⚙</button>
+    <button class="admin-btn" id="openAdmin">⚙</button>
 
     <div class="header">
       <h1 class="title">DON'T TEST ME</h1>
-      <p class="subtitle">Here’s one to test your hearing AND recall. Huh? <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span></p>
-      <div class="message-ticker"><div class="rotating-message" id="rotatingMessage">Welcome to the audio memory challenge!</div></div>
+      <p class="subtitle">
+        Here's one to test your hearing AND recall. Huh?
+        <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span>
+      </p>
+      <div class="message-ticker">
+        <div class="rotating-message" id="rotatingMessage">
+          Welcome to the audio memory challenge!
+        </div>
+      </div>
     </div>
 
     <div class="tabs">
-      <button class="tab active" onclick="switchGame(0)">Tones</button>
-      <button class="tab" id="tab1" onclick="switchGame(1)">Custom Set 1</button>
-      <button class="tab" id="tab2" onclick="switchGame(2)">Custom Set 2</button>
+      <button class="tab active" data-game="0">Tones</button>
+      <button class="tab" id="tab1" data-game="1">Custom Set 1</button>
+      <button class="tab" id="tab2" data-game="2">Custom Set 2</button>
     </div>
 
     <div class="panel" id="gamePanel">
@@ -108,13 +39,13 @@
       <div class="grid" id="grid"></div>
 
       <div class="controls">
-        <button class="ctrl-btn" onclick="resetGame()">New Game</button>
+        <button class="ctrl-btn" id="newGame">New Game</button>
         <div class="timer-display">
           <div class="current-stats" id="currentStats">Time: 0:00 | Attempts: 0</div>
           <div class="best-stats" id="bestStats">Best Time: -- | Best Attempts: --</div>
         </div>
-        <button class="ctrl-btn" id="muteBtn" onclick="toggleAudio()">🔊 Audio On</button>
-        <button class="ctrl-btn" onclick="scrambleGame()">Scramble</button>
+        <button class="ctrl-btn" id="muteBtn">🔊 Audio On</button>
+        <button class="ctrl-btn" id="scrambleBtn">Scramble</button>
       </div>
     </div>
   </div>
@@ -125,9 +56,9 @@
       <div class="win-title">Perfect Match!</div>
       <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
       <div class="win-actions">
-        <button class="ctrl-btn" onclick="playAgain()">Play Again</button>
-        <button class="ctrl-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
-        <button class="ctrl-btn" onclick="showGameOptions()">Other Games</button>
+        <button class="ctrl-btn" id="playAgain">Play Again</button>
+        <button class="ctrl-btn" id="scrambleInWin">Scramble</button>
+        <button class="ctrl-btn" id="otherGames">Other Games</button>
       </div>
     </div>
   </div>
@@ -144,17 +75,15 @@
           <div class="slot-status" id="messageStatus">No messages loaded</div>
         </div>
         <div class="upload"
-             onclick="document.getElementById('messageFile').click()"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleMessageDrop(event)">
+             id="messageDrop"
+             tabindex="0">
           <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
           <div class="upload-hint">Plain .txt recommended</div>
-          <input class="hidden-file" type="file" id="messageFile" accept=".txt" onchange="handleMessageFile(event)">
+          <input class="hidden-file" type="file" id="messageFile" accept=".txt"/>
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" onclick="previewMessages()">👀 Preview</button>
-          <button class="ctrl-btn" onclick="clearMessages()">🗑️ Clear</button>
+          <button class="ctrl-btn" id="previewMessages">👀 Preview</button>
+          <button class="ctrl-btn" id="clearMessages">🗑️ Clear</button>
         </div>
       </div>
 
@@ -170,510 +99,43 @@
       <!-- Custom Set 1 -->
       <div class="slot">
         <div class="slot-header">
-          <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name">
+          <input type="text" class="slot-name" id="name1" value="Custom Set 1" placeholder="Enter game name"/>
           <div class="slot-status" id="status1">Empty (0/18)</div>
         </div>
-        <div class="upload"
-             onclick="document.getElementById('files1').click()"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event,1)">
+        <div class="upload" id="drop1" tabindex="0">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
-          <input class="hidden-file" type="file" id="files1" multiple accept="audio/*" onchange="handleFiles(event,1)">
+          <input class="hidden-file" type="file" id="files1" multiple accept="audio/*"/>
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" onclick="clearSlot(1)">Clear All</button>
-          <button class="ctrl-btn" onclick="testGame(1)">Test Game</button>
+          <button class="ctrl-btn" id="clear1">Clear All</button>
+          <button class="ctrl-btn" id="test1">Test Game</button>
         </div>
       </div>
 
       <!-- Custom Set 2 -->
       <div class="slot">
         <div class="slot-header">
-          <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name">
+          <input type="text" class="slot-name" id="name2" value="Custom Set 2" placeholder="Enter game name"/>
           <div class="slot-status" id="status2">Empty (0/18)</div>
         </div>
-        <div class="upload"
-             onclick="document.getElementById('files2').click()"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event,2)">
+        <div class="upload" id="drop2" tabindex="0">
           <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
           <div class="upload-hint">MP3, WAV, OGG, M4A, FLAC</div>
-          <input class="hidden-file" type="file" id="files2" multiple accept="audio/*" onchange="handleFiles(event,2)">
+          <input class="hidden-file" type="file" id="files2" multiple accept="audio/*"/>
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" onclick="clearSlot(2)">Clear All</button>
-          <button class="ctrl-btn" onclick="testGame(2)">Test Game</button>
+          <button class="ctrl-btn" id="clear2">Clear All</button>
+          <button class="ctrl-btn" id="test2">Test Game</button>
         </div>
       </div>
 
       <div class="admin-actions">
-        <button class="ctrl-btn" onclick="hideAdmin()">Close</button>
+        <button class="ctrl-btn" id="closeAdmin">Close</button>
       </div>
     </div>
   </div>
 
-  <script>
-    /* ========= Server Sync (optional) ========= */
-    const SERVER_SYNC = false;              // set true to enable server pull/push
-    const API_BASE   = '/api/dtm';          // change to your backend base path
-
-    /* ========= App State ========= */
-    const PASSWORD = "MUSIC";
-    const frequencies = [220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
-
-    let currentGame = 0, sounds = [], matched = new Set(), firstClick = null, matches = 0, attempts = 0;
-    let muted = false, audioContext = null, currentAudioSources = [];
-    let customBuffers = [[],[]];                 // decoded AudioBuffers (runtime)
-    let gameNames = ["Custom Set 1","Custom Set 2"];
-    let gameStartTime = null, gameTimer = null, currentTime = 0;
-    let bestRecords = {0:{time:null,attempts:null},1:{time:null,attempts:null},2:{time:null,attempts:null}};
-    let funnyMessages = [];
-    let messageTimer = null;
-
-    /* ========= DOM ========= */
-    const $ = (id)=>document.getElementById(id);
-    const gridEl = $('grid'), matchesEl = $('matches'), attemptsEl = $('attempts'), accuracyEl = $('accuracy');
-    const bestStatsEl = $('bestStats'), currentStatsEl = $('currentStats'), rotatingMessage = $('rotatingMessage');
-
-    /* ========= IndexedDB ========= */
-    const DB_NAME = 'dtmDB_v2';
-    const DB_VERSION = 1;
-    let db;
-
-    function openDB(){
-      return new Promise((resolve,reject)=>{
-        const req = indexedDB.open(DB_NAME, DB_VERSION);
-        req.onupgradeneeded = ()=>{
-          const d = req.result;
-          if(!d.objectStoreNames.contains('audio')){             // key: `${set}:${index}` -> Blob
-            d.createObjectStore('audio');
-          }
-          if(!d.objectStoreNames.contains('meta')){              // key: 'names' | 'records' | 'messages' -> JSON
-            d.createObjectStore('meta');
-          }
-        };
-        req.onsuccess = ()=>{ db=req.result; resolve(db); };
-        req.onerror   = ()=>reject(req.error);
-      });
-    }
-
-    function idbPut(store,key,value){
-      return new Promise((resolve,reject)=>{
-        const tx = db.transaction(store,'readwrite');
-        tx.objectStore(store).put(value,key);
-        tx.oncomplete=()=>resolve();
-        tx.onerror=()=>reject(tx.error);
-      });
-    }
-
-    function idbGet(store,key){
-      return new Promise((resolve,reject)=>{
-        const tx = db.transaction(store,'readonly');
-        const req = tx.objectStore(store).get(key);
-        req.onsuccess=()=>resolve(req.result);
-        req.onerror=()=>reject(req.error);
-      });
-    }
-
-    function idbKeys(store,prefix){
-      return new Promise((resolve,reject)=>{
-        const tx = db.transaction(store,'readonly');
-        const os = tx.objectStore(store);
-        const keys = [];
-        const req = os.openKeyCursor();
-        req.onsuccess=()=>{
-          const cur = req.result;
-          if(cur){
-            if(!prefix || (typeof cur.key==='string' && cur.key.startsWith(prefix))) keys.push(cur.key);
-            cur.continue();
-          } else resolve(keys);
-        };
-        req.onerror=()=>reject(req.error);
-      });
-    }
-
-    function idbDelete(store,key){
-      return new Promise((resolve,reject)=>{
-        const tx = db.transaction(store,'readwrite');
-        tx.objectStore(store).delete(key);
-        tx.oncomplete=()=>resolve();
-        tx.onerror=()=>reject(tx.error);
-      });
-    }
-
-    async function saveSetToIDB(slot, fileBlobs){
-      // Clear previous
-      const prefix = `${slot}:`;
-      const keys = await idbKeys('audio',prefix);
-      await Promise.all(keys.map(k=>idbDelete('audio',k)));
-      // Save new
-      const puts = fileBlobs.slice(0,18).map((blob,i)=>idbPut('audio',`${slot}:${i}`, blob));
-      await Promise.all(puts);
-      await idbPut('meta',`count:${slot}`, Math.min(fileBlobs.length,18));
-    }
-
-    async function loadSetFromIDB(slot){
-      const count = await idbGet('meta',`count:${slot}`) || 0;
-      if(count===0) return [];
-      const blobs = [];
-      for(let i=0;i<count;i++){
-        const b = await idbGet('audio',`${slot}:${i}`);
-        if(b) blobs.push(b);
-      }
-      return blobs;
-    }
-
-    async function saveMeta(){
-      await idbPut('meta','names', JSON.stringify(gameNames));
-      await idbPut('meta','records', JSON.stringify(bestRecords));
-      await idbPut('meta','messages', JSON.stringify(funnyMessages));
-    }
-
-    async function loadMeta(){
-      const names = await idbGet('meta','names');
-      if(names){ try{ gameNames = JSON.parse(names); }catch{} }
-      const recs = await idbGet('meta','records');
-      if(recs){ try{ bestRecords = JSON.parse(recs); }catch{} }
-      const msgs = await idbGet('meta','messages');
-      if(msgs){ try{ funnyMessages = JSON.parse(msgs); }catch{} }
-    }
-
-    /* ========= Server Sync (optional) ========= */
-    async function pullFromServer(){
-      if(!SERVER_SYNC) return;
-      try{
-        const r = await fetch(`${API_BASE}/state`, {credentials:'include'});
-        if(!r.ok) throw new Error('state fetch failed');
-        const data = await r.json();
-        if(Array.isArray(data.names) && data.names.length===2) gameNames = data.names;
-        if(data.records) bestRecords = data.records;
-        if(Array.isArray(data.messages)) funnyMessages = data.messages;
-
-        // Audio URLs optional: data.audio = { "1": [url...], "2": [url...] }
-        if(data.audio){
-          for(const k of ['1','2']){
-            if(Array.isArray(data.audio[k]) && data.audio[k].length){
-              const files = [];
-              for(const url of data.audio[k].slice(0,18)){
-                const resp = await fetch(url);
-                const blob = await resp.blob();
-                files.push(blob);
-              }
-              await saveSetToIDB(parseInt(k,10), files);
-            }
-          }
-        }
-        await saveMeta();
-      }catch(e){ console.warn('Server pull skipped:', e.message); }
-    }
-
-    function pushToServerDebounced(){
-      if(!SERVER_SYNC) return;
-      clearTimeout(pushToServerDebounced.t);
-      pushToServerDebounced.t = setTimeout(pushToServer, 600);
-    }
-    async function pushToServer(){
-      if(!SERVER_SYNC) return;
-      try{
-        await fetch(`${API_BASE}/state`,{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          credentials:'include',
-          body:JSON.stringify({names:gameNames, records:bestRecords, messages:funnyMessages})
-        });
-        // NOTE: Audio file upload is app-specific (multipart/chunked). Hook here if needed.
-      }catch(e){ console.warn('Server push skipped:', e.message); }
-    }
-
-    /* ========= Audio ========= */
-    function initAudio(){ if(!audioContext){ try{ audioContext = new (window.AudioContext||window.webkitAudioContext)(); }catch{} } }
-    function stopAllAudio(){ currentAudioSources.forEach(s=>{ try{s.stop()}catch{} }); currentAudioSources = []; }
-    function playTone(freq, duration=.45){
-      if(muted){return} initAudio(); if(!audioContext) return; stopAllAudio();
-      const osc = audioContext.createOscillator(), gain = audioContext.createGain();
-      osc.type='sine'; osc.frequency.value=freq; osc.connect(gain); gain.connect(audioContext.destination);
-      gain.gain.setValueAtTime(0, audioContext.currentTime);
-      gain.gain.linearRampToValueAtTime(0.16, audioContext.currentTime+0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime+duration);
-      osc.start(); osc.stop(audioContext.currentTime+duration);
-      currentAudioSources.push(osc);
-    }
-    function normalize(buffer){
-      const out = audioContext.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
-      for(let c=0;c<buffer.numberOfChannels;c++){
-        const i=buffer.getChannelData(c), o=out.getChannelData(c);
-        let peak=0; for(let k=0;k<i.length;k++) peak=Math.max(peak,Math.abs(i[k]));
-        const g = peak>0 ? 0.85/peak : 1; for(let k=0;k<i.length;k++) o[k]=i[k]*g;
-      }
-      return out;
-    }
-    function playBuffer(buf){
-      if(muted){return} initAudio(); if(!audioContext||!buf) return; stopAllAudio();
-      const src = audioContext.createBufferSource(), g = audioContext.createGain();
-      src.buffer = buf; src.connect(g); g.connect(audioContext.destination); g.gain.value=.85; src.start();
-      currentAudioSources.push(src);
-    }
-
-    /* ========= Game Core ========= */
-    function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
-    function createGrid(){
-      if(currentGame===0){ const pairs=[]; frequencies.forEach(f=>pairs.push(f,f)); sounds=shuffle(pairs); }
-      else {
-        const slot = currentGame-1;
-        if(customBuffers[slot].length!==18){ alert(`${gameNames[slot]} is not ready. Please upload 18 audio files.`); switchGame(0); return; }
-        const pairs=[]; customBuffers[slot].forEach(b=>pairs.push(b,b)); sounds=shuffle(pairs);
-      }
-      gridEl.innerHTML='';
-      for(let i=0;i<36;i++){
-        const btn=document.createElement('button'); btn.className=`btn row-${Math.floor(i/6)}`;
-        btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
-        btn.onclick=()=>handleClick(i); gridEl.appendChild(btn);
-      }
-    }
-    function handleClick(i){
-      if(matched.has(i)) return;
-      if(!gameStartTime) startTimer();
-      const v=sounds[i];
-      currentGame===0?playTone(v):playBuffer(v);
-      const btn = gridEl.children[i]; btn.style.transform='translateY(-1px) scale(.97)'; setTimeout(()=>btn.style.transform='',120);
-      if(firstClick===null){ firstClick=i; return; }
-      if(firstClick===i){ firstClick=null; return; }
-      attempts++; updateStats();
-      if(sounds[firstClick]===sounds[i]) markMatched(firstClick,i);
-      firstClick=null;
-    }
-    function markMatched(i1,i2){
-      const btns=gridEl.children; matched.add(i1); matched.add(i2);
-      const check='<svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19l12-12-1.41-1.41z"/></svg>';
-      btns[i1].innerHTML=check; btns[i2].innerHTML=check; btns[i1].classList.add('matched'); btns[i2].classList.add('matched');
-      matches++; updateStats();
-      if(!muted){ setTimeout(()=>playTone(880,.18),90); setTimeout(()=>playTone(1100,.18),230); }
-      if(matches===18){
-        stopTimer();
-        const acc=attempts===0?100:Math.round((matches/attempts)*100);
-        $('winStats').textContent=`Completed in ${formatTime(currentTime)} with ${attempts} attempts (${acc}% accuracy)`;
-        checkNewRecords();
-        setTimeout(()=>$('win').classList.add('show'),350);
-        [523,659,784,1047].forEach((n,k)=>setTimeout(()=>playTone(n,.28),140*k));
-      }
-    }
-    function updateStats(){
-      matchesEl.textContent=matches; attemptsEl.textContent=attempts;
-      const acc=attempts===0?100:Math.round((matches/attempts)*100); accuracyEl.textContent=acc+'%';
-      updateTimerDisplay();
-    }
-    function resetGame(){
-      stopAllAudio(); stopTimer(); sounds=[]; matched=new Set(); firstClick=null; matches=0; attempts=0; currentTime=0; gameStartTime=null;
-      createGrid(); updateStats(); updateBestStats(); hideWin();
-    }
-    function scrambleGame(){
-      if(!sounds.length){ resetGame(); return; }
-      stopAllAudio(); stopTimer(); sounds=shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; currentTime=0; gameStartTime=null;
-      [...gridEl.children].forEach((btn,i)=>{btn.className=`btn row-${Math.floor(i/6)}`;btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>'});
-      updateStats(); updateBestStats(); hideWin();
-    }
-    function toggleAudio(){ muted=!muted; $('muteBtn').innerHTML = muted? '🔇 Audio Off':'🔊 Audio On'; }
-    function playAgain(){ hideWin(); resetGame(); }
-    function showGameOptions(){ hideWin(); alert('Use the game tabs above to switch between different sound sets!'); }
-    function hideWin(){ $('win').classList.remove('show'); }
-    function switchGame(idx){
-      if(idx>0 && customBuffers[idx-1].length!==18){ alert(`${gameNames[idx-1]} is not ready. Please upload 18 audio files first.`); return; }
-      currentGame=idx; document.querySelectorAll('.tab').forEach((t,k)=>t.classList.toggle('active',k===idx)); resetGame();
-    }
-
-    /* ========= Timer & Records ========= */
-    function formatTime(s){const m=Math.floor(s/60), ss=s%60; return `${m}:${String(ss).padStart(2,'0')}`}
-    function startTimer(){ if(gameStartTime) return; gameStartTime=Date.now(); gameTimer=setInterval(()=>{ currentTime=Math.floor((Date.now()-gameStartTime)/1000); updateTimerDisplay(); },1000); }
-    function stopTimer(){ if(gameTimer){ clearInterval(gameTimer); gameTimer=null; } }
-    function updateTimerDisplay(){ currentStatsEl.textContent=`Time: ${formatTime(currentTime)} | Attempts: ${attempts}`; }
-    function updateBestStats(){ const r=bestRecords[currentGame]; const t=r.time==null?'--':formatTime(r.time); const a=r.attempts==null?'--':r.attempts; bestStatsEl.textContent=`Best Time: ${t} | Best Attempts: ${a}`; }
-    function checkNewRecords(){ const r=bestRecords[currentGame]; let ch=false; if(r.time==null||currentTime<r.time){r.time=currentTime;ch=true} if(r.attempts==null||attempts<r.attempts){r.attempts=attempts;ch=true} if(ch){ saveMeta().then(pushToServerDebounced); } updateBestStats(); }
-
-    /* ========= Admin Open/Close ========= */
-    function showAdmin(){
-      const pass=prompt('Enter admin password:'); if(pass===null) return;
-      if(pass===PASSWORD){ $('adminBackdrop').classList.add('show'); $('adminBackdrop').setAttribute('aria-hidden','false'); refreshAdmin(); }
-      else alert('Incorrect password');
-    }
-    function hideAdmin(){
-      $('adminBackdrop').classList.remove('show'); $('adminBackdrop').setAttribute('aria-hidden','true');
-      $('tab1').textContent=gameNames[0]; $('tab2').textContent=gameNames[1];
-      saveMeta().then(pushToServerDebounced);
-    }
-
-    /* ========= Admin Helpers (status & names) ========= */
-    function refreshAdmin(){
-      $('name1').value=gameNames[0]; $('name2').value=gameNames[1];
-      setSlotStatus(1, customBuffers[0].length); setSlotStatus(2, customBuffers[1].length);
-      updateMessageStatus();
-    }
-    function setSlotStatus(slot,count){
-      const el = slot===1?$('status1'):$('status2');
-      el.className='slot-status'+(count===18?' ready':(count>0?' partial':'')); el.textContent=count===18?'Ready (18/18)':(count>0?`Partial (${count}/18)`:'Empty (0/18)');
-    }
-    function attachNameListeners(){
-      const n1=$('name1'), n2=$('name2');
-      if(n1 && !n1._bound){ n1.addEventListener('input',()=>{ gameNames[0]=n1.value||'Custom Set 1'; $('tab1').textContent=gameNames[0]; saveMeta().then(pushToServerDebounced); }); n1._bound=true; }
-      if(n2 && !n2._bound){ n2.addEventListener('input',()=>{ gameNames[1]=n2.value||'Custom Set 2'; $('tab2').textContent=gameNames[1]; saveMeta().then(pushToServerDebounced); }); n2._bound=true; }
-    }
-
-    /* ========= Admin Audio Upload ========= */
-    function handleDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('dragover'); }
-    function handleDragLeave(e){ e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
-    function handleDrop(e,slot){ e.preventDefault(); e.currentTarget.classList.remove('dragover'); const files=[...e.dataTransfer.files].filter(f=>f.type.startsWith('audio/')); if(!files.length){ alert('Please drop audio files only.'); return;} processFiles(files,slot); }
-    function handleFiles(e,slot){ const files=[...e.target.files]; if(!files.length) return; processFiles(files,slot); e.target.value=''; }
-
-    async function processFiles(files,slot){
-      initAudio(); if(!audioContext){ alert('Audio context not available. Please try again.'); return; }
-      const idx=slot-1;
-      const take = Math.min(files.length,18);
-      if(files.length!==18 && !confirm(`You selected ${files.length} files, but 18 are needed. Continue with ${take}?`)) return;
-
-      // Save original blobs to IDB for persistence
-      await saveSetToIDB(slot, files.slice(0,take).map(f=>f));
-
-      // Decode now to AudioBuffers
-      customBuffers[idx]=[];
-      const statusEl = slot===1?$('status1'):$('status2');
-      try{
-        for(let i=0;i<take;i++){
-          statusEl.textContent=`Processing ${i+1}/${take}...`; statusEl.className='slot-status partial';
-          const ab=await files[i].arrayBuffer(); const buf=await audioContext.decodeAudioData(ab); customBuffers[idx].push(normalize(buf));
-          await new Promise(r=>setTimeout(r,30));
-        }
-        setSlotStatus(slot, customBuffers[idx].length);
-        refreshAdmin();
-        alert(`Loaded ${customBuffers[idx].length} files for ${gameNames[idx]}.`);
-        saveMeta().then(pushToServerDebounced);
-      }catch(err){ console.error(err); alert('Error decoding some audio files.'); setSlotStatus(slot, customBuffers[idx].length); }
-    }
-
-    function clearSlot(slot){
-      if(!confirm(`Clear all files from Custom Set ${slot}?`)) return;
-      const idx=slot-1;
-      customBuffers[idx]=[];
-      // Clear IDB blobs
-      const prefix=`${slot}:`;
-      idbKeys('audio',prefix).then(keys=>Promise.all(keys.map(k=>idbDelete('audio',k))).then(()=>idbPut('meta',`count:${slot}`,0)));
-      setSlotStatus(slot,0); refreshAdmin(); saveMeta().then(pushToServerDebounced);
-    }
-
-    function testGame(slot){
-      const idx=slot-1;
-      if(customBuffers[idx].length!==18){ alert(`Custom Set ${slot} needs exactly 18 files. Currently has ${customBuffers[idx].length}.`); return; }
-      hideAdmin(); switchGame(slot);
-    }
-
-    /* ========= Admin Messages ========= */
-    function updateMessageStatus(){ $('messageStatus').textContent = funnyMessages.length? `${funnyMessages.length} messages loaded` : 'No messages loaded'; }
-    async function handleMessageFile(e){
-      const file = e.target.files?.[0]; if(!file) return; await loadMessageText(await file.text()); e.target.value=''; saveMeta().then(pushToServerDebounced);
-    }
-    async function handleMessageDrop(e){
-      e.preventDefault(); e.currentTarget.classList.remove('dragover');
-      const file = e.dataTransfer.files?.[0]; if(!file) return; await loadMessageText(await file.text()); saveMeta().then(pushToServerDebounced);
-    }
-    async function loadMessageText(text){
-      try{
-        const lines = text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150);
-        if(!lines.length){ alert('No valid messages found. Each line should be 1–150 characters.'); return; }
-        funnyMessages = lines;
-        updateMessageStatus();
-        alert(`Loaded ${funnyMessages.length} messages.`);
-      }catch{ alert('Error reading message file.'); }
-    }
-    function previewMessages(){
-      if(!funnyMessages.length){ alert('No messages loaded. Upload a .txt first.'); return; }
-      const preview = funnyMessages.slice(0,10).join('\n'); const more = funnyMessages.length>10? `\n\n...and ${funnyMessages.length-10} more` : '';
-      alert(`Preview:\n\n${preview}${more}`);
-    }
-    function clearMessages(){
-      if(!funnyMessages.length){ alert('Nothing to clear.'); return; }
-      if(confirm('Clear all funny messages?')){ funnyMessages=[]; updateMessageStatus(); saveMeta().then(pushToServerDebounced); alert('Messages cleared.'); }
-    }
-
-    /* ========= Message Ticker ========= */
-    function startMessageRotation(){
-      if(messageTimer){ clearInterval(messageTimer); messageTimer=null; }
-      rotatingMessage.textContent = "Welcome to the audio memory challenge!";
-      setTimeout(()=>{
-        rotatingMessage.textContent = "Click buttons to hear sounds, find matching pairs!";
-        setTimeout(()=>{
-          if(funnyMessages.length){
-            showRandomMessage();
-            messageTimer = setInterval(showRandomMessage, 20000);
-          }else{
-            rotatingMessage.textContent = "Welcome to the audio memory challenge!";
-          }
-        },20000);
-      },10000);
-    }
-    function showRandomMessage(){
-      if(!funnyMessages.length) return;
-      const idx = Math.floor(Math.random()*funnyMessages.length);
-      rotatingMessage.textContent = funnyMessages[idx];
-      setTimeout(()=>{ rotatingMessage.textContent = ""; }, 10000);
-    }
-
-    /* ========= Boot ========= */
-    async function hydrateAudioBuffersFromBlobs(slot){
-      // decode all blobs into AudioBuffers
-      const blobs = await loadSetFromIDB(slot);
-      if(!blobs.length) return [];
-      initAudio(); if(!audioContext) return [];
-      const bufs = [];
-      for(const b of blobs.slice(0,18)){
-        try{
-          const ab = await b.arrayBuffer();
-          const decoded = await audioContext.decodeAudioData(ab);
-          bufs.push(normalize(decoded));
-        }catch(e){ console.warn('decode failed', e); }
-      }
-      return bufs;
-    }
-
-    async function init(){
-      await openDB();
-
-      // Load meta (names, records, messages) from IDB
-      await loadMeta();
-
-      // Optional server pull (names/records/messages and optional audio URLs)
-      await pullFromServer();
-
-      // Update UI with names
-      $('tab1').textContent = gameNames[0] || 'Custom Set 1';
-      $('tab2').textContent = gameNames[1] || 'Custom Set 2';
-
-      // Hydrate audio buffers from IndexedDB blobs
-      customBuffers[0] = await hydrateAudioBuffersFromBlobs(1);
-      customBuffers[1] = await hydrateAudioBuffersFromBlobs(2);
-
-      // Attach admin name listeners
-      attachNameListeners();
-
-      // Build game and ticker
-      resetGame();
-      updateBestStats();
-      updateMessageStatus();
-      startMessageRotation();
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-    document.addEventListener('click', ()=>{ if(audioContext && audioContext.state==='suspended') audioContext.resume(); }, {once:true});
-    document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopAllAudio(); });
-    window.addEventListener('beforeunload', ()=>{ try{ saveMeta(); }catch{} });
-
-    // Expose for inline handlers
-    window.switchGame=switchGame; window.resetGame=resetGame; window.toggleAudio=toggleAudio;
-    window.scrambleGame=scrambleGame; window.playAgain=playAgain; window.showGameOptions=showGameOptions;
-    window.showAdmin=showAdmin; window.hideAdmin=hideAdmin;
-    window.handleDragOver=handleDragOver; window.handleDragLeave=handleDragLeave; window.handleDrop=handleDrop; window.handleFiles=handleFiles;
-    window.clearSlot=clearSlot; window.testGame=testGame;
-    window.handleMessageFile=handleMessageFile; window.handleMessageDrop=handleMessageDrop; window.previewMessages=previewMessages; window.clearMessages=clearMessages;
-  </script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
