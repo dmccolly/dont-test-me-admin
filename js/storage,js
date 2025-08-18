@@ -1,4 +1,3 @@
-// LocalStorage keys
 const KEYS = {
   names: 'dtm_names_v1',
   best: 'dtm_best_v1',
