@@ -394,7 +394,11 @@
             transition: all 0.3s ease;
             opacity: 0.4;
         }
-        .admin-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.05); color: #888; }
+        .admin-btn:hover { 
+            opacity: 1; 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #888; 
+        }
         .admin-panel {
             display: none;
             background: rgba(0, 0, 0, 0.95);
@@ -404,13 +408,13 @@
             padding: 40px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
             position: relative;
-            max-height: 80vh;
-            overflow-y: auto;
             width: 90%;
-            max-width: 800px;
+            max-width: 600px;
             margin: 20px auto;
         }
-        .admin-panel.show { display: block; }
+        .admin-panel.show { 
+            display: block; 
+        }
         .admin-title {
             font-size: 2rem;
             font-weight: 200;
@@ -478,13 +482,11 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-        }
-        .admin-btn-action.secondary {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: #ccc;
         }
-        .admin-btn-action.secondary:hover {
+        .admin-btn-action:hover {
             background: rgba(255, 255, 255, 0.12);
             color: #fff;
         }
@@ -493,8 +495,6 @@
             .grid { gap: 6px; }
             .tabs { flex-direction: column; gap: 10px; }
             .tab { width: 100%; max-width: 200px; }
-            .admin-panel { width: 95%; padding: 20px; }
-            .slot-header { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -543,20 +543,8 @@
         </div>
     </div>
 
-    <div class="win" id="win">
-        <div class="win-content">
-            <div class="win-title">Perfect Match!</div>
-            <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
-            <div class="win-actions">
-                <button class="win-btn" onclick="playAgain()">Play Again</button>
-                <button class="win-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
-                <button class="win-btn" onclick="showGameOptions()">Other Games</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin panel - completely separate and hidden -->
-    <div class="admin-panel" id="adminPanel" style="display: none !important;">
+    <!-- Admin panel - hidden by default -->
+    <div class="admin-panel" id="adminPanel">
         <h2 class="admin-title">Message Manager</h2>
         
         <div class="slot">
@@ -565,14 +553,26 @@
                 <div class="slot-status" id="messageStatus">No messages loaded</div>
             </div>
             <div class="upload" onclick="document.getElementById('messageFile').click()">
-                <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
+                <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
                 <div class="upload-hint">Text file with your funny phrases</div>
                 <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
             </div>
             <div class="admin-actions">
-                <button class="admin-btn-action secondary" onclick="previewMessages()">👀 Preview Messages</button>
-                <button class="admin-btn-action secondary" onclick="clearMessages()">🗑️ Clear Messages</button>
-                <button class="admin-btn-action secondary" onclick="hideAdmin()">Close</button>
+                <button class="admin-btn-action" onclick="previewMessages()">👀 Preview Messages</button>
+                <button class="admin-btn-action" onclick="clearMessages()">🗑️ Clear Messages</button>
+                <button class="admin-btn-action" onclick="hideAdmin()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="win" id="win">
+        <div class="win-content">
+            <div class="win-title">Perfect Match!</div>
+            <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
+            <div class="win-actions">
+                <button class="win-btn" onclick="playAgain()">Play Again</button>
+                <button class="win-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
+                <button class="win-btn" onclick="showGameOptions()">Other Games</button>
             </div>
         </div>
     </div>
@@ -594,9 +594,14 @@
         let customBuffers = [[], []];
         let fileMetadata = [[], []];
         let gameNames = ["Custom Set 1", "Custom Set 2"];
-        let adminVisible = false;
         let funnyMessages = [];
         let messageTimer = null;
+        
+        // Persistent storage system
+        let db = null;
+        const DB_NAME = 'DontTestMeDB';
+        const DB_VERSION = 2;
+        const STORE_NAME = 'audioGames';
         let bestRecords = {
             0: { time: null, attempts: null },
             1: { time: null, attempts: null },
@@ -604,14 +609,73 @@
         };
         const frequencies = [220, 246, 261, 293, 329, 349, 392, 440, 493, 523, 587, 659, 698, 783, 880, 987, 1046, 1174];
 
-        // Message rotation system
+        // IndexedDB initialization
+        async function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (db.objectStoreNames.contains(STORE_NAME)) {
+                        db.deleteObjectStore(STORE_NAME);
+                    }
+                    const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                };
+            });
+        }
+
+        async function saveToIndexedDB(id, data) {
+            if (!db) return;
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.put({ id: id, data: data, timestamp: Date.now() });
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function loadFromIndexedDB(id) {
+            if (!db) return null;
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+                request.onsuccess = () => resolve(request.result ? request.result.data : null);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Message rotation system with specific timing
         function startMessageRotation() {
-            if (funnyMessages.length === 0) return;
+            const messageEl = document.getElementById('rotatingMessage');
             
-            if (messageTimer) clearInterval(messageTimer);
+            // Step 1: Show greeting for 10 seconds
+            messageEl.textContent = "Welcome to the audio memory challenge!";
             
-            showRandomMessage();
-            messageTimer = setInterval(showRandomMessage, 40000); // 40 seconds
+            setTimeout(() => {
+                // Step 2: Show how-to-play message for 10 seconds
+                messageEl.textContent = "Click buttons to hear sounds, find matching pairs!";
+                
+                setTimeout(() => {
+                    // Step 3: Wait 20 seconds, then start funny messages
+                    if (funnyMessages.length > 0) {
+                        showRandomMessage();
+                        // Then show new funny message every 20 seconds
+                        messageTimer = setInterval(showRandomMessage, 20000);
+                    } else {
+                        // If no funny messages, just show welcome again
+                        messageEl.textContent = "Welcome to the audio memory challenge!";
+                    }
+                }, 20000); // 20 second wait
+                
+            }, 10000); // 10 seconds for how-to-play
         }
 
         function stopMessageRotation() {
@@ -628,7 +692,50 @@
             const message = funnyMessages[randomIndex];
             
             const messageEl = document.getElementById('rotatingMessage');
-            messageEl.textContent = message;
+            messageEl.textContent = message; // Sharp cut transition
+            
+            // Show for 10 seconds, then clear for 10 seconds
+            setTimeout(() => {
+                messageEl.textContent = ""; // Clear message
+            }, 10000); // Visible for 10 seconds
+        }
+
+        function loadMessages() {
+            try {
+                const lsData = localStorage.getItem('dontTestMeMessages');
+                if (lsData) {
+                    const messages = JSON.parse(lsData);
+                    if (messages && Array.isArray(messages) && messages.length > 0) {
+                        funnyMessages = messages;
+                        console.log(`✅ Loaded ${funnyMessages.length} messages`);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to load messages:', error);
+            }
+            
+            // Always start the message sequence regardless of funny messages
+            startMessageRotation();
+        }
+
+        // Admin functions
+        function showAdmin() {
+            const pass = prompt('Enter admin password:');
+            if (pass === 'MUSIC') {
+                document.getElementById('adminPanel').classList.add('show');
+                updateMessageStatus();
+            } else if (pass !== null) {
+                alert('Incorrect password');
+            }
+        }
+
+        function hideAdmin() {
+            document.getElementById('adminPanel').classList.remove('show');
+        }
+
+        function updateMessageStatus() {
+            document.getElementById('messageStatus').textContent = 
+                funnyMessages.length === 0 ? 'No messages loaded' : `${funnyMessages.length} messages loaded`;
         }
 
         function handleMessageFile(event) {
@@ -636,25 +743,22 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const text = e.target.result;
                     const lines = text.split('\n')
                         .map(line => line.trim())
-                        .filter(line => line.length > 0 && line.length <= 40);
+                        .filter(line => line.length > 0 && line.length <= 150);
 
                     if (lines.length === 0) {
-                        alert('No valid messages found. Each line should be 1-40 characters.');
+                        alert('No valid messages found. Each line should be 1-150 characters.');
                         return;
                     }
 
                     funnyMessages = lines;
-                    saveMessages();
+                    await saveMessages();
+                    updateMessageStatus();
                     
-                    document.getElementById('messageStatus').textContent = 
-                        `${funnyMessages.length} messages loaded`;
-                    
-                    startMessageRotation();
                     alert(`Successfully loaded ${funnyMessages.length} funny messages!`);
 
                 } catch (error) {
@@ -675,24 +779,6 @@
             }
         }
 
-        function loadMessages() {
-            try {
-                const lsData = localStorage.getItem('dontTestMeMessages');
-                if (lsData) {
-                    const messages = JSON.parse(lsData);
-                    if (messages && Array.isArray(messages) && messages.length > 0) {
-                        funnyMessages = messages;
-                        document.getElementById('messageStatus').textContent = 
-                            `${funnyMessages.length} messages loaded`;
-                        startMessageRotation();
-                        console.log(`✅ Loaded ${funnyMessages.length} messages`);
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Failed to load messages:', error);
-            }
-        }
-
         function previewMessages() {
             if (funnyMessages.length === 0) {
                 alert('No messages loaded. Please upload a message file first.');
@@ -705,19 +791,21 @@
             alert(`Preview of your messages:\n\n${preview}${more}`);
         }
 
-        function clearMessages() {
+        async function clearMessages() {
             if (confirm('Clear all funny messages?')) {
                 funnyMessages = [];
-                stopMessageRotation();
                 
                 try {
                     localStorage.removeItem('dontTestMeMessages');
+                    if (db) {
+                        await saveToIndexedDB('funnyMessages', []);
+                    }
                 } catch (error) {
                     console.error('Error clearing messages:', error);
                 }
                 
-                document.getElementById('messageStatus').textContent = 'No messages loaded';
-                document.getElementById('rotatingMessage').textContent = 'Welcome to the audio memory challenge!';
+                updateMessageStatus();
+                alert('Messages cleared successfully!');
             }
         }
 
@@ -727,3 +815,342 @@
             } catch (error) {
                 console.error('Audio context not supported:', error);
             }
+        }
+
+        function generateTone(frequency, duration = 0.5) {
+            if (!audioContext) return null;
+
+            const sampleRate = audioContext.sampleRate;
+            const numSamples = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, numSamples, sampleRate);
+            const channelData = buffer.getChannelData(0);
+
+            for (let i = 0; i < numSamples; i++) {
+                const t = i / sampleRate;
+                const envelope = Math.exp(-t * 2);
+                channelData[i] = Math.sin(2 * Math.PI * frequency * t) * envelope * 0.3;
+            }
+
+            return buffer;
+        }
+
+        function playAudioBuffer(buffer) {
+            if (!audioContext || !buffer || muted) return;
+
+            stopAllAudio();
+
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start();
+
+            currentAudioSources.push(source);
+
+            source.onended = () => {
+                const index = currentAudioSources.indexOf(source);
+                if (index > -1) {
+                    currentAudioSources.splice(index, 1);
+                }
+            };
+        }
+
+        function stopAllAudio() {
+            currentAudioSources.forEach(source => {
+                try {
+                    source.stop();
+                } catch (e) {}
+            });
+            currentAudioSources = [];
+        }
+
+        function playSound(index) {
+            if (currentGame === 0) {
+                const buffer = generateTone(frequencies[index]);
+                if (buffer) playAudioBuffer(buffer);
+            } else {
+                const slotIndex = currentGame - 1;
+                if (customBuffers[slotIndex] && customBuffers[slotIndex][index]) {
+                    playAudioBuffer(customBuffers[slotIndex][index]);
+                }
+            }
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 36; i++) {
+                const btn = document.createElement('button');
+                btn.className = `btn row-${Math.floor(i / 6)}`;
+                btn.onclick = () => handleClick(i);
+                btn.setAttribute('data-icon', '🔊');
+                grid.appendChild(btn);
+            }
+        }
+
+        function generateSounds() {
+            sounds = [];
+            const soundIndices = [];
+
+            for (let i = 0; i < 18; i++) {
+                soundIndices.push(i, i);
+            }
+
+            for (let i = soundIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [soundIndices[i], soundIndices[j]] = [soundIndices[j], soundIndices[i]];
+            }
+
+            sounds = soundIndices;
+        }
+
+        function handleClick(index) {
+            if (matched.has(index)) return;
+
+            const btn = document.querySelectorAll('.btn')[index];
+            btn.classList.add('clicked');
+            setTimeout(() => btn.classList.remove('clicked'), 600);
+
+            if (!gameStartTime) {
+                gameStartTime = Date.now();
+                startTimer();
+            }
+
+            playSound(sounds[index]);
+
+            if (firstClick === null) {
+                firstClick = index;
+            } else if (firstClick === index) {
+                firstClick = null;
+            } else {
+                attempts++;
+                updateStats();
+
+                if (sounds[firstClick] === sounds[index]) {
+                    matched.add(firstClick);
+                    matched.add(index);
+                    matches++;
+
+                    const btn1 = document.querySelectorAll('.btn')[firstClick];
+                    const btn2 = document.querySelectorAll('.btn')[index];
+                    btn1.classList.add('matched');
+                    btn2.classList.add('matched');
+
+                    if (matches === 18) {
+                        stopTimer();
+                        showWin();
+                        updateBestRecord();
+                    }
+                }
+
+                firstClick = null;
+            }
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                currentTime = Math.floor((Date.now() - gameStartTime) / 1000);
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            const currentStats = document.querySelector('.current-stats');
+            if (currentStats) {
+                currentStats.textContent = `Time: ${timeStr} | Attempts: ${attempts}`;
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('matches').textContent = `${matches}/18`;
+            document.getElementById('attempts').textContent = attempts;
+
+            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        function updateBestStats() {
+            const record = bestRecords[currentGame];
+            const bestStatsEl = document.getElementById('bestStats');
+
+            if (record.time !== null && record.attempts !== null) {
+                const minutes = Math.floor(record.time / 60);
+                const seconds = record.time % 60;
+                const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                bestStatsEl.textContent = `Best Time: ${timeStr} | Best Attempts: ${record.attempts}`;
+            } else {
+                bestStatsEl.textContent = 'Best Time: -- | Best Attempts: --';
+            }
+        }
+
+        function updateBestRecord() {
+            const record = bestRecords[currentGame];
+            const isNewRecord = record.time === null || currentTime < record.time || 
+                              (currentTime === record.time && attempts < record.attempts);
+
+            if (isNewRecord) {
+                bestRecords[currentGame] = { time: currentTime, attempts: attempts };
+                saveRecords();
+                updateBestStats();
+            }
+        }
+
+        function saveRecords() {
+            localStorage.setItem('dontTestMeRecords', JSON.stringify(bestRecords));
+        }
+
+        function loadRecords() {
+            const saved = localStorage.getItem('dontTestMeRecords');
+            if (saved) {
+                bestRecords = { ...bestRecords, ...JSON.parse(saved) };
+            }
+        }
+
+        function showWin() {
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = currentTime % 60;
+            const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            const accuracy = Math.round((matches / attempts) * 100);
+
+            document.getElementById('winStats').textContent = 
+                `Completed in ${timeStr} with ${attempts} attempts (${accuracy}% accuracy)`;
+            document.getElementById('win').classList.add('show');
+        }
+
+        function hideWin() {
+            document.getElementById('win').classList.remove('show');
+        }
+
+        function playAgain() {
+            hideWin();
+            resetGame();
+        }
+
+        function showGameOptions() {
+            hideWin();
+            alert('Use the game tabs above to switch between different sound sets!');
+        }
+
+        function resetGame() {
+            stopTimer();
+            sounds = [];
+            matched = new Set();
+            firstClick = null;
+            matches = 0;
+            attempts = 0;
+            gameStartTime = null;
+            currentTime = 0;
+            hideWin();
+            generateSounds();
+            createGrid();
+            updateStats();
+            updateTimerDisplay();
+            updateBestStats();
+        }
+
+        function scrambleGame() {
+            if (sounds.length === 0) {
+                resetGame();
+                return;
+            }
+
+            stopTimer();
+
+            for (let i = sounds.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [sounds[i], sounds[j]] = [sounds[j], sounds[i]];
+            }
+
+            matched = new Set();
+            firstClick = null;
+            matches = 0;
+            attempts = 0;
+            gameStartTime = null;
+            currentTime = 0;
+            hideWin();
+
+            const btns = document.querySelectorAll('.btn');
+            btns.forEach((btn, i) => {
+                const row = Math.floor(i / 6);
+                btn.className = `btn row-${row}`;
+            });
+            updateStats();
+            updateTimerDisplay();
+            updateBestStats();
+        }
+
+        function toggleAudio() {
+            muted = !muted;
+            const btn = document.getElementById('muteBtn');
+            btn.innerHTML = muted ? '🔇 Audio Off' : '🔊 Audio On';
+        }
+
+        function switchGame(gameIndex) {
+            currentGame = gameIndex;
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === gameIndex);
+            });
+
+            resetGame();
+            updateBestStats();
+        }
+
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', async () => {
+            initAudio();
+            
+            // Initialize persistent storage
+            try {
+                await initIndexedDB();
+                console.log('✅ IndexedDB initialized');
+            } catch (error) {
+                console.warn('⚠️ IndexedDB failed, using localStorage only');
+            }
+            
+            loadRecords();
+            await loadMessages(); // Make this async
+            generateSounds();
+            createGrid();
+            updateStats();
+            updateTimerDisplay();
+            updateBestStats();
+        });
+
+        // Handle audio context resume for mobile
+        document.addEventListener('click', () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+
+        // Handle page visibility change to prevent issues
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAllAudio();
+            }
+        });
+
+        // Handle before unload to ensure data is saved
+        window.addEventListener('beforeunload', () => {
+            stopMessageRotation();
+            try {
+                saveRecords();
+            } catch (error) {
+                console.error('Failed to save on unload:', error);
+            }
+        });
+    </script>
+</body>
+</html>
