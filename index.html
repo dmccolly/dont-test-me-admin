@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="container">
-    <button class="admin-btn" id="openAdmin">⚙</button>
+    <button class="admin-btn" id="openAdmin" title="Open Admin">⚙</button>
 
     <div class="header">
       <h1 class="title">DON'T TEST ME</h1>
@@ -31,9 +31,18 @@
 
     <div class="panel" id="gamePanel">
       <div class="stats">
-        <div class="stat"><div class="stat-label">Matches</div><div class="stat-value"><span id="matches">0</span>/18</div></div>
-        <div class="stat"><div class="stat-label">Attempts</div><div class="stat-value" id="attempts">0</div></div>
-        <div class="stat"><div class="stat-label">Accuracy</div><div class="stat-value" id="accuracy">100%</div></div>
+        <div class="stat">
+          <div class="stat-label">Matches</div>
+          <div class="stat-value"><span id="matches">0</span>/18</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Attempts</div>
+          <div class="stat-value" id="attempts">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Accuracy</div>
+          <div class="stat-value" id="accuracy">100%</div>
+        </div>
       </div>
 
       <div class="grid" id="grid"></div>
@@ -74,9 +83,7 @@
           <div style="font-weight:700">Funny Messages</div>
           <div class="slot-status" id="messageStatus">No messages loaded</div>
         </div>
-        <div class="upload"
-             id="messageDrop"
-             tabindex="0">
+        <div class="upload" id="messageDrop" tabindex="0">
           <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
           <div class="upload-hint">Plain .txt recommended</div>
           <input class="hidden-file" type="file" id="messageFile" accept=".txt"/>
