@@ -20,6 +20,7 @@ export async function openDB() {
 }
 
 function idbPut(store, key, value) {
+  if (!db) throw new Error('DB not open');
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
     tx.objectStore(store).put(value, key);
@@ -29,6 +30,7 @@ function idbPut(store, key, value) {
 }
 
 function idbGet(store, key) {
+  if (!db) throw new Error('DB not open');
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readonly');
     const req = tx.objectStore(store).get(key);
@@ -38,6 +40,7 @@ function idbGet(store, key) {
 }
 
 function idbKeys(store, prefix) {
+  if (!db) throw new Error('DB not open');
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readonly');
     const os = tx.objectStore(store);
@@ -55,6 +58,7 @@ function idbKeys(store, prefix) {
 }
 
 function idbDelete(store, key) {
+  if (!db) throw new Error('DB not open');
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
     tx.objectStore(store).delete(key);
@@ -65,12 +69,14 @@ function idbDelete(store, key) {
 
 /* Public meta API */
 export async function saveMeta({ names, records, messages }) {
+  await openDB();
   await idbPut('meta', 'names', JSON.stringify(names));
   await idbPut('meta', 'records', JSON.stringify(records));
   await idbPut('meta', 'messages', JSON.stringify(messages));
 }
 
 export async function loadMeta() {
+  await openDB();
   const out = { names: null, records: null, messages: null };
   const n = await idbGet('meta', 'names');
   const r = await idbGet('meta', 'records');
@@ -83,6 +89,7 @@ export async function loadMeta() {
 
 /* Audio set storage (Blob) */
 export async function saveAudioSet(slot, files) {
+  await openDB();
   const prefix = `${slot}:`;
   const keys = await idbKeys('audio', prefix);
   await Promise.all(keys.map(k => idbDelete('audio', k)));
@@ -92,6 +99,7 @@ export async function saveAudioSet(slot, files) {
 }
 
 export async function loadAudioSet(slot) {
+  await openDB();
   const count = await idbGet('meta', `count:${slot}`) || 0;
   const blobs = [];
   for (let i = 0; i < count; i++) {
@@ -102,6 +110,7 @@ export async function loadAudioSet(slot) {
 }
 
 export async function clearAudioSet(slot) {
+  await openDB();
   const prefix = `${slot}:`;
   const keys = await idbKeys('audio', prefix);
   await Promise.all(keys.map(k => idbDelete('audio', k)));
