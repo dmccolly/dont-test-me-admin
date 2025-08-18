@@ -1117,6 +1117,9 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🎮 Initializing game...');
             
+            // Ensure admin panel is hidden on startup
+            document.getElementById('adminPanel').classList.remove('show');
+            
             initAudio();
             
             try {
