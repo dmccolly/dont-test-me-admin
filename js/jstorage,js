@@ -1,0 +1,109 @@
+// IndexedDB wrapper + meta persistence
+const DB_NAME = 'dtmDB_v2';
+const DB_VERSION = 1;
+
+let db;
+
+export async function openDB() {
+  if (db) return db;
+  db = await new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      if (!d.objectStoreNames.contains('audio')) d.createObjectStore('audio');   // key: `${set}:${index}` -> Blob
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');     // key: 'names'|'records'|'messages'|'count:<slot>'
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return db;
+}
+
+function idbPut(store, key, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function idbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function idbKeys(store, prefix) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const os = tx.objectStore(store);
+    const keys = [];
+    const req = os.openKeyCursor();
+    req.onsuccess = () => {
+      const cur = req.result;
+      if (cur) {
+        if (!prefix || (typeof cur.key === 'string' && cur.key.startsWith(prefix))) keys.push(cur.key);
+        cur.continue();
+      } else resolve(keys);
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function idbDelete(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* Public meta API */
+export async function saveMeta({ names, records, messages }) {
+  await idbPut('meta', 'names', JSON.stringify(names));
+  await idbPut('meta', 'records', JSON.stringify(records));
+  await idbPut('meta', 'messages', JSON.stringify(messages));
+}
+
+export async function loadMeta() {
+  const out = { names: null, records: null, messages: null };
+  const n = await idbGet('meta', 'names');
+  const r = await idbGet('meta', 'records');
+  const m = await idbGet('meta', 'messages');
+  if (n) try { out.names = JSON.parse(n); } catch {}
+  if (r) try { out.records = JSON.parse(r); } catch {}
+  if (m) try { out.messages = JSON.parse(m); } catch {}
+  return out;
+}
+
+/* Audio set storage (Blob) */
+export async function saveAudioSet(slot, files) {
+  const prefix = `${slot}:`;
+  const keys = await idbKeys('audio', prefix);
+  await Promise.all(keys.map(k => idbDelete('audio', k)));
+  const limit = Math.min(files.length, 18);
+  await Promise.all(files.slice(0, limit).map((blob, i) => idbPut('audio', `${slot}:${i}`, blob)));
+  await idbPut('meta', `count:${slot}`, limit);
+}
+
+export async function loadAudioSet(slot) {
+  const count = await idbGet('meta', `count:${slot}`) || 0;
+  const blobs = [];
+  for (let i = 0; i < count; i++) {
+    const b = await idbGet('audio', `${slot}:${i}`);
+    if (b) blobs.push(b);
+  }
+  return blobs;
+}
+
+export async function clearAudioSet(slot) {
+  const prefix = `${slot}:`;
+  const keys = await idbKeys('audio', prefix);
+  await Promise.all(keys.map(k => idbDelete('audio', k)));
+  await idbPut('meta', `count:${slot}`, 0);
+}
