@@ -1,4 +1,3 @@
-// Query helper & small utilities
 export const $ = (id) => document.getElementById(id);
 
 export function shuffle(arr) {
