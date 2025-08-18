@@ -1,28 +1,13 @@
-// netlify/functions/dtm-api.js
 // Persistence + audio upload/stream/delete using Netlify Blobs.
-// Works with the single-file index.html I gave you.
 
-const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8' };
-const ok = (body, extra = {}) => ({
-  statusCode: 200,
-  headers: { 'Access-Control-Allow-Origin': '*', ...extra },
-  body: typeof body === 'string' ? body : JSON.stringify(body),
+const json = (status, body) => ({
+  statusCode: status,
+  headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json; charset=utf-8' },
+  body: JSON.stringify(body),
 });
-const created = (body) => ({
-  statusCode: 201,
-  headers: { 'Access-Control-Allow-Origin': '*', ...jsonHeaders },
-  body: JSON.stringify(body || { ok: true }),
-});
-const noContent = () => ({
-  statusCode: 204,
-  headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'content-type' },
-  body: '',
-});
-const bad = (msg, code = 400) => ({
-  statusCode: code,
-  headers: { 'Access-Control-Allow-Origin': '*', ...jsonHeaders },
-  body: JSON.stringify({ error: msg }),
-});
+const ok      = (b) => json(200, b);
+const created = (b) => json(201, b);
+const bad     = (m, s = 400) => json(s, { error: m });
 
 exports.handler = async (event) => {
   // CORS preflight
@@ -40,20 +25,18 @@ exports.handler = async (event) => {
   }
 
   const { getStore } = await import('@netlify/blobs');
-  // One logical store for everything (Netlify creates it automatically)
   const store = getStore('dtm-store');
 
-  const url = new URL(event.rawUrl || `http://x${event.path}${event.queryString ? '?' + event.queryString : ''}`);
+  const url = new URL(event.rawUrl);
   const route = url.searchParams.get('route') || '';
-  const name = url.searchParams.get('name') || '';
+  const name  = url.searchParams.get('name')  || '';
 
   try {
-    // ---------- records (best times/attempts, custom set names & keys) ----------
+    // ------- records (best times/attempts + custom set names/keys) -------
     if (route === 'records') {
       if (event.httpMethod === 'GET') {
         const txt = await store.get('records.json', { type: 'text' });
-        if (!txt) return ok({ best: {0:{},1:{},2:{}}, names: ['Custom Set 1','Custom Set 2'], keys: [[],[]] });
-        return ok(JSON.parse(txt));
+        return ok(txt ? JSON.parse(txt) : { best: {0:{},1:{},2:{}}, names: ['Custom Set 1','Custom Set 2'], keys: [[],[]] });
       }
       if (event.httpMethod === 'PUT') {
         const body = JSON.parse(event.body || '{}');
@@ -63,28 +46,25 @@ exports.handler = async (event) => {
       return bad('Method not allowed', 405);
     }
 
-    // ---------- messages (ticker list) ----------
+    // ------------------- messages (ticker list) -------------------
     if (route === 'messages') {
       if (event.httpMethod === 'GET') {
         const txt = await store.get('messages.json', { type: 'text' });
-        const messages = txt ? JSON.parse(txt) : [];
-        return ok({ messages });
+        return ok({ messages: txt ? JSON.parse(txt) : [] });
       }
       if (event.httpMethod === 'PUT') {
-        const body = JSON.parse(event.body || '{}');
-        const messages = Array.isArray(body.messages) ? body.messages : [];
-        await store.set('messages.json', JSON.stringify(messages), { contentType: 'application/json' });
-        return ok({ count: messages.length });
+        const { messages } = JSON.parse(event.body || '{}');
+        await store.set('messages.json', JSON.stringify(Array.isArray(messages) ? messages : []), { contentType: 'application/json' });
+        return ok({ ok: true });
       }
       return bad('Method not allowed', 405);
     }
 
-    // ---------- audio (upload/stream/delete) ----------
+    // ------------------- audio blobs -------------------
     if (route === 'audio') {
       if (!name) return bad('Missing ?name=');
 
       if (event.httpMethod === 'POST') {
-        // Body is raw bytes; keep original content-type if present
         const buf = Buffer.from(event.body || '', event.isBase64Encoded ? 'base64' : 'utf8');
         const ct = event.headers['content-type'] || 'application/octet-stream';
         await store.set(name, buf, { contentType: ct });
@@ -101,22 +81,22 @@ exports.handler = async (event) => {
             'Content-Type': event.headers['content-type'] || 'application/octet-stream',
             'Cache-Control': 'public, max-age=31536000, immutable',
           },
-          body: Buffer.from(arr),
-          isBase64Encoded: true, // Netlify will base64-encode Buffers for us
+          body: Buffer.from(arr).toString('base64'),
+          isBase64Encoded: true,
         };
       }
 
       if (event.httpMethod === 'DELETE') {
         await store.delete(name);
-        return noContent();
+        return { statusCode: 204, headers: { 'Access-Control-Allow-Origin': '*' }, body: '' };
       }
 
       return bad('Method not allowed', 405);
     }
 
     return bad('Unknown route', 404);
-  } catch (err) {
-    console.error(err);
-    return bad(err.message || 'Server error', 500);
+  } catch (e) {
+    console.error(e);
+    return bad(e.message || 'Server error', 500);
   }
 };
