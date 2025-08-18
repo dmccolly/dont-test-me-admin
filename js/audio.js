@@ -63,8 +63,4 @@ export function playBuffer(buf, muted) {
   const src = ac.createBufferSource();
   const g = ac.createGain();
   src.buffer = buf;
-  src.connect(g); g.connect(ac.destination);
-  g.gain.value = 0.85;
-  src.start();
-  currentSources.push(src);
-}
+  src.connec
