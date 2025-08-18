@@ -541,28 +541,6 @@
                 <button class="ctrl-btn" id="muteBtn" onclick="toggleAudio()">🔊 Audio On</button>
             </div>
         </div>
-
-        <!-- Admin panel - only shows when password entered -->
-        <div class="admin-panel" id="adminPanel">
-            <h2 class="admin-title">Message Manager</h2>
-            
-            <div class="slot">
-                <div class="slot-header">
-                    <div style="font-size: 1.3rem; color: #fff;">Funny Messages</div>
-                    <div class="slot-status" id="messageStatus">No messages loaded</div>
-                </div>
-                <div class="upload" onclick="document.getElementById('messageFile').click()">
-                    <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
-                    <div class="upload-hint">Text file with your funny phrases</div>
-                    <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
-                </div>
-                <div class="admin-actions">
-                    <button class="admin-btn-action secondary" onclick="previewMessages()">👀 Preview Messages</button>
-                    <button class="admin-btn-action secondary" onclick="clearMessages()">🗑️ Clear Messages</button>
-                    <button class="admin-btn-action secondary" onclick="hideAdmin()">Close</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="win" id="win">
@@ -573,6 +551,28 @@
                 <button class="win-btn" onclick="playAgain()">Play Again</button>
                 <button class="win-btn" onclick="scrambleGame(); hideWin();">Scramble</button>
                 <button class="win-btn" onclick="showGameOptions()">Other Games</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin panel - completely separate and hidden -->
+    <div class="admin-panel" id="adminPanel" style="display: none !important;">
+        <h2 class="admin-title">Message Manager</h2>
+        
+        <div class="slot">
+            <div class="slot-header">
+                <div style="font-size: 1.3rem; color: #fff;">Funny Messages</div>
+                <div class="slot-status" id="messageStatus">No messages loaded</div>
+            </div>
+            <div class="upload" onclick="document.getElementById('messageFile').click()">
+                <div class="upload-text">📄 Upload message file (one phrase per line, 40 chars max)</div>
+                <div class="upload-hint">Text file with your funny phrases</div>
+                <input type="file" id="messageFile" accept=".txt" style="display: none;" onchange="handleMessageFile(event)">
+            </div>
+            <div class="admin-actions">
+                <button class="admin-btn-action secondary" onclick="previewMessages()">👀 Preview Messages</button>
+                <button class="admin-btn-action secondary" onclick="clearMessages()">🗑️ Clear Messages</button>
+                <button class="admin-btn-action secondary" onclick="hideAdmin()">Close</button>
             </div>
         </div>
     </div>
