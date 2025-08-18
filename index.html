@@ -4,152 +4,68 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DON'T TEST ME</title>
-
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-      background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%);
-      background-attachment:fixed; min-height:100vh; display:flex; flex-direction:column;
-      align-items:center; color:#fff; position:relative;
-    }
-    body::before{
-      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-      background:
-        radial-gradient(circle at 20% 50%, rgba(120,119,198,.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255,119,198,.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(119,255,198,.15) 0%, transparent 50%);
-    }
-    .container{
-      position:relative; z-index:1; width:100%; max-width:500px; padding:40px 20px;
-      border:1px solid rgba(255,255,255,.1); border-radius:12px; background:rgba(0,0,0,.1);
-    }
-    .header{ text-align:center; margin-bottom:24px; position:relative; }
-    .header::before{
-      content:''; position:absolute; top:-20px; left:50%; transform:translateX(-50%);
-      width:300px; height:60px; background:radial-gradient(ellipse, rgba(16,185,129,.25) 0%, transparent 70%);
-      filter:blur(20px); z-index:-1;
-    }
-    .title{
-      font-size:3.2rem; font-weight:200;
-      background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      margin-bottom:8px; letter-spacing:-.03em;
-    }
-    .subtitle{ font-size:1.05rem; color:#c8c8c8; font-weight:300; letter-spacing:.3px; line-height:1.4; }
-    .highlight{
-      background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-weight:400;
-    }
-    .message-ticker{ text-align:center; margin:18px 0 10px; min-height:30px; display:flex; align-items:center; justify-content:center; }
-    .rotating-message{
-      font-size:1rem; font-weight:700;
-      background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      text-shadow:0 2px 4px rgba(0,0,0,.5); max-width:90%; word-wrap:break-word;
-    }
-    .tabs{ display:flex; justify-content:center; gap:12px; margin:12px 0 18px; flex-wrap:wrap; }
-    .tab{
-      padding:12px 18px; border:none; border-radius:12px; min-width:120px;
-      background:rgba(255,255,255,.05); backdrop-filter:blur(15px);
-      border:1px solid rgba(255,255,255,.08); color:#ddd; font-size:.9rem; font-weight:600; cursor:pointer; transition:.2s;
-    }
-    .tab.active{ background:rgba(16,185,129,.15); border-color:rgba(16,185,129,.3); color:#10b981; }
-    .tab:hover:not(.active){ background:rgba(255,255,255,.08); color:#fff; }
-    .panel{
-      background:rgba(255,255,255,.02); backdrop-filter:blur(18px);
-      border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:22px; box-shadow:0 8px 32px rgba(0,0,0,.3); position:relative;
-    }
-    .stats{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding:14px 18px;
-      background:rgba(0,0,0,.15); backdrop-filter:blur(15px); border-radius:14px; border:1px solid rgba(255,255,255,.04); }
-    .stat{ display:flex; flex-direction:column; align-items:center; gap:4px; }
-    .stat-label{ font-size:.75rem; color:#9a9a9a; text-transform:uppercase; letter-spacing:.8px; font-weight:700; }
-    .stat-value{ font-size:1.4rem; font-weight:300; color:#fff; }
-    .grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin:16px 0 22px; }
-    .btn{
-      aspect-ratio:1; border:none; border-radius:18px; cursor:pointer; transition:.2s; position:relative;
-      color:rgba(255,255,255,.85); display:flex; align-items:center; justify-content:center; backdrop-filter:blur(20px);
-      border:1px solid rgba(255,255,255,.12); box-shadow:0 6px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.1);
-    }
-    .btn.row-0{ background:linear-gradient(145deg, rgba(219,154,154,.3) 0%, rgba(219,154,154,.15) 50%, rgba(180,120,120,.2) 100%); border:1px solid rgba(219,154,154,.4); }
-    .btn.row-1{ background:linear-gradient(145deg, rgba(154,219,168,.3) 0%, rgba(154,219,168,.15) 50%, rgba(120,180,135,.2) 100%); border:1px solid rgba(154,219,168,.4); }
-    .btn.row-2{ background:linear-gradient(145deg, rgba(154,168,219,.3) 0%, rgba(154,168,219,.15) 50%, rgba(120,135,180,.2) 100%); border:1px solid rgba(154,168,219,.4); }
-    .btn.row-3{ background:linear-gradient(145deg, rgba(219,195,154,.3) 0%, rgba(219,195,154,.15) 50%, rgba(180,160,120,.2) 100%); border:1px solid rgba(219,195,154,.4); }
-    .btn.row-4{ background:linear-gradient(145deg, rgba(160,160,160,.3) 0%, rgba(160,160,160,.15) 50%, rgba(120,120,120,.2) 100%); border:1px solid rgba(160,160,160,.4); }
-    .btn.row-5{ background:linear-gradient(145deg, rgba(240,240,240,.3) 0%, rgba(240,240,240,.15) 50%, rgba(200,200,200,.2) 100%); border:1px solid rgba(240,240,240,.4); }
-    .btn:hover{ transform:translateY(-2px); }
-    .btn.matched{ background:linear-gradient(145deg, rgba(16,185,129,.25) 0%, rgba(5,150,105,.15) 50%, rgba(4,120,87,.1) 100%); border:1px solid rgba(16,185,129,.2); color:#10b981; cursor:default; }
-    .btn.matched:hover{ transform:none; }
-    .controls{ display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; }
-    .ctrl-btn,.win-btn,.admin-btn-action{
-      padding:12px 20px; border:none; border-radius:12px;
-      background:linear-gradient(145deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.02) 100%);
-      backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,.08); color:#fff; font-size:.9rem; font-weight:600;
-      cursor:pointer; transition:.2s;
-    }
-    .ctrl-btn:hover,.win-btn:hover,.admin-btn-action:hover{ transform:translateY(-1px); }
-    .timer-display{
-      display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 16px;
-      background:linear-gradient(145deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,.02) 100%); backdrop-filter:blur(15px);
-      border:1px solid rgba(255,255,255,.08); border-radius:12px; min-width:180px;
-    }
-    .current-stats{ font-size:.85rem; font-weight:600; color:#fff; }
-    .best-stats{ font-size:.75rem; color:#aaa; }
-
-    .win{
-      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0);
-      background:rgba(0,0,0,.85); backdrop-filter:blur(40px); border:1px solid rgba(255,255,255,.15);
-      border-radius:28px; padding:42px; text-align:center; z-index:1000; transition:transform .25s ease;
-    }
-    .win.show{ transform:translate(-50%,-50%) scale(1); }
-    .win-title{
-      font-size:2rem; font-weight:300; margin-bottom:14px;
-      background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .win-stats{ font-size:1rem; color:#bbb; margin-bottom:18px; }
-
-    .admin-btn{ position:absolute; top:10px; right:10px; padding:6px 10px; border:none; border-radius:6px;
-      background:rgba(0,0,0,.2); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.1);
-      color:rgba(255,255,255,.6); font-size:.8rem; cursor:pointer; transition:.2s; opacity:.6;
-    }
-    .admin-btn:hover{ opacity:1; background:rgba(255,255,255,.05); color:#888; }
-
-    .admin-panel{
-      display:none; background:rgba(0,0,0,.95); backdrop-filter:blur(40px);
-      border:1px solid rgba(255,255,255,.15); border-radius:28px; padding:28px; position:fixed;
-      top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:680px; max-height:85vh; overflow:auto; z-index:1100;
-    }
-    .admin-panel.show{ display:block; }
-    .admin-title{
-      font-size:1.6rem; font-weight:300; margin-bottom:16px; text-align:center;
-      background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .slot{ margin-bottom:20px; padding:18px; background:rgba(255,255,255,.03); backdrop-filter:blur(20px); border-radius:18px; border:1px solid rgba(255,255,255,.08); }
-    .slot-header{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
-    .slot-name{
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:6px; padding:8px 10px; color:#fff; font-size:1rem; font-weight:500; width:220px;
-    }
-    .slot-status{ font-size:.9rem; padding:6px 10px; border-radius:8px; background:rgba(0,0,0,.3); color:#aaa; }
-    .slot-status.ready{ color:#10b981; background:rgba(16,185,129,.12); }
-    .slot-status.partial{ color:#f59e0b; background:rgba(245,158,11,.12); }
-    .upload{ border:2px dashed rgba(255,255,255,.2); border-radius:14px; padding:28px; text-align:center; cursor:pointer; transition:.2s; }
-    .upload:hover{ border-color:rgba(255,255,255,.4); background:rgba(255,255,255,.03); }
-    .upload.dragover{ border-color:rgba(16,185,129,.6); background:rgba(16,185,129,.05); }
-    .upload-text{ color:#ccc; font-size:.98rem; margin-bottom:6px; }
-    .upload-hint{ color:#888; font-size:.8rem; font-style:italic; }
-    .row-actions{ text-align:center; margin-top:10px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-
-    .info-banner{ text-align:center; font-size:.85rem; color:#bbb; margin:8px 0 4px; }
-    .warn{ color:#f59e0b; }
-    @media (max-width:768px){
-      .title{ font-size:2.4rem; }
-      .panel{ padding:18px; margin:0 12px; }
-      .tabs{ flex-direction:column; align-items:center; }
-      .tab{ width:100%; max-width:240px; }
-      .controls{ flex-direction:column; gap:10px; }
-      .ctrl-btn{ width:100%; max-width:240px; }
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a1a 50%,#0a0a0a 100%);background-attachment:fixed;min-height:100vh;display:flex;flex-direction:column;align-items:center;color:#fff;position:relative}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 20% 50%,rgba(120,119,198,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,119,198,.15) 0%,transparent 50%),radial-gradient(circle at 40% 80%,rgba(119,255,198,.15) 0%,transparent 50%)}
+    .container{position:relative;z-index:1;width:100%;max-width:500px;padding:40px 20px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(0,0,0,.1)}
+    .header{text-align:center;margin-bottom:22px;position:relative}
+    .header::before{content:'';position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:300px;height:60px;background:radial-gradient(ellipse,rgba(16,185,129,.25) 0%,transparent 70%);filter:blur(20px);z-index:-1}
+    .title{font-size:3.2rem;font-weight:200;background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;letter-spacing:-.03em}
+    .subtitle{font-size:1.05rem;color:#c8c8c8;font-weight:300;letter-spacing:.3px;line-height:1.4}
+    .highlight{background:linear-gradient(135deg,#fff 0%,#c4c4c4 50%,#a8a8a8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:400}
+    .message-ticker{text-align:center;margin:16px 0 6px;min-height:30px;display:flex;align-items:center;justify-content:center}
+    .rotating-message{font-size:1rem;font-weight:700;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:0 2px 4px rgba(0,0,0,.5);max-width:90%}
+    .info-banner{text-align:center;font-size:.85rem;color:#bbb;margin:4px 0 0}
+    .warn{color:#f59e0b}
+    .tabs{display:flex;justify-content:center;gap:12px;margin:12px 0 18px;flex-wrap:wrap}
+    .tab{padding:12px 18px;border:none;border-radius:12px;min-width:120px;background:rgba(255,255,255,.05);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.08);color:#ddd;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s}
+    .tab.active{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:#10b981}
+    .tab:hover:not(.active){background:rgba(255,255,255,.08);color:#fff}
+    .panel{background:rgba(255,255,255,.02);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;box-shadow:0 8px 32px rgba(0,0,0,.3);position:relative}
+    .stats{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding:14px 18px;background:rgba(0,0,0,.15);backdrop-filter:blur(15px);border-radius:14px;border:1px solid rgba(255,255,255,.04)}
+    .stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .stat-label{font-size:.75rem;color:#9a9a9a;text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+    .stat-value{font-size:1.4rem;font-weight:300;color:#fff}
+    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:16px 0 22px}
+    .btn{aspect-ratio:1;border:none;border-radius:18px;cursor:pointer;transition:.2s;position:relative;color:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);box-shadow:0 6px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
+    .btn.row-0{background:linear-gradient(145deg,rgba(219,154,154,.3) 0%,rgba(219,154,154,.15) 50%,rgba(180,120,120,.2) 100%);border:1px solid rgba(219,154,154,.4)}
+    .btn.row-1{background:linear-gradient(145deg,rgba(154,219,168,.3) 0%,rgba(154,219,168,.15) 50%,rgba(120,180,135,.2) 100%);border:1px solid rgba(154,219,168,.4)}
+    .btn.row-2{background:linear-gradient(145deg,rgba(154,168,219,.3) 0%,rgba(154,168,219,.15) 50%,rgba(120,135,180,.2) 100%);border:1px solid rgba(154,168,219,.4)}
+    .btn.row-3{background:linear-gradient(145deg,rgba(219,195,154,.3) 0%,rgba(219,195,154,.15) 50%,rgba(180,160,120,.2) 100%);border:1px solid rgba(219,195,154,.4)}
+    .btn.row-4{background:linear-gradient(145deg,rgba(160,160,160,.3) 0%,rgba(160,160,160,.15) 50%,rgba(120,120,120,.2) 100%);border:1px solid rgba(160,160,160,.4)}
+    .btn.row-5{background:linear-gradient(145deg,rgba(240,240,240,.3) 0%,rgba(240,240,240,.15) 50%,rgba(200,200,200,.2) 100%);border:1px solid rgba(240,240,240,.4)}
+    .btn:hover{transform:translateY(-2px)}
+    .btn.matched{background:linear-gradient(145deg,rgba(16,185,129,.25) 0%,rgba(5,150,105,.15) 50%,rgba(4,120,87,.1) 100%);border:1px solid rgba(16,185,129,.2);color:#10b981;cursor:default}
+    .btn.matched:hover{transform:none}
+    .controls{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+    .ctrl-btn,.win-btn,.admin-btn-action{padding:12px 20px;border:none;border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.08);color:#fff;font-size:.9rem;font-weight:600;cursor:pointer;transition:.2s}
+    .ctrl-btn:hover,.win-btn:hover,.admin-btn-action:hover{transform:translateY(-1px)}
+    .timer-display{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 16px;background:linear-gradient(145deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.02) 100%);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.08);border-radius:12px;min-width:180px}
+    .current-stats{font-size:.85rem;font-weight:600;color:#fff}
+    .best-stats{font-size:.75rem;color:#aaa}
+    .win{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(0,0,0,.85);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:42px;text-align:center;z-index:1000;transition:transform .25s ease}
+    .win.show{transform:translate(-50%,-50%) scale(1)}
+    .win-title{font-size:2rem;font-weight:300;margin-bottom:14px;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .win-stats{font-size:1rem;color:#bbb;margin-bottom:18px}
+    .admin-btn{position:absolute;top:10px;right:10px;padding:6px 10px;border:none;border-radius:6px;background:rgba(0,0,0,.2);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:.8rem;cursor:pointer;transition:.2s;opacity:.6}
+    .admin-btn:hover{opacity:1;background:rgba(255,255,255,.05);color:#888}
+    .admin-panel{display:none;background:rgba(0,0,0,.95);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:28px;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:680px;max-height:85vh;overflow:auto;z-index:1100}
+    .admin-panel.show{display:block}
+    .admin-title{font-size:1.6rem;font-weight:300;margin-bottom:16px;text-align:center;background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#d97706 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .slot{margin-bottom:20px;padding:18px;background:rgba(255,255,255,.03);backdrop-filter:blur(20px);border-radius:18px;border:1px solid rgba(255,255,255,.08)}
+    .slot-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+    .slot-name{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:8px 10px;color:#fff;font-size:1rem;font-weight:500;width:220px}
+    .slot-status{font-size:.9rem;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.3);color:#aaa}
+    .slot-status.ready{color:#10b981;background:rgba(16,185,129,.12)}
+    .slot-status.partial{color:#f59e0b;background:rgba(245,158,11,.12)}
+    .upload{border:2px dashed rgba(255,255,255,.2);border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:.2s}
+    .upload:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.03)}
+    .upload.dragover{border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.05)}
+    .upload-text{color:#ccc;font-size:.98rem;margin-bottom:6px}
+    .upload-hint{color:#888;font-size:.8rem;font-style:italic}
+    .row-actions{text-align:center;margin-top:10px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    @media (max-width:768px){.title{font-size:2.4rem}.panel{padding:18px;margin:0 12px}.tabs{flex-direction:column;align-items:center}.tab{width:100%;max-width:240px}.controls{flex-direction:column;gap:10px}.ctrl-btn{width:100%;max-width:240px}}
   </style>
 </head>
 <body>
@@ -158,12 +74,8 @@
 
     <div class="header">
       <h1 class="title">DON'T TEST ME</h1>
-      <p class="subtitle">Here's one to test your hearing AND recall. Huh?
-        <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span>
-      </p>
-      <div class="message-ticker">
-        <div class="rotating-message" id="rotatingMessage">Welcome to the audio memory challenge!</div>
-      </div>
+      <p class="subtitle">Here's one to test your hearing AND recall. Huh? <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span></p>
+      <div class="message-ticker"><div class="rotating-message" id="rotatingMessage">Welcome to the audio memory challenge!</div></div>
       <div class="info-banner" id="persistInfo"></div>
     </div>
 
@@ -180,7 +92,7 @@
           <div class="stat-value" id="matches">0/18</div>
         </div>
         <div class="stat">
-          <div class="stat-label">Attempts</</div>
+          <div class="stat-label">Attempts</div><!-- ✅ fixed closing tag -->
           <div class="stat-value" id="attempts">0</div>
         </div>
         <div class="stat">
@@ -211,12 +123,9 @@
         <div style="font-size:1.1rem;color:#fff;">Game 1: Tones</div>
         <div class="slot-status">Built-in (18 frequencies)</div>
       </div>
-      <div style="padding:10px;text-align:center;color:#888;font-style:italic;">
-        Permanent tone game; cannot be modified.
-      </div>
+      <div style="padding:10px;text-align:center;color:#888;font-style:italic;">Permanent tone game; cannot be modified.</div>
     </div>
 
-    <!-- Messages -->
     <div class="slot">
       <div class="slot-header">
         <div style="font-size:1.1rem;color:#fff;">Ticker Messages</div>
@@ -224,25 +133,24 @@
       </div>
       <div class="upload" id="messageDrop">
         <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
-        <div class="upload-hint">Plain .txt file; will persist via Netlify</div>
+        <div class="upload-hint">Plain .txt file; persisted via Netlify (fallback to device if API missing)</div>
         <input type="file" id="messageFile" accept=".txt" style="display:none;">
       </div>
       <div class="row-actions">
-        <button class="admin-btn-action" id="previewMessagesBtn">👀 Preview Messages</button>
-        <button class="admin-btn-action" id="clearMessagesBtn">🗑️ Clear Messages</button>
+        <button class="admin-btn-action" id="previewMessagesBtn">👀 Preview</button>
+        <button class="admin-btn-action" id="clearMessagesBtn">🗑️ Clear</button>
         <button class="admin-btn-action" id="downloadMessagesBtn">⬇️ Download</button>
       </div>
     </div>
 
-    <!-- Custom Sets -->
     <div class="slot">
       <div class="slot-header">
-        <input class="slot-name" id="name1" value="Custom Set 1" />
+        <input class="slot-name" id="name1" value="Custom Set 1"/>
         <div class="slot-status" id="status1">Checking…</div>
       </div>
       <div class="upload" id="upload1">
-        <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
-        <div class="upload-hint">Supports MP3, WAV, OGG, M4A, FLAC — persisted via Netlify Blobs</div>
+        <div class="upload-text">📁 Drop 18 audio files here or click</div>
+        <div class="upload-hint">MP3/WAV/OGG/M4A/FLAC — persisted via Netlify Blobs</div>
         <input type="file" id="files1" multiple accept="audio/*" style="display:none;">
       </div>
       <div class="row-actions">
@@ -253,12 +161,12 @@
 
     <div class="slot">
       <div class="slot-header">
-        <input class="slot-name" id="name2" value="Custom Set 2" />
+        <input class="slot-name" id="name2" value="Custom Set 2"/>
         <div class="slot-status" id="status2">Checking…</div>
       </div>
       <div class="upload" id="upload2">
-        <div class="upload-text">📁 Drop 18 audio files here or click to browse</div>
-        <div class="upload-hint">Supports MP3, WAV, OGG, M4A, FLAC — persisted via Netlify Blobs</div>
+        <div class="upload-text">📁 Drop 18 audio files here or click</div>
+        <div class="upload-hint">MP3/WAV/OGG/M4A/FLAC — persisted via Netlify Blobs</div>
         <input type="file" id="files2" multiple accept="audio/*" style="display:none;">
       </div>
       <div class="row-actions">
@@ -272,7 +180,7 @@
     </div>
   </div>
 
-  <!-- Win Modal -->
+  <!-- Win -->
   <div class="win" id="win">
     <div class="win-title">Perfect Match!</div>
     <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
@@ -284,545 +192,155 @@
   </div>
 
   <script>
-    /**************************************************
-     * Persistence via Netlify Functions (Blobs)
-     *  - messages: stored as JSON (messages.json)
-     *  - records : stored as JSON (records.json)
-     *  - audio   : stored as binary blobs; fetched/streamed by name
-     **************************************************/
+    /* -------------------- persistence/API -------------------- */
     const API = '/.netlify/functions/dtm-api';
-
-    const persistInfoEl = document.getElementById('persistInfo');
-    function setPersistInfo(text, warn=false){
-      persistInfoEl.innerHTML = text || '';
-      persistInfoEl.className = warn ? 'info-banner warn' : 'info-banner';
-    }
-
-    async function apiJSON(route, method='GET', payload=null) {
-      const res = await fetch(\`\${API}?route=\${route}\`, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: payload ? JSON.stringify(payload) : null
-      });
+    let apiOK = false;
+    async function apiJSON(route, method='GET', payload=null){
+      const url = \`\${API}?route=\${route}\`;
+      const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: payload?JSON.stringify(payload):null });
       if (!res.ok) throw new Error(await res.text());
-      return res.json();
+      apiOK = true; return res.json();
     }
     async function apiStream(route, method='GET', name='', file=null){
-      const url = new URL(API, location.origin);
-      url.searchParams.set('route', route);
-      if (name) url.searchParams.set('name', name);
-      const headers = {};
-      let body = null;
-      if (file) { body = file; headers['Content-Type'] = file.type || 'application/octet-stream'; }
-      const res = await fetch(url.toString(), { method, headers, body });
-      if (!res.ok) throw new Error(await res.text());
-      return res;
+      const u = new URL(API, location.origin); u.searchParams.set('route', route); if (name) u.searchParams.set('name', name);
+      const headers = {}; let body=null; if (file){ body=file; headers['Content-Type']=file.type||'application/octet-stream'; }
+      const res = await fetch(u, { method, headers, body }); if(!res.ok) throw new Error(await res.text());
+      apiOK = true; return res;
     }
+    const persistInfoEl = document.getElementById('persistInfo');
+    function setPersistInfo(t, warn=false){ persistInfoEl.textContent=t||''; persistInfoEl.className = 'info-banner' + (warn?' warn':''); }
 
-    /*********************
-     * Game State & Audio
-     *********************/
-    let currentGame = 0;
-    let sounds = [];
-    let matched = new Set();
-    let firstClick = null;
-    let matches = 0;
-    let attempts = 0;
-    let muted = false;
-    let audioContext = null;
-    let currentAudioSources = [];
-    let gameStartTime = null;
-    let gameTimer = null;
-    let currentTime = 0;
+    /* -------------------- game state -------------------- */
+    let currentGame=0, sounds=[], matched=new Set(), firstClick=null, matches=0, attempts=0, muted=false;
+    let audioContext=null, currentAudioSources=[], gameStartTime=null, gameTimer=null, currentTime=0;
+    const PASSWORD='MUSIC';
+    let bestRecords={0:{time:null,attempts:null},1:{time:null,attempts:null},2:{time:null,attempts:null}};
+    let gameNames=["Custom Set 1","Custom Set 2"];
+    const frequencies=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
+    let customKeys=[[],[]];
+    let funnyMessages=[];
+    let messageTimer=null;
 
-    const PASSWORD = 'MUSIC';
-
-    // Records persisted via Netlify (fallback to in-memory if API down)
-    let bestRecords = { 0:{time:null,attempts:null}, 1:{time:null,attempts:null}, 2:{time:null,attempts:null} };
-    let gameNames = ["Custom Set 1", "Custom Set 2"];
-
-    const frequencies = [220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
-
-    // Custom sets store keys of audio blobs
-    let customKeys = [[],[]]; // array of blob names for set1,set2 (exactly 18 when ready)
-
-    // Ticker messages (persisted)
-    let funnyMessages = [];
-
-    function initAudio(){
-      if (!audioContext){
-        try { audioContext = new (window.AudioContext||window.webkitAudioContext)(); }
-        catch(e){ console.error('Web Audio API not supported'); }
-      }
-    }
-
-    function stopAllAudio(){
-      currentAudioSources.forEach(s => { try{s.stop?.()}catch{} });
-      currentAudioSources = [];
-    }
-
+    function initAudio(){ if(!audioContext){ try{ audioContext=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ console.error('Audio not supported'); } } }
+    function stopAllAudio(){ currentAudioSources.forEach(s=>{try{s.stop?.()}catch{}}); currentAudioSources=[]; }
     function playTone(freq){
-      if (muted || !audioContext) return;
-      stopAllAudio();
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      osc.connect(gain); gain.connect(audioContext.destination);
-      osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-      osc.type='sine';
-      gain.gain.setValueAtTime(0, audioContext.currentTime);
-      gain.gain.linearRampToValueAtTime(0.12, audioContext.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.45);
-      osc.start(); osc.stop(audioContext.currentTime + 0.48);
-      currentAudioSources.push(osc);
-      osc.onended = () => { currentAudioSources = currentAudioSources.filter(x=>x!==osc); };
+      if(muted||!audioContext) return; stopAllAudio();
+      const osc=audioContext.createOscillator(), g=audioContext.createGain();
+      osc.connect(g); g.connect(audioContext.destination); osc.frequency.setValueAtTime(freq,audioContext.currentTime); osc.type='sine';
+      g.gain.setValueAtTime(0,audioContext.currentTime); g.gain.linearRampToValueAtTime(0.12,audioContext.currentTime+0.02); g.gain.exponentialRampToValueAtTime(0.001,audioContext.currentTime+0.45);
+      osc.start(); osc.stop(audioContext.currentTime+0.48); currentAudioSources.push(osc); osc.onended=()=>{currentAudioSources=currentAudioSources.filter(x=>x!==osc);}
     }
-
     async function playCustomByKey(key){
-      if (muted || !audioContext) return;
-      stopAllAudio();
-      const res = await apiStream('audio','GET',key);
-      const blob = await res.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      const src = audioContext.createBufferSource();
-      const gain = audioContext.createGain();
-      src.buffer = audioBuffer; src.connect(gain); gain.connect(audioContext.destination);
-      gain.gain.setValueAtTime(0.6, audioContext.currentTime);
-      src.start();
-      currentAudioSources.push(src);
-      src.onended = () => { currentAudioSources = currentAudioSources.filter(x=>x!==src); };
+      if(muted||!audioContext) return; stopAllAudio();
+      const res=await apiStream('audio','GET',key); const blob=await res.blob(); const ab=await blob.arrayBuffer(); const buf=await audioContext.decodeAudioData(ab);
+      const s=audioContext.createBufferSource(), g=audioContext.createGain(); s.buffer=buf; s.connect(g); g.connect(audioContext.destination); g.gain.setValueAtTime(0.6,audioContext.currentTime);
+      s.start(); currentAudioSources.push(s); s.onended=()=>{currentAudioSources=currentAudioSources.filter(x=>x!==s);}
     }
-
-    function shuffle(arr){
-      const a = [...arr];
-      for (let i=a.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [a[i],a[j]]=[a[j],a[i]];
-      }
-      return a;
-    }
+    function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r;}
 
     function createGrid(){
-      const grid = document.getElementById('grid');
-      grid.innerHTML='';
-      const pool = [];
-
-      if (currentGame===0){
-        frequencies.forEach(f=>pool.push(f,f));
-      } else {
-        const idx = currentGame-1;
-        if (customKeys[idx].length!==18){
-          alert(`${gameNames[idx]} is not ready (needs 18 files).`);
-          switchGame(0);
-          return;
-        }
-        customKeys[idx].forEach(k=>pool.push(k,k));
-      }
-
-      sounds = shuffle(pool);
-
-      for (let i=0;i<36;i++){
-        const btn=document.createElement('button');
-        const row=Math.floor(i/6);
-        btn.className = `btn row-${row}`;
-        btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
-        btn.addEventListener('click',()=>handleClick(i));
-        grid.appendChild(btn);
+      const grid=document.getElementById('grid'); grid.innerHTML='';
+      const pool=[];
+      if(currentGame===0){ frequencies.forEach(f=>pool.push(f,f)); }
+      else{ const idx=currentGame-1; if(customKeys[idx].length!==18){ alert(`${gameNames[idx]} is not ready. Needs 18 files.`); switchGame(0); return; } customKeys[idx].forEach(k=>pool.push(k,k)); }
+      sounds=shuffle(pool);
+      for(let i=0;i<36;i++){
+        const btn=document.createElement('button'); const row=Math.floor(i/6);
+        btn.className=\`btn row-\${row}\`; btn.innerHTML='<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
+        btn.addEventListener('click',()=>handleClick(i)); grid.appendChild(btn);
       }
     }
-
-    function handleClick(index){
-      if (matched.has(index)) return;
-      if (!gameStartTime) startTimer();
-      initAudio();
-
-      const val = sounds[index];
-      if (currentGame===0) playTone(val); else playCustomByKey(val);
-
-      const btns = document.querySelectorAll('.btn');
-      const btn = btns[index];
-      btn.style.transform='translateY(-1px) scale(0.96)';
-      setTimeout(()=>{btn.style.transform='';},120);
-
-      if (firstClick===null){
-        firstClick = index;
-      } else {
-        attempts++; updateStats(); updateTimerDisplay();
-        if (sounds[firstClick]===sounds[index] && firstClick!==index){
-          markMatched(firstClick,index);
-        }
-        firstClick = null;
-      }
+    function handleClick(i){
+      if(matched.has(i)) return; if(!gameStartTime) startTimer(); initAudio();
+      const v=sounds[i]; if(currentGame===0) playTone(v); else playCustomByKey(v);
+      const btn=document.querySelectorAll('.btn')[i]; btn.style.transform='translateY(-1px) scale(0.96)'; setTimeout(()=>btn.style.transform='',120);
+      if(firstClick===null){ firstClick=i; } else { attempts++; updateStats(); updateTimerDisplay(); if(sounds[firstClick]===sounds[i]&&firstClick!==i){ markMatched(firstClick,i); } firstClick=null; }
     }
-
     function markMatched(a,b){
-      const btns = document.querySelectorAll('.btn');
-      matched.add(a); matched.add(b);
-      const check = '<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19l12-12-1.41-1.41z"/></svg>';
-      btns[a].innerHTML=check; btns[b].innerHTML=check;
-      btns[a].classList.add('matched'); btns[b].classList.add('matched');
-      matches++; updateStats();
-
-      if (!muted && audioContext){
-        setTimeout(()=>playTone(880),120);
-        setTimeout(()=>playTone(1100),280);
-      }
-      if (matches===18){
-        setTimeout(showWin,450);
-      }
+      const btns=document.querySelectorAll('.btn'); matched.add(a); matched.add(b);
+      const check='<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19l12-12-1.41-1.41z"/></svg>';
+      btns[a].innerHTML=check; btns[b].innerHTML=check; btns[a].classList.add('matched'); btns[b].classList.add('matched');
+      matches++; updateStats(); if(!muted&&audioContext){ setTimeout(()=>playTone(880),120); setTimeout(()=>playTone(1100),280); } if(matches===18) setTimeout(showWin,450);
     }
-
-    function updateStats(){
-      document.getElementById('matches').textContent = `${matches}/18`;
-      document.getElementById('attempts').textContent = attempts;
-      const acc = attempts===0?100:Math.round((matches/attempts)*100);
-      document.getElementById('accuracy').textContent = `${acc}%`;
-    }
-
-    function formatTime(sec){
-      const m = Math.floor(sec/60);
-      const s = sec%60;
-      return `${m}:${s.toString().padStart(2,'0')}`;
-    }
-
-    function startTimer(){
-      if (gameStartTime) return;
-      gameStartTime = Date.now(); currentTime=0;
-      gameTimer = setInterval(()=>{
-        currentTime = Math.floor((Date.now()-gameStartTime)/1000);
-        updateTimerDisplay();
-      },1000);
-    }
-    function stopTimer(){ if (gameTimer){ clearInterval(gameTimer); gameTimer=null; } }
-    function updateTimerDisplay(){
-      document.getElementById('currentStats').textContent = `Time: ${formatTime(currentTime)} | Attempts: ${attempts}`;
-    }
-
-    async function checkNewRecords(){
-      const rec = bestRecords[currentGame];
-      let changed=false;
-      if (!rec.time || currentTime < rec.time){ rec.time = currentTime; changed=true; }
-      if (!rec.attempts || attempts < rec.attempts){ rec.attempts = attempts; changed=true; }
-      if (changed){ await saveRecords(); updateBestStats(); }
-    }
-
-    async function showWin(){
-      stopTimer();
-      await checkNewRecords();
-      const acc = attempts===0?100:Math.round((matches/attempts)*100);
-      document.getElementById('winStats').textContent = `Completed in ${formatTime(currentTime)} with ${attempts} attempts (${acc}% accuracy)`;
-      document.getElementById('win').classList.add('show');
-
-      if (!muted && audioContext){
-        [523,659,784,1047].forEach((n,i)=>setTimeout(()=>playTone(n), i*200));
-      }
-    }
+    function updateStats(){ document.getElementById('matches').textContent=\`\${matches}/18\`; document.getElementById('attempts').textContent=attempts; const acc=attempts===0?100:Math.round((matches/attempts)*100); document.getElementById('accuracy').textContent=\`\${acc}%\`; }
+    function formatTime(s){const m=Math.floor(s/60);const ss=s%60;return \`\${m}:\${ss.toString().padStart(2,'0')}\`;}
+    function startTimer(){ if(gameStartTime) return; gameStartTime=Date.now(); currentTime=0; gameTimer=setInterval(()=>{currentTime=Math.floor((Date.now()-gameStartTime)/1000); updateTimerDisplay();},1000); }
+    function stopTimer(){ if(gameTimer){ clearInterval(gameTimer); gameTimer=null; } }
+    function updateTimerDisplay(){ document.getElementById('currentStats').textContent=\`Time: \${formatTime(currentTime)} | Attempts: \${attempts}\`; }
+    async function checkNewRecords(){ const r=bestRecords[currentGame]; let ch=false; if(!r.time||currentTime<r.time){r.time=currentTime; ch=true;} if(!r.attempts||attempts<r.attempts){r.attempts=attempts; ch=true;} if(ch){ await saveRecords(); updateBestStats(); } }
+    async function showWin(){ stopTimer(); await checkNewRecords(); const acc=attempts===0?100:Math.round((matches/attempts)*100); document.getElementById('winStats').textContent=\`Completed in \${formatTime(currentTime)} with \${attempts} attempts (\${acc}% accuracy)\`; document.getElementById('win').classList.add('show'); if(!muted&&audioContext){[523,659,784,1047].forEach((n,i)=>setTimeout(()=>playTone(n),i*200));} }
     function hideWin(){ document.getElementById('win').classList.remove('show'); }
     function playAgain(){ hideWin(); resetGame(); }
-    function showGameOptions(){ hideWin(); alert('Use the game tabs to switch sound sets.'); }
+    function showGameOptions(){ hideWin(); alert('Use the tabs to switch sound sets.'); }
+    function resetGame(){ stopTimer(); sounds=[]; matched=new Set(); firstClick=null; matches=0; attempts=0; gameStartTime=null; currentTime=0; hideWin(); createGrid(); updateStats(); updateTimerDisplay(); updateBestStats(); }
+    function scrambleGame(){ if(sounds.length===0){ resetGame(); return; } stopTimer(); sounds=shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; currentTime=0; document.querySelectorAll('.btn').forEach((b,i)=>{const row=Math.floor(i/6); b.className=\`btn row-\${row}\`; b.innerHTML='<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';}); updateStats(); updateTimerDisplay(); updateBestStats(); }
+    function toggleAudio(){ muted=!muted; document.getElementById('muteBtn').innerHTML = muted?'🔇 Audio Off':'🔊 Audio On'; }
+    function switchGame(i){ currentGame=i; document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('active',idx===i)); if(i>0){ const ci=i-1; if(customKeys[ci].length!==18){ alert(`${gameNames[ci]} is not ready. Needs 18 files.`); currentGame=0; document.querySelectorAll('.tab').forEach((t,idx)=>t.classList.toggle('active',idx===0)); } } resetGame(); }
+    function updateTabs(){ document.getElementById('tab1').textContent=gameNames[0]; document.getElementById('tab2').textContent=gameNames[1]; }
+    function updateBestStats(){ const r=bestRecords[currentGame]; const t=r?.time!=null?formatTime(r.time):'--'; const a=r?.attempts!=null?r.attempts:'--'; document.getElementById('bestStats').textContent=\`Best Time: \${t} | Best Attempts: \${a}\`; }
 
-    function resetGame(){
-      stopTimer();
-      sounds=[]; matched=new Set(); firstClick=null; matches=0; attempts=0; gameStartTime=null; currentTime=0;
-      hideWin();
-      createGrid(); updateStats(); updateTimerDisplay(); updateBestStats();
+    /* -------- admin / messages -------- */
+    const adminOpen=document.getElementById('adminOpen'), adminPanel=document.getElementById('adminPanel'), adminClose=document.getElementById('adminClose');
+    adminOpen.addEventListener('click',async()=>{ const pass=prompt('Enter admin password:'); if(pass===PASSWORD){ adminPanel.classList.add('show'); await refreshAdmin(); } else if(pass!=null){ alert('Incorrect password'); }});
+    document.getElementById('adminClose').addEventListener('click',()=>adminPanel.classList.remove('show'));
+
+    const msgFile=document.getElementById('messageFile'), msgDrop=document.getElementById('messageDrop'), msgStatus=document.getElementById('messageStatus');
+    document.getElementById('previewMessagesBtn').addEventListener('click',()=>{ if(funnyMessages.length===0) return alert('No messages.'); const preview=funnyMessages.slice(0,10).join('\n'); const more=funnyMessages.length>10?`\n\n... and ${funnyMessages.length-10} more`:''; alert(`Preview:\n\n${preview}${more}`);});
+    document.getElementById('clearMessagesBtn').addEventListener('click',async()=>{ if(!confirm('Clear all messages?')) return; funnyMessages=[]; await saveMessages(); msgStatus.textContent='Empty (0)';});
+    document.getElementById('downloadMessagesBtn').addEventListener('click',()=>{ const blob=new Blob([funnyMessages.join('\n')],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='messages.txt'; a.click(); URL.revokeObjectURL(a.href);});
+    msgDrop.addEventListener('click',()=>msgFile.click());
+    msgFile.addEventListener('change',e=>handleMessageFile(e.target.files[0]));
+    ;['dragover','dragleave','drop'].forEach(t=>msgDrop.addEventListener(t,(e)=>{e.preventDefault(); if(t==='dragover') msgDrop.classList.add('dragover'); if(t==='dragleave') msgDrop.classList.remove('dragover'); if(t==='drop'){ msgDrop.classList.remove('dragover'); const f=e.dataTransfer.files[0]; if(f&&f.type==='text/plain') handleMessageFile(f);} }));
+    async function handleMessageFile(file){ const text=await file.text(); const lines=text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150); if(lines.length===0) return alert('No valid lines.'); funnyMessages=lines; await saveMessages(); msgStatus.textContent=`Loaded (${funnyMessages.length})`; alert(`Loaded ${funnyMessages.length} messages.`); }
+
+    const name1=document.getElementById('name1'), name2=document.getElementById('name2'); name1.addEventListener('input',async()=>{gameNames[0]=name1.value||'Custom Set 1'; updateTabs(); await saveRecords();}); name2.addEventListener('input',async()=>{gameNames[1]=name2.value||'Custom Set 2'; updateTabs(); await saveRecords();});
+    const upload1=document.getElementById('upload1'), upload2=document.getElementById('upload2'), files1=document.getElementById('files1'), files2=document.getElementById('files2'), status1=document.getElementById('status1'), status2=document.getElementById('status2');
+    function bindUpload(drop,input,slot){ drop.addEventListener('click',()=>input.click()); drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('dragover')}); drop.addEventListener('dragleave',e=>{e.preventDefault();drop.classList.remove('dragover')}); drop.addEventListener('drop',async e=>{e.preventDefault();drop.classList.remove('dragover'); const fs=[...e.dataTransfer.files].filter(f=>f.type.startsWith('audio/')); await processFiles(fs,slot)}); input.addEventListener('change',async e=>{ const fs=[...e.target.files]; await processFiles(fs,slot); e.target.value='';}); }
+    bindUpload(upload1,files1,1); bindUpload(upload2,files2,2);
+
+    async function processFiles(files,slot){
+      if(!files||files.length===0) return; if(files.length!==18 && !confirm(`Selected ${files.length}. Need 18. Continue?`)) return;
+      const statusEl=slot===1?status1:status2; statusEl.textContent='Uploading...';
+      try{ const keys=[]; let c=0; for(const f of files.slice(0,18)){ const safe=f.name.replace(/[^\w.\-]+/g,'_'); const key=`slot${slot}/${Date.now()}_${safe}`; await apiStream('audio','POST',key,f); keys.push(key); c++; statusEl.textContent=`Uploading ${c}/${Math.min(files.length,18)}...`; }
+        if(slot===1) customKeys[0]=keys; else customKeys[1]=keys; statusEl.textContent=keys.length===18?'Ready (18/18)':`Partial (${keys.length}/18)`; statusEl.className='slot-status '+(keys.length===18?'ready':'partial'); await saveRecords(); alert(`Uploaded ${keys.length} files.`); }
+      catch(e){ console.error(e); alert('Upload failed.'); statusEl.textContent='Error'; }
     }
-    function scrambleGame(){
-      if (sounds.length===0){ resetGame(); return; }
-      stopTimer();
-      sounds = shuffle(sounds); matched=new Set(); firstClick=null; matches=0; attempts=0; currentTime=0;
-      const btns=document.querySelectorAll('.btn');
-      btns.forEach((btn,i)=>{
-        const row=Math.floor(i/6);
-        btn.className=`btn row-${row}`;
-        btn.innerHTML='<svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>';
-      });
-      updateStats(); updateTimerDisplay(); updateBestStats();
-    }
+    document.getElementById('clear1').addEventListener('click',async()=>{ if(!confirm('Delete all audio for Custom Set 1?')) return; await clearSlot(1);});
+    document.getElementById('clear2').addEventListener('click',async()=>{ if(!confirm('Delete all audio for Custom Set 2?')) return; await clearSlot(2);});
+    async function clearSlot(slot){ const idx=slot-1; for(const k of customKeys[idx]){ try{ await apiStream('audio','DELETE',k);}catch{} } customKeys[idx]=[]; const el=slot===1?status1:status2; el.textContent='Empty (0/18)'; el.className='slot-status'; await saveRecords(); }
 
-    function toggleAudio(){
-      muted=!muted;
-      document.getElementById('muteBtn').innerHTML = muted ? '🔇 Audio Off' : '🔊 Audio On';
-    }
+    document.getElementById('test1').addEventListener('click',()=>{ if(customKeys[0].length===18){ switchGame(1); adminPanel.classList.remove('show'); } else alert('Need 18 files.');});
+    document.getElementById('test2').addEventListener('click',()=>{ if(customKeys[1].length===18){ switchGame(2); adminPanel.classList.remove('show'); } else alert('Need 18 files.');});
+    async function refreshAdmin(){ msgStatus.textContent=funnyMessages.length===0?'Empty (0)':`Loaded (${funnyMessages.length})`; status1.textContent=customKeys[0].length===0?'Empty (0/18)':(customKeys[0].length===18?'Ready (18/18)':`Partial (${customKeys[0].length}/18)`); status1.className='slot-status '+(customKeys[0].length===18?'ready':(customKeys[0].length>0?'partial':'')); status2.textContent=customKeys[1].length===0?'Empty (0/18)':(customKeys[1].length===18?'Ready (18/18)':`Partial (${customKeys[1].length}/18)`); status2.className='slot-status '+(customKeys[1].length===18?'ready':(customKeys[1].length>0?'partial':'')); document.getElementById('name1').value=gameNames[0]; document.getElementById('name2').value=gameNames[1]; }
 
-    function switchGame(idx){
-      currentGame = idx;
-      document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', i===idx));
-      if (idx>0){
-        const ci = idx-1;
-        if (customKeys[ci].length!==18){
-          alert(`${gameNames[ci]} not ready. Needs 18 files.`);
-          currentGame=0; document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', i===0));
-        }
-      }
-      resetGame();
-    }
-    function updateTabs(){
-      document.getElementById('tab1').textContent = gameNames[0];
-      document.getElementById('tab2').textContent = gameNames[1];
-    }
-    function updateBestStats(){
-      const r = bestRecords[currentGame];
-      const t = r?.time!=null ? formatTime(r.time) : '--';
-      const a = r?.attempts!=null ? r.attempts : '--';
-      document.getElementById('bestStats').textContent = `Best Time: ${t} | Best Attempts: ${a}`;
-    }
+    /* -------- ticker -------- */
+    function startMessageRotation(){ const el=document.getElementById('rotatingMessage'); el.textContent='Welcome to the audio memory challenge!'; setTimeout(()=>{ el.textContent='Click buttons to hear sounds, find matching pairs!'; setTimeout(()=>{ if(funnyMessages.length>0){ showRandomMessage(); messageTimer=setInterval(showRandomMessage,20000); } else { el.textContent='Welcome to the audio memory challenge!'; } },20000); },10000); }
+    function stopMessageRotation(){ if(messageTimer){ clearInterval(messageTimer); messageTimer=null; } }
+    function showRandomMessage(){ if(funnyMessages.length===0) return; const i=Math.floor(Math.random()*funnyMessages.length); const el=document.getElementById('rotatingMessage'); el.textContent=funnyMessages[i]; setTimeout(()=>{el.textContent='';},10000); }
 
-    /****************
-     * ADMIN & TICKER
-     ****************/
-    const adminOpen = document.getElementById('adminOpen');
-    const adminPanel= document.getElementById('adminPanel');
-    const adminClose= document.getElementById('adminClose');
-
-    adminOpen.addEventListener('click', async ()=>{
-      const pass = prompt('Enter admin password:');
-      if (pass===PASSWORD){
-        adminPanel.classList.add('show');
-        await refreshAdmin();
-      } else if (pass!=null){ alert('Incorrect password'); }
-    });
-    adminClose.addEventListener('click', ()=> adminPanel.classList.remove('show'));
-
-    // Messages upload/preview/clear/download
-    const msgFile = document.getElementById('messageFile');
-    const msgDrop = document.getElementById('messageDrop');
-    const msgStatus= document.getElementById('messageStatus');
-    document.getElementById('previewMessagesBtn').addEventListener('click', ()=>{
-      if (funnyMessages.length===0) return alert('No messages loaded.');
-      const preview = funnyMessages.slice(0,10).join('\n');
-      const more = funnyMessages.length>10 ? `\n\n... and ${funnyMessages.length-10} more` : '';
-      alert(`Preview:\n\n${preview}${more}`);
-    });
-    document.getElementById('clearMessagesBtn').addEventListener('click', async ()=>{
-      if (!confirm('Clear all messages?')) return;
-      funnyMessages = [];
-      await saveMessages();
-      msgStatus.textContent = 'Empty (0)';
-    });
-    document.getElementById('downloadMessagesBtn').addEventListener('click', ()=>{
-      const blob = new Blob([funnyMessages.join('\n')], {type:'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download='messages.txt'; a.click();
-      URL.revokeObjectURL(a.href);
-    });
-    msgDrop.addEventListener('click', ()=> msgFile.click());
-    msgFile.addEventListener('change', (e)=> handleMessageFile(e.target.files[0]));
-    ;['dragover','dragleave','drop'].forEach(type=>{
-      msgDrop.addEventListener(type, (e)=>{
-        e.preventDefault();
-        if (type==='dragover') msgDrop.classList.add('dragover');
-        if (type==='dragleave') msgDrop.classList.remove('dragover');
-        if (type==='drop'){
-          msgDrop.classList.remove('dragover');
-          const f = e.dataTransfer.files[0];
-          if (f && f.type==='text/plain') handleMessageFile(f);
-        }
-      });
-    });
-
-    async function handleMessageFile(file){
-      const text = await file.text();
-      const lines = text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150);
-      if (lines.length===0) return alert('No valid lines in file.');
-      funnyMessages = lines;
-      await saveMessages();
-      msgStatus.textContent = `Loaded (${funnyMessages.length})`;
-      alert(`Loaded ${funnyMessages.length} messages.`);
-    }
-
-    // Custom sets upload
-    const name1 = document.getElementById('name1');
-    const name2 = document.getElementById('name2');
-    name1.addEventListener('input', async ()=>{ gameNames[0]=name1.value||'Custom Set 1'; updateTabs(); await saveRecords(); });
-    name2.addEventListener('input', async ()=>{ gameNames[1]=name2.value||'Custom Set 2'; updateTabs(); await saveRecords(); });
-
-    const upload1 = document.getElementById('upload1');
-    const upload2 = document.getElementById('upload2');
-    const files1  = document.getElementById('files1');
-    const files2  = document.getElementById('files2');
-    const status1 = document.getElementById('status1');
-    const status2 = document.getElementById('status2');
-
-    function bindUpload(dropEl, inputEl, slot){
-      dropEl.addEventListener('click', ()=> inputEl.click());
-      dropEl.addEventListener('dragover',(e)=>{ e.preventDefault(); dropEl.classList.add('dragover'); });
-      dropEl.addEventListener('dragleave',(e)=>{ e.preventDefault(); dropEl.classList.remove('dragover'); });
-      dropEl.addEventListener('drop', async (e)=>{
-        e.preventDefault(); dropEl.classList.remove('dragover');
-        const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('audio/'));
-        await processFiles(files, slot);
-      });
-      inputEl.addEventListener('change', async (e)=>{
-        const files = Array.from(e.target.files);
-        await processFiles(files, slot);
-        e.target.value='';
-      });
-    }
-    bindUpload(upload1, files1, 1);
-    bindUpload(upload2, files2, 2);
-
-    async function processFiles(files, slot){
-      if (!files || files.length===0) return;
-      if (files.length!==18 && !confirm(`Selected ${files.length}. Need 18. Continue?`)) return;
-
-      const slotIndex = slot-1;
-      const statusEl = slot===1?status1:status2;
-      statusEl.textContent = 'Uploading...';
-
-      try{
-        // upload each file to blobs; name scoped by slot
-        const keys = [];
-        let count=0;
-        for (const f of files.slice(0,18)){
-          const safeName = f.name.replace(/[^\w.\-]+/g,'_');
-          const key = `slot${slot}/${Date.now()}_${safeName}`;
-          await apiStream('audio','POST',key,f);
-          keys.push(key);
-          count++;
-          statusEl.textContent = `Uploading ${count}/${Math.min(files.length,18)}...`;
-        }
-        if (slot===1) customKeys[0]=keys; else customKeys[1]=keys;
-        statusEl.textContent = keys.length===18?'Ready (18/18)':'Partial ('+keys.length+'/18)';
-        statusEl.className = 'slot-status '+(keys.length===18?'ready':'partial');
-
-        await saveRecords(); // saves names + which keys are in each slot (stored in records payload)
-        alert(`Uploaded ${keys.length} files to ${slot===1?gameNames[0]:gameNames[1]}.`);
-      }catch(err){
-        console.error(err);
-        alert('Upload failed. See console for details.');
-        statusEl.textContent='Error';
-      }
-    }
-
-    document.getElementById('clear1').addEventListener('click', async ()=>{
-      if (!confirm('Delete all audio for Custom Set 1 from storage?')) return;
-      await clearSlot(1);
-    });
-    document.getElementById('clear2').addEventListener('click', async ()=>{
-      if (!confirm('Delete all audio for Custom Set 2 from storage?')) return;
-      await clearSlot(2);
-    });
-    async function clearSlot(slot){
-      const slotIndex=slot-1;
-      const keys = customKeys[slotIndex];
-      for (const k of keys){ try{ await apiStream('audio','DELETE',k); }catch{} }
-      customKeys[slotIndex]=[];
-      (slot===1?status1:status2).textContent='Empty (0/18)';
-      (slot===1?status1:status2).className='slot-status';
-      await saveRecords();
-      alert(`Cleared Custom Set ${slot}.`);
-    }
-
-    document.getElementById('test1').addEventListener('click', ()=>{ if (customKeys[0].length===18){ switchGame(1); adminPanel.classList.remove('show'); } else alert('Need 18 files.'); });
-    document.getElementById('test2').addEventListener('click', ()=>{ if (customKeys[1].length===18){ switchGame(2); adminPanel.classList.remove('show'); } else alert('Need 18 files.'); });
-
-    async function refreshAdmin(){
-      // messages status
-      msgStatus.textContent = funnyMessages.length===0 ? 'Empty (0)' : `Loaded (${funnyMessages.length})`;
-      // custom sets status
-      status1.textContent = customKeys[0].length===0 ? 'Empty (0/18)' : (customKeys[0].length===18 ? 'Ready (18/18)' : `Partial (${customKeys[0].length}/18)`);
-      status1.className = 'slot-status ' + (customKeys[0].length===18 ? 'ready' : (customKeys[0].length>0?'partial':'' ));
-      status2.textContent = customKeys[1].length===0 ? 'Empty (0/18)' : (customKeys[1].length===18 ? 'Ready (18/18)' : `Partial (${customKeys[1].length}/18)`);
-      status2.className = 'slot-status ' + (customKeys[1].length===18 ? 'ready' : (customKeys[1].length>0?'partial':'' ));
-      name1.value = gameNames[0]; name2.value = gameNames[1];
-    }
-
-    /****************
-     * TICKER LOGIC
-     ****************/
-    let messageTimer = null;
-    function startMessageRotation(){
-      const el = document.getElementById('rotatingMessage');
-      // 10s welcome
-      el.textContent = 'Welcome to the audio memory challenge!';
-      setTimeout(()=>{
-        el.textContent = 'Click buttons to hear sounds, find matching pairs!';
-        setTimeout(()=>{
-          if (funnyMessages.length>0){
-            showRandomMessage();
-            messageTimer = setInterval(showRandomMessage, 20000);
-          } else {
-            el.textContent = 'Welcome to the audio memory challenge!';
-          }
-        }, 20000);
-      }, 10000);
-    }
-    function stopMessageRotation(){ if (messageTimer){ clearInterval(messageTimer); messageTimer=null; } }
-    function showRandomMessage(){
-      if (funnyMessages.length===0) return;
-      const i = Math.floor(Math.random()*funnyMessages.length);
-      const el = document.getElementById('rotatingMessage');
-      el.textContent = funnyMessages[i];
-      setTimeout(()=>{ el.textContent=''; }, 10000);
-    }
-
-    /**********************
-     * PERSISTED DATA I/O
-     **********************/
+    /* -------- load/save (Netlify first, local fallback) -------- */
     async function loadAll(){
-      try{
-        const { messages } = await apiJSON('messages','GET');
-        funnyMessages = Array.isArray(messages)?messages:[];
-      }catch(e){
-        funnyMessages = [];
-        setPersistInfo('Persistence: API unreachable. Working with session only.', true);
-      }
-
-      try{
-        const state = await apiJSON('records','GET');
-        if (state?.best) bestRecords = state.best;
-        if (state?.names && Array.isArray(state.names) && state.names.length===2){
-          gameNames = state.names;
-        }
-        if (state?.keys && Array.isArray(state.keys) && state.keys.length===2){
-          customKeys = state.keys;
-        }
-        updateTabs();
-        setPersistInfo('Persistence: Netlify Blobs active.');
-      }catch(e){
-        setPersistInfo('Persistence: partial. Records may not save.', true);
-      }
+      // messages
+      try{ const r=await apiJSON('messages','GET'); funnyMessages=Array.isArray(r.messages)?r.messages:[]; }catch{ funnyMessages = JSON.parse(localStorage.getItem('dtm_messages')||'[]'); }
+      // records + names + keys
+      try{ const r=await apiJSON('records','GET'); if(r?.best) bestRecords=r.best; if(Array.isArray(r?.names)) gameNames=r.names; if(Array.isArray(r?.keys)) customKeys=r.keys; setPersistInfo('Persistence: Netlify Blobs active.'); }
+      catch{ const local=JSON.parse(localStorage.getItem('dtm_records')||'null'); if(local){ bestRecords=local.best||bestRecords; gameNames=local.names||gameNames; customKeys=local.keys||customKeys; setPersistInfo('Persistence: device storage only (API missing).',true); } else { setPersistInfo('Persistence: device storage only (API missing).',true); } }
+      updateTabs();
     }
+    async function saveMessages(){ try{ await apiJSON('messages','PUT',{messages:funnyMessages}); setPersistInfo('Messages saved.'); }catch{ localStorage.setItem('dtm_messages',JSON.stringify(funnyMessages)); setPersistInfo('Messages saved to device (API missing).',true); } }
+    async function saveRecords(){ const payload={best:bestRecords,names:gameNames,keys:customKeys}; try{ await apiJSON('records','PUT',payload); setPersistInfo('Records saved.'); }catch{ localStorage.setItem('dtm_records',JSON.stringify(payload)); setPersistInfo('Records saved to device (API missing).',true); } }
 
-    async function saveMessages(){
-      try{
-        await apiJSON('messages','PUT',{ messages: funnyMessages });
-        setPersistInfo('Messages saved (Netlify Blobs).');
-      }catch(e){
-        setPersistInfo('Failed to save messages.', true);
-      }
-    }
-
-    async function saveRecords(){
-      try{
-        await apiJSON('records','PUT',{ best: bestRecords, names: gameNames, keys: customKeys });
-        setPersistInfo('Records saved (Netlify Blobs).');
-      }catch(e){
-        setPersistInfo('Failed to save records.', true);
-      }
-    }
-
-    /***************
-     * BOOTSTRAP
-     ***************/
-    document.addEventListener('DOMContentLoaded', async ()=>{
+    /* -------- boot -------- */
+    document.addEventListener('DOMContentLoaded',async()=>{
       initAudio();
-
-      // iOS audio resume
-      document.addEventListener('click', ()=>{
-        if (audioContext && audioContext.state==='suspended'){ audioContext.resume(); }
-      }, { once:true });
-
+      document.addEventListener('click',()=>{ if(audioContext&&audioContext.state==='suspended') audioContext.resume(); },{once:true});
       await loadAll();
       startMessageRotation();
       createGrid();
       updateStats();
       updateTimerDisplay();
       updateBestStats();
-
-      // Stop audio on tab hidden
-      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) stopAllAudio(); });
+      document.addEventListener('visibilitychange',()=>{ if(document.hidden) stopAllAudio(); });
     });
   </script>
 </body>
