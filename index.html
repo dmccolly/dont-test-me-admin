@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DON'T TEST ME</title>
   <link rel="stylesheet" href="css/styles.css">
@@ -63,14 +63,14 @@
       <div class="win-title">Perfect Match!</div>
       <div class="win-stats" id="winStats">Completed in 0:00 with 0 attempts (100% accuracy)</div>
       <div class="win-actions">
-        <button class="ctrl-btn" id="playAgainBtn">Play Again</button>
-        <button class="ctrl-btn" id="scrambleInWinBtn">Scramble</button>
-        <button class="ctrl-btn" id="gameOptionsBtn">Other Games</button>
+        <button class="win-btn" id="playAgainBtn">Play Again</button>
+        <button class="win-btn" id="scrambleInWinBtn">Scramble</button>
+        <button class="win-btn" id="gameOptionsBtn">Other Games</button>
       </div>
     </div>
   </div>
 
-  <!-- Admin modal -->
+  <!-- Admin modal backdrop -->
   <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true">
     <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
       <h2 class="admin-title" id="adminTitle">Game Management</h2>
@@ -80,16 +80,14 @@
           <div style="font-weight:700">Funny Messages</div>
           <div class="slot-status" id="messageStatus">No messages loaded</div>
         </div>
-        <div class="upload"
-             id="messageDrop"
-             onclick="document.getElementById('messageFile').click()">
+        <div class="upload" id="messageDrop" onclick="document.getElementById('messageFile').click()">
           <div class="upload-text">📄 Upload message file (one phrase per line, 150 chars max)</div>
           <div class="upload-hint">Plain .txt recommended</div>
           <input type="file" id="messageFile" accept=".txt" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="previewMsgBtn">👀 Preview</button>
-          <button class="ctrl-btn" id="clearMsgBtn">🗑️ Clear</button>
+          <button class="admin-btn-action" id="previewMsgBtn">👀 Preview</button>
+          <button class="admin-btn-action" id="clearMsgBtn">🗑️ Clear</button>
         </div>
       </div>
 
@@ -112,8 +110,8 @@
           <input type="file" id="files1" multiple accept="audio/*" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="clear1Btn">Clear All</button>
-          <button class="ctrl-btn" id="test1Btn">Test Game</button>
+          <button class="admin-btn-action" id="clear1Btn">Clear All</button>
+          <button class="admin-btn-action" id="test1Btn">Test Game</button>
         </div>
       </div>
 
@@ -128,24 +126,18 @@
           <input type="file" id="files2" multiple accept="audio/*" class="hidden-file">
         </div>
         <div class="admin-actions">
-          <button class="ctrl-btn" id="clear2Btn">Clear All</button>
-          <button class="ctrl-btn" id="test2Btn">Test Game</button>
+          <button class="admin-btn-action" id="clear2Btn">Clear All</button>
+          <button class="admin-btn-action" id="test2Btn">Test Game</button>
         </div>
       </div>
 
       <div class="admin-actions">
-        <button class="ctrl-btn" id="closeAdminBtn">Close</button>
+        <button class="admin-btn-action" id="closeAdminBtn">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Order matters -->
-  <script defer src="js/utils.js"></script>
-  <script defer src="js/storage.js"></script>
-  <script defer src="js/audio.js"></script>
-  <script defer src="js/game.js"></script>
-  <script defer src="js/admin.js"></script>
-  <script defer src="js/ticker.js"></script>
-  <script defer src="js/app.js"></script>
+  <!-- Single module entry point -->
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
