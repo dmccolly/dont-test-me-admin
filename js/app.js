@@ -1,50 +1,42 @@
-import { $, qsa } from './utils.js';
-import { openDB, loadMeta, loadAudioSet, saveMeta } from './storage.js';
-import { decodeBlobsToBuffers, setAudioCallbacks } from './audio.js';
-import {
-  state, switchGame, resetGame, scrambleGame, toggleAudio,
-  playAgain, showOtherGames, updateBestStats, updateTimerDisplay
-} from './game.js';
-import { wireAdmin } from './admin.js';
-import { startTicker } from './ticker.js';
+import { $, formatTime } from './utils.js';
+import { initAudio } from './audio.js';
+import { loadNames } from './storage.js';
+import { createGrid, resetGame, scrambleGame, toggleAudio, switchGame, updateBestStats, setGameNames } from './game.js';
+import { bindAdminUI, showAdmin } from './admin.js';
+import { startMessageRotation } from './ticker.js';
 
-const SERVER_SYNC = false;        // flip to true if you wire a backend
-const API_BASE = '/api/dtm';
+// Wire all buttons and tabs, then boot the game
+function bindUI(){
+  // Tabs
+  const names = loadNames();
+  setGameNames(names);
+  document.getElementById('tab1').textContent = names[0];
+  document.getElementById('tab2').textContent = names[1];
 
-function setPlayerUI(status, playing) {
-  const led = $('led'), text = $('playerText');
-  if (playing) led.classList.add('on'); else led.classList.remove('on');
-  text.textContent = status;
+  document.getElementById('tab0').addEventListener('click', ()=>switchGame(0));
+  document.getElementById('tab1').addEventListener('click', ()=>switchGame(1));
+  document.getElementById('tab2').addEventListener('click', ()=>switchGame(2));
+
+  // Controls
+  $('newGameBtn').addEventListener('click', resetGame);
+  $('scrambleBtn').addEventListener('click', scrambleGame);
+  $('muteBtn').addEventListener('click', toggleAudio);
+
+  // Win modal controls
+  $('playAgainBtn').addEventListener('click', ()=>{ $('win').classList.remove('show'); resetGame(); });
+  $('scrambleInWinBtn').addEventListener('click', ()=>{ $('win').classList.remove('show'); scrambleGame(); });
+  $('gameOptionsBtn').addEventListener('click', ()=>{ $('win').classList.remove('show'); alert('Use the game tabs above to switch sets.'); });
+
+  // Admin UI
+  bindAdminUI();
 }
 
-async function pullFromServer() {
-  if (!SERVER_SYNC) return;
-  try {
-    const r = await fetch(`${API_BASE}/state`, { credentials: 'include' });
-    if (!r.ok) throw new Error('state fetch failed');
-    const data = await r.json();
-    if (Array.isArray(data.names) && data.names.length === 2) state.gameNames = data.names;
-    if (data.records) state.bestRecords = data.records;
-    if (Array.isArray(data.messages)) state.funnyMessages = data.messages;
-
-    if (data.audio) {
-      for (const k of ['1', '2']) {
-        if (Array.isArray(data.audio[k]) && data.audio[k].length) {
-          const blobs = [];
-          for (const url of data.audio[k].slice(0,18)) {
-            const resp = await fetch(url); blobs.push(await resp.blob());
-          }
-          const bufs = await decodeBlobsToBuffers(blobs);
-          state.customBuffers[parseInt(k,10)-1] = bufs;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Server pull skipped:', e.message);
-  }
+function boot(){
+  initAudio();
+  bindUI();
+  createGrid();        // ← renders the 6x6 player buttons RELIABLY
+  updateBestStats();
+  startMessageRotation();
 }
 
-function pushToServerDebounced() {
-  if (!SERVER_SYNC) return;
-  clearTimeout(pushToServerDebounced.t);
-  pushToServerDebounced.t = setTimeout(pushToServer, 
+document.addEventListener('DOMContentLoaded', boot);
