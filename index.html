@@ -771,7 +771,7 @@
             if (pass === 'MUSIC') {
                 document.getElementById('adminPanel').classList.add('show');
                 adminVisible = true;
-                updateAdminStatus();
+                updateAdminStatus(); // Only update when admin is actually opened
             } else if (pass !== null) {
                 alert('Incorrect password');
             }
@@ -1129,7 +1129,7 @@
                 await initIndexedDB();
             } catch (error) {
                 console.warn('⚠️ IndexedDB failed, using localStorage fallback');
-                updateStorageStatus('error', 'Using localStorage fallback - audio files may not persist reliably');
+                // Don't update storage status during init - it shows admin content
             }
 
             await loadGameConfig();
@@ -1142,7 +1142,7 @@
             updateStats();
             updateTimerDisplay();
             updateBestStats();
-            updateAdminStatus();
+            // DO NOT call updateAdminStatus() here - it shows admin content
             
             console.log('✅ Game initialization complete');
         });
