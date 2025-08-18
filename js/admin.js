@@ -1,179 +1,134 @@
-import { $ } from './utils.js';
-import { PASSWORD, state, switchGame } from './game.js';
-import { openDB, saveMeta, loadAudioSet, saveAudioSet, clearAudioSet } from './storage.js';
-import { decodeBlobsToBuffers } from './audio.js';
+import { $, shuffle } from './utils.js';
+import { initAudio, getCtx, normalize } from './audio.js';
+import { loadMessages, saveMessages, clearMessages as clearMsgsStore, loadNames, saveNames } from './storage.js';
+import { PASSWORD, getCustomBuffers, setCustomBuffers, switchGame, getCurrentGame, setGameNames } from './game.js';
 
-export function wireAdmin() {
-  $('#openAdmin').addEventListener('click', openAdmin);
-  $('#closeAdmin').addEventListener('click', closeAdmin);
-
-  // Names
-  $('#name1').addEventListener('input', () => { state.gameNames[0] = $('#name1').value || 'Custom Set 1'; $('#tab1').textContent = state.gameNames[0]; persist(); });
-  $('#name2').addEventListener('input', () => { state.gameNames[1] = $('#name2').value || 'Custom Set 2'; $('#tab2').textContent = state.gameNames[1]; persist(); });
-
-  // Audio uploads
-  bindDrop('drop1', 'files1', 1);
-  bindDrop('drop2', 'files2', 2);
-  $('#clear1').addEventListener('click', () => clearSlot(1));
-  $('#clear2').addEventListener('click', () => clearSlot(2));
-  $('#test1').addEventListener('click', () => testGame(1));
-  $('#test2').addEventListener('click', () => testGame(2));
-
-  // Funny messages
-  bindMessageUpload();
-
-  updateStatuses();
+let funnyMessages = loadMessages();
+function updateMessageStatus(){
+  $('messageStatus').textContent = funnyMessages.length ? `${funnyMessages.length} messages loaded` : 'No messages loaded';
+  $('messageStatus').className = 'slot-status ' + (funnyMessages.length ? 'ready' : '');
 }
 
-function openAdmin() {
+// open/close
+export function showAdmin() {
   const pass = prompt('Enter admin password:');
-  if (pass === null) return;
-  if (pass !== PASSWORD) { alert('Incorrect password'); return; }
-  $('#adminBackdrop').classList.add('show');
-  $('#adminBackdrop').setAttribute('aria-hidden', 'false');
-  refreshAdminUI();
+  if (pass !== PASSWORD) { if (pass !== null) alert('Incorrect password'); return; }
+  $('adminBackdrop').classList.add('show');
+  $('adminBackdrop').setAttribute('aria-hidden','false');
+  refreshAdmin();
+}
+export function hideAdmin() {
+  $('adminBackdrop').classList.remove('show');
+  $('adminBackdrop').setAttribute('aria-hidden','true');
 }
 
-function closeAdmin() {
-  $('#adminBackdrop').classList.remove('show');
-  $('#adminBackdrop').setAttribute('aria-hidden', 'true');
-  $('#tab1').textContent = state.gameNames[0];
-  $('#tab2').textContent = state.gameNames[1];
-  persist();
-}
-
-function refreshAdminUI() {
-  $('#name1').value = state.gameNames[0] || 'Custom Set 1';
-  $('#name2').value = state.gameNames[1] || 'Custom Set 2';
-  updateStatuses();
+// refresh fields
+function refreshAdmin(){
+  const [n1, n2] = loadNames();
+  $('name1').value = n1; $('name2').value = n2;
+  updateSlotStatus(1); updateSlotStatus(2);
   updateMessageStatus();
 }
 
-function setStatus(slot, count) {
-  const el = slot === 1 ? $('#status1') : $('#status2');
-  el.className = 'slot-status' + (count === 18 ? ' ready' : (count > 0 ? ' partial' : ''));
-  el.textContent = count === 18 ? 'Ready (18/18)' : (count > 0 ? `Partial (${count}/18)` : 'Empty (0/18)');
+// slot status
+function updateSlotStatus(slot){
+  const count = getCustomBuffers()[slot-1].length;
+  const el = slot===1 ? $('status1') : $('status2');
+  if (count === 18) { el.textContent = 'Ready (18/18)'; el.className = 'slot-status ready'; }
+  else if (count > 0) { el.textContent = `Partial (${count}/18)`; el.className = 'slot-status partial'; }
+  else { el.textContent = 'Empty (0/18)'; el.className = 'slot-status'; }
 }
 
-function updateStatuses() {
-  setStatus(1, state.customBuffers[0].length);
-  setStatus(2, state.customBuffers[1].length);
-}
-
-/* Audio upload helpers */
-function bindDrop(dropId, inputId, slot) {
-  const drop = $(dropId), input = $(inputId);
-  drop.addEventListener('click', () => input.click());
-  drop.addEventListener('dragover', (e)=>{e.preventDefault(); drop.classList.add('dragover');});
-  drop.addEventListener('dragleave', (e)=>{e.preventDefault(); drop.classList.remove('dragover');});
-  drop.addEventListener('drop', (e)=>{
-    e.preventDefault(); drop.classList.remove('dragover');
-    const files = [...e.dataTransfer.files].filter(f=>f.type.startsWith('audio/'));
-    if (!files.length) { alert('Please drop audio files only.'); return; }
-    processFiles(files, slot);
+// names
+function bindNameInputs(){
+  $('name1').addEventListener('input', ()=>{
+    const names = [ $('name1').value || 'Custom Set 1', $('name2').value || 'Custom Set 2' ];
+    saveNames(names); setGameNames(names);
+    document.getElementById('tab1').textContent = names[0];
   });
-  input.addEventListener('change', (e)=>{
-    const files = [...e.target.files];
-    if (!files.length) return;
-    processFiles(files, slot);
-    input.value = '';
+  $('name2').addEventListener('input', ()=>{
+    const names = [ $('name1').value || 'Custom Set 1', $('name2').value || 'Custom Set 2' ];
+    saveNames(names); setGameNames(names);
+    document.getElementById('tab2').textContent = names[1];
   });
 }
 
-async function processFiles(files, slot) {
-  await openDB();
+// audio file processing
+async function processFiles(files, slot){
+  initAudio(); if (!getCtx()) { alert('Audio context not available. Please try again.'); return; }
   const idx = slot - 1;
+  const statusEl = slot===1 ? $('status1') : $('status2');
   const take = Math.min(files.length, 18);
-  if (files.length !== 18 && !confirm(`You selected ${files.length}. Continue with ${take}?`)) return;
+  if (files.length !== 18 && !confirm(`You selected ${files.length} files, but 18 are needed. Continue with ${take}?`)) return;
 
-  const statusEl = slot === 1 ? $('#status1') : $('#status2');
-  statusEl.textContent = 'Processing...';
-  statusEl.className = 'slot-status partial';
-
-  // Save blobs first (persistence), then decode
-  await saveAudioSet(slot, files.slice(0, take).map(f => f));
-  const buffers = await decodeBlobsToBuffers(files.slice(0, take));
-  state.customBuffers[idx] = buffers;
-
-  updateStatuses();
-  alert(`Loaded ${buffers.length} files for ${state.gameNames[idx]}.`);
-  persist();
-}
-
-async function clearSlot(slot) {
-  if (!confirm(`Clear all files from Custom Set ${slot}?`)) return;
-  const idx = slot - 1;
-  state.customBuffers[idx] = [];
-  await clearAudioSet(slot);
-  updateStatuses();
-  persist();
-}
-
-function testGame(slot) {
-  const idx = slot - 1;
-  if (state.customBuffers[idx].length !== 18) {
-    alert(`Custom Set ${slot} needs exactly 18 files. Currently has ${state.customBuffers[idx].length}.`);
-    return;
-  }
-  closeAdmin();
-  switchGame(slot);
-}
-
-/* Funny messages */
-function bindMessageUpload() {
-  const drop = $('#messageDrop');
-  const input = $('#messageFile');
-  drop.addEventListener('click', () => input.click());
-  drop.addEventListener('dragover', (e)=>{e.preventDefault(); drop.classList.add('dragover');});
-  drop.addEventListener('dragleave', (e)=>{e.preventDefault(); drop.classList.remove('dragover');});
-  drop.addEventListener('drop', async (e)=>{
-    e.preventDefault(); drop.classList.remove('dragover');
-    const file = e.dataTransfer.files?.[0];
-    if (!file) return;
-    await loadMessageText(await file.text());
-  });
-  input.addEventListener('change', async e=>{
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await loadMessageText(await file.text());
-    input.value = '';
-  });
-
-  $('#previewMessages').addEventListener('click', ()=>{
-    if (!state.funnyMessages?.length) { alert('No messages loaded.'); return; }
-    const preview = state.funnyMessages.slice(0,10).join('\n');
-    const more = state.funnyMessages.length > 10 ? `\n\n...and ${state.funnyMessages.length-10} more` : '';
-    alert(`Preview:\n\n${preview}${more}`);
-  });
-  $('#clearMessages').addEventListener('click', ()=>{
-    if (!state.funnyMessages?.length) { alert('Nothing to clear.'); return; }
-    if (confirm('Clear all funny messages?')) {
-      state.funnyMessages = [];
-      updateMessageStatus();
-      persist();
+  const buffers = [];
+  try{
+    for(let i=0;i<take;i++){
+      statusEl.textContent = `Processing ${i+1}/${take}...`; statusEl.className = 'slot-status partial';
+      const ab = await files[i].arrayBuffer();
+      const decoded = await getCtx().decodeAudioData(ab);
+      buffers.push(normalize(decoded));
+      await new Promise(r=>setTimeout(r,40));
     }
+    setCustomBuffers(idx, buffers);
+    updateSlotStatus(slot);
+    alert(`Successfully loaded ${buffers.length} audio files for Custom Set ${slot}`);
+  }catch(e){
+    console.error(e);
+    alert('Error processing some audio files. Please check file formats.');
+    updateSlotStatus(slot);
+  }
+}
+
+// bind admin DOM
+export function bindAdminUI(){
+  $('adminBtn').addEventListener('click', showAdmin);
+  $('closeAdminBtn').addEventListener('click', hideAdmin);
+
+  // funny messages
+  $('messageFile').addEventListener('change', async (e)=>{
+    const f = e.target.files?.[0]; if (!f) return;
+    const text = await f.text();
+    const lines = text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150);
+    if (!lines.length) { alert('No valid messages (1–150 chars each).'); return; }
+    funnyMessages = lines; saveMessages(funnyMessages); updateMessageStatus(); alert(`Loaded ${funnyMessages.length} messages.`); e.target.value='';
   });
-}
-
-async function loadMessageText(text) {
-  const lines = text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150);
-  if (!lines.length) { alert('No valid messages found. Each line 1–150 chars.'); return; }
-  state.funnyMessages = lines;
-  updateMessageStatus();
-  alert(`Loaded ${lines.length} messages.`);
-  persist();
-}
-
-function updateMessageStatus() {
-  $('#messageStatus').textContent = state.funnyMessages?.length ? `${state.funnyMessages.length} messages loaded` : 'No messages loaded';
-}
-
-/* persistence */
-async function persist() {
-  await openDB();
-  await saveMeta({
-    names: state.gameNames,
-    records: state.bestRecords,
-    messages: state.funnyMessages || [],
+  $('messageDrop').addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('dragover'); });
+  $('messageDrop').addEventListener('dragleave', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.remove('dragover'); });
+  $('messageDrop').addEventListener('drop', async (ev)=>{
+    ev.preventDefault(); ev.currentTarget.classList.remove('dragover');
+    const f = ev.dataTransfer.files?.[0]; if (!f) return;
+    const text = await f.text();
+    const lines = text.split('\n').map(s=>s.trim()).filter(s=>s && s.length<=150);
+    if (!lines.length) { alert('No valid messages (1–150 chars each).'); return; }
+    funnyMessages = lines; saveMessages(funnyMessages); updateMessageStatus(); alert(`Loaded ${funnyMessages.length} messages.`);
   });
+  $('previewMsgBtn').addEventListener('click', ()=>{
+    if (!funnyMessages.length) return alert('No messages loaded.');
+    const sample = funnyMessages.slice(0,10).join('\n');
+    const more = funnyMessages.length>10 ? `\n\n...and ${funnyMessages.length-10} more` : '';
+    alert(`Preview:\n\n${sample}${more}`);
+  });
+  $('clearMsgBtn').addEventListener('click', ()=>{
+    if (!funnyMessages.length) return alert('Nothing to clear.');
+    if (!confirm('Clear all funny messages?')) return;
+    funnyMessages = []; clearMsgsStore(); updateMessageStatus(); alert('Messages cleared.');
+  });
+
+  // custom sets
+  const bindDrop = (dropId, fileId, slot, clearBtnId, testBtnId) => {
+    $(fileId).addEventListener('change', (e)=>{ const files=[...e.target.files]; if(files.length) processFiles(files, slot); e.target.value=''; });
+    $(dropId).addEventListener('dragover', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.add('dragover'); });
+    $(dropId).addEventListener('dragleave',(ev)=>{ ev.preventDefault(); ev.currentTarget.classList.remove('dragover'); });
+    $(dropId).addEventListener('drop', (ev)=>{ ev.preventDefault(); ev.currentTarget.classList.remove('dragover'); const files=[...ev.dataTransfer.files].filter(f=>f.type.startsWith('audio/')); if(!files.length) return alert('Drop audio files only.'); processFiles(files, slot); });
+    $(clearBtnId).addEventListener('click', ()=>{ if(!confirm(`Clear all files from Custom Set ${slot}?`)) return; setCustomBuffers(slot-1, []); updateSlotStatus(slot); });
+    $(testBtnId).addEventListener('click', ()=>{ switchGame(slot); hideAdmin(); });
+  };
+  bindDrop('drop1','files1',1,'clear1Btn','test1Btn');
+  bindDrop('drop2','files2',2,'clear2Btn','test2Btn');
+
+  bindNameInputs();
 }
+
+// expose funny messages to ticker
+export function getFunnyMessages(){ return funnyMessages; }
