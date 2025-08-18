@@ -1,9 +1,8 @@
-import { $, qs } from './utils.js';
-import { PASSWORD, state, switchGame, resetGame } from './game.js';
+import { $ } from './utils.js';
+import { PASSWORD, state, switchGame } from './game.js';
 import { openDB, saveMeta, loadAudioSet, saveAudioSet, clearAudioSet } from './storage.js';
 import { decodeBlobsToBuffers } from './audio.js';
 
-/* Modal open/close */
 export function wireAdmin() {
   $('#openAdmin').addEventListener('click', openAdmin);
   $('#closeAdmin').addEventListener('click', closeAdmin);
