@@ -100,7 +100,7 @@ export async function saveAudioSet(slot, files) {
 
 export async function loadAudioSet(slot) {
   await openDB();
-  const count = await idbGet('meta', `count:${slot}`) || 0;
+  const count = (await idbGet('meta', `count:${slot}`)) || 0;
   const blobs = [];
   for (let i = 0; i < count; i++) {
     const b = await idbGet('audio', `${slot}:${i}`);
