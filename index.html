@@ -1117,8 +1117,11 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🎮 Initializing game...');
             
-            // Ensure admin panel is hidden on startup
-            document.getElementById('adminPanel').classList.remove('show');
+            // Force hide admin panel on startup
+            const adminPanel = document.getElementById('adminPanel');
+            adminPanel.style.display = 'none';
+            adminPanel.classList.remove('show');
+            adminVisible = false;
             
             initAudio();
             
@@ -1567,7 +1570,7 @@
         }
         .admin-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.05); color: #888; }
         .admin-panel {
-            display: none;
+            display: none !important;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1581,7 +1584,9 @@
             max-width: 800px;
             margin: 20px auto;
         }
-        .admin-panel.show { display: block; }
+        .admin-panel.show { 
+            display: block !important; 
+        }
         .admin-title {
             font-size: 2rem;
             font-weight: 200;
