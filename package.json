@@ -1,9 +1,7 @@
 {
   "name": "dont-test-me-admin",
-  "version": "1.0.0",
   "private": true,
-  "type": "module",
   "dependencies": {
-    "@netlify/blobs": "^6.5.0"
+    "@netlify/blobs": "^6.0.0"
   }
 }
