@@ -94,6 +94,11 @@
             background-clip: text;
             max-width: 90%;
             word-wrap: break-word;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .rotating-message.show {
+            opacity: 1;
         }
         .highlight {
             background: linear-gradient(135deg, #ffffff 0%, #c4c4c4 50%, #a8a8a8 100%);
@@ -609,7 +614,7 @@
             <h1 class="title">DON'T TEST ME</h1>
             <p class="subtitle">Here's one to test your hearing AND recall. Huh? <span class="highlight">I SAID. TO TEST YOUR HEARING AND RECALL!!</span></p>
             <div class="message-ticker">
-                <div class="rotating-message" id="rotatingMessage">Welcome to the audio memory challenge!</div>
+                <div class="rotating-message show" id="rotatingMessage">Welcome to the audio memory challenge!</div>
             </div>
         </div>
 
@@ -786,7 +791,7 @@
             // Set up 40-second interval
             messageTimer = setInterval(() => {
                 showRandomMessage();
-            }, 40000);
+            }, 44000); // 40 seconds between messages + 4 seconds display time
         }
 
         function stopMessageRotation() {
@@ -799,13 +804,28 @@
         function showRandomMessage() {
             if (funnyMessages.length === 0) return;
             
-            // Pick a random message
-            const randomIndex = Math.floor(Math.random() * funnyMessages.length);
-            const message = funnyMessages[randomIndex];
-            
-            // Update with sharp cut (no transition)
             const messageEl = document.getElementById('rotatingMessage');
-            messageEl.textContent = message;
+            
+            // Fade out current message
+            messageEl.classList.remove('show');
+            
+            setTimeout(() => {
+                // Pick a random message
+                const randomIndex = Math.floor(Math.random() * funnyMessages.length);
+                const message = funnyMessages[randomIndex];
+                
+                // Update text
+                messageEl.textContent = message;
+                
+                // Fade in new message
+                messageEl.classList.add('show');
+                
+                // Fade out after 4 seconds
+                setTimeout(() => {
+                    messageEl.classList.remove('show');
+                }, 4000);
+                
+            }, 800); // Wait for fade out to complete
         }
 
         function handleMessageFile(event) {
@@ -921,6 +941,7 @@
                 
                 document.getElementById('messageStatus').textContent = 'No messages loaded';
                 document.getElementById('rotatingMessage').textContent = 'Welcome to the audio memory challenge!';
+                document.getElementById('rotatingMessage').classList.add('show');
             }
         }
 
