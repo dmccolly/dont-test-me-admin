@@ -7,7 +7,8 @@ export const frequencies = [220,246,261,293,329,349,392,440,493,523,587,659,698,
 
 let currentGame = 0;          // 0=Tones, 1=Custom1, 2=Custom2
 let customBuffers = [[],[]];  // 18 each
-let gameNames = ["Custom Set 1","Custom Set 2"]; // set by app.js
+let gameNames = ["Custom Set 1","Custom Set 2"];
+
 let sounds = [];
 let matched = new Set();
 let firstClick = null;
@@ -188,5 +189,5 @@ function checkNewRecords() {
   updateBestStats();
 }
 
-// expose to other modules
-export const _priv = { updateStats, markMatched, handleClick };
+// export private for tests if needed
+export const _priv = { updateStats, markMatched };
