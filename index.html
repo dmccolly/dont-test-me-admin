@@ -788,20 +788,33 @@
             // Shuffle messages for this session
             shuffleMessages();
             
-            // Show welcome message for 4 seconds, then wait 40 seconds before starting rotation
+            // Show welcome message for 4 seconds
             setTimeout(() => {
                 // Fade out welcome message
                 const messageEl = document.getElementById('rotatingMessage');
                 messageEl.classList.remove('show');
                 
-                // Start rotation after 40 second pause
+                // Wait 2 seconds, then show instruction message
                 setTimeout(() => {
-                    showNextMessage();
-                    // Set up 44-second interval for subsequent messages
-                    messageTimer = setInterval(() => {
-                        showNextMessage();
-                    }, 44000);
-                }, 40000);
+                    messageEl.textContent = "Find all the matching pairs to win!";
+                    messageEl.classList.add('show');
+                    
+                    // Show instruction for 5 seconds
+                    setTimeout(() => {
+                        messageEl.classList.remove('show');
+                        
+                        // Wait 40 seconds, then start rotation
+                        setTimeout(() => {
+                            showNextMessage();
+                            // Set up 44-second interval for subsequent messages
+                            messageTimer = setInterval(() => {
+                                showNextMessage();
+                            }, 44000);
+                        }, 40000);
+                        
+                    }, 5000); // Instruction message displays for 5 seconds
+                    
+                }, 2000); // 2 second pause after welcome
                 
             }, 4000); // Welcome message displays for 4 seconds
         }
