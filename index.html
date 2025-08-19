@@ -144,10 +144,6 @@
   </div>
 
 <script>
-/* ============================ CONFIGURATION ============================= */
-// YOUR XANO API URL GOES HERE. The last part (/api:...) is your API Group.
-const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1';
-
 /* ============================ Audio management ============================ */
 function tone(freq,dur){
   const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
@@ -233,6 +229,11 @@ function newGame(){
   startTimer();
 }
 
+function updateAcc(){ 
+    const pct=attempts?Math.round((matches/attempts)*100):100; 
+    statAcc.textContent=`${pct}%`; 
+}
+
 function onKey(e){
   const clickedButton = e.currentTarget;
   if (locking || clickedButton.classList.contains('matched')) return;
@@ -255,13 +256,13 @@ function onKey(e){
   locking = true;
   attempts++;
   statAttempts.textContent = attempts;
-  const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`;
 
   if (firstPick.pairId === currentPairId) {
       firstPick.btn.classList.add('matched');
       clickedButton.classList.add('matched');
       matches++;
       statMatches.textContent = `${matches}/${totalPairs}`;
+      updateAcc(); // Update accuracy after match
       setTimeout(playSuccessSfx, 150);
       if (matches === totalPairs) stopTimer();
       firstPick = null;
@@ -269,6 +270,7 @@ function onKey(e){
   } else {
       firstPick.btn.classList.add('mismatch');
       clickedButton.classList.add('mismatch');
+      updateAcc(); // Update accuracy on mismatch
       setTimeout(playFailureSfx, 150);
       const firstButton = firstPick.btn;
       setTimeout(() => {
@@ -289,9 +291,12 @@ function stopTimer(){ clearInterval(timerInt); }
 
 /* --------------------------- Server Communication ------------------------- */
 async function loadGamesFromServer() {
+    // THIS IS THE MODIFIED TEST CODE
+    const XANO_TEST_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1/games';
+
     try {
-        const response = await fetch(`${XANO_BASE_URL}/games`);
-        if (!response.ok) throw new Error('Failed to fetch games list');
+        const response = await fetch(XANO_TEST_URL);
+        if (!response.ok) throw new Error(`Failed to fetch games list. Status: ${response.status}`);
         const games = await response.json();
 
         games.forEach(game => {
@@ -324,6 +329,10 @@ async function switchMode(newMode, gameId = null) {
     mode = newMode;
     updateTabs();
     tickerEl.textContent = 'Loading game...';
+    
+    // THIS URL IS ALSO HARDCODED FOR THE TEST
+    const XANO_BASE_URL_FOR_SWITCH = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1';
+
 
     if (mode === 'tones') {
         newGame();
@@ -332,7 +341,7 @@ async function switchMode(newMode, gameId = null) {
     }
 
     try {
-        const response = await fetch(`${XANO_BASE_URL}/games/${gameId}`);
+        const response = await fetch(`${XANO_BASE_URL_FOR_SWITCH}/games/${gameId}`);
         if (!response.ok) throw new Error('Failed to fetch game data');
         const audioFiles = await response.json();
 
@@ -369,6 +378,9 @@ tabsContainer.addEventListener('click', (e) => {
 });
 
 btnUpload.onclick = async () => {
+    // THIS URL IS ALSO HARDCODED FOR THE TEST
+    const XANO_BASE_URL_FOR_UPLOAD = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1';
+    
     const name = newNameInput.value.trim();
     const files = Array.from(newFilesInput.files);
 
@@ -392,7 +404,7 @@ btnUpload.onclick = async () => {
     });
 
     try {
-        const response = await fetch(`${XANO_BASE_URL}/games`, {
+        const response = await fetch(`${XANO_BASE_URL_FOR_UPLOAD}/games`, {
             method: 'POST',
             body: formData
         });
