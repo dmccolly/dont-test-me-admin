@@ -1,619 +1,540 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>DON'T TEST ME</title>
 <style>
-  /* ===== Theme ===== */
-  *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --fg:#e5e7eb;
-    --muted:#a1a1aa;
+    --bg:#0b0f1a;
+    --panel:rgba(20,26,38,.55);
+    --glass:rgba(255,255,255,.07);
     --line:rgba(255,255,255,.12);
-    --glass:rgba(255,255,255,.08);
-    --glass2:rgba(255,255,255,.04);
-    --bg:#0b0d12;
-
-    --ok:#10b981; --ok2:#34d399;
-    --danger:#f87171;
-
-    /* subtle brand golds (ticker + accents) */
-    --gold-1:#f3d08f; --gold-2:#f0b73f; --gold-3:#d99014;
-
-    /* row hues (subtle) */
-    --r0a: rgba(219,154,154,.28); --r0b: rgba(180,120,120,.18);
-    --r1a: rgba(154,219,168,.28); --r1b: rgba(120,180,135,.18);
-    --r2a: rgba(154,168,219,.28); --r2b: rgba(120,135,180,.18);
-    --r3a: rgba(219,195,154,.28); --r3b: rgba(180,160,120,.18);
-    --r4a: rgba(160,160,200,.28); --r4b: rgba(120,120,160,.18);
-    --r5a: rgba(180,220,230,.28); --r5b: rgba(130,170,180,.18);
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+    --ok:#10b981;
+    --warn:#f59e0b;
+    --gold:#fbbf24;
   }
-  body{min-height:100vh;background:var(--bg);color:var(--fg);
-       font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui,sans-serif}
-  .wrap{max-width:560px;margin:0 auto;padding:22px 14px 40px}
-
-  .title{font-weight:200;letter-spacing:.02em;line-height:1.1;text-align:center;
-         font-size:clamp(28px,5.2vw,42px);margin-bottom:6px}
-  .subtitle{max-width:540px;margin:0 auto 8px;text-align:center;opacity:.9;line-height:1.45;
-            font-size:clamp(14px,2.2vw,16px)}
-  .ticker{margin:8px 0 6px;min-height:20px;text-align:center;font-weight:800;letter-spacing:.2px;
-          background:linear-gradient(90deg,var(--gold-1),var(--gold-2) 40%,var(--gold-3));
-          -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-fill-color:transparent;
-          filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));transition:opacity .25s ease}
-
-  .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 4px}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .tab{min-width:120px;padding:8px 12px;border-radius:12px;cursor:pointer;font-weight:700;
-       border:1px solid var(--line);color:#cbd5e1;background:var(--glass2);font-size:14px;backdrop-filter:blur(10px)}
-  .tab.active{
-    color:var(--ok2);
-    border-color:rgba(243,208,143,.45);
-    box-shadow:0 0 0 1px rgba(243,208,143,.12) inset;
-    background:linear-gradient(145deg, rgba(243,208,143,.08), rgba(16,185,129,.10));
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    color:var(--text); background:radial-gradient(1200px 600px at 15% 0%,rgba(80,120,255,.12),transparent 55%),
+    radial-gradient(1000px 800px at 90% 20%,rgba(255,120,200,.10),transparent 60%),
+    linear-gradient(180deg,#0b0f1a 0%, #0a0f18 60%, #0a0d14 100%);
+    display:flex; align-items:flex-start; justify-content:center; padding:28px 16px;
   }
-  .settingsBtn{margin-left:auto;padding:8px 12px;border-radius:10px;border:1px solid var(--line);
-               background:rgba(255,255,255,.05);color:#d1d5db;cursor:pointer;font-weight:700}
-  .settingsBtn:hover{background:rgba(255,255,255,.08)}
+  .wrap{width:min(760px,96%);}
 
-  .panel{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(255,255,255,.03)}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-  .stat{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
-  .stat .lab{font-size:10px;letter-spacing:.12em;opacity:.75}
-  .stat .val{font-size:18px;margin-top:4px}
+  h1{margin:0 0 6px; font-weight:700; letter-spacing:.02em; font-size:40px; text-align:center}
+  .subtitle{
+    text-align:center; color:var(--muted); margin-bottom:12px; line-height:1.3
+  }
 
-  /* ===== Glassmorphic keys with subtle row hues ===== */
-  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0 14px}
+  .ticker{
+    margin:18px 0 22px; /* a little more spacing per request */
+    min-height:22px; text-align:center; font-weight:700; color:var(--gold);
+  }
+
+  .tabs{display:flex; gap:10px; justify-content:center; margin-bottom:14px; flex-wrap:wrap}
+  .tab{
+    padding:8px 14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--glass); color:#fff; cursor:pointer; font-weight:600;
+    transition:transform .12s ease, background .2s ease;
+  }
+  .tab:hover{transform:translateY(-1px)}
+  .tab.active{background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.35); color:var(--ok)}
+  .tab.settings{opacity:.65}
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:18px; box-shadow:0 18px 40px rgba(0,0,0,.35);
+  }
+
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:16px}
+  .stat{
+    background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:14px;
+    text-align:center; padding:12px;
+  }
+  .stat label{display:block; color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px}
+  .stat b{font-size:24px; font-weight:700}
+
+  .grid{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px;
+  }
+  .key{
+    position:relative; aspect-ratio:1/1; border-radius:16px; border:1px solid rgba(255,255,255,.14);
+    display:grid; place-items:center; cursor:pointer; user-select:none;
+    color:#fff; font-weight:800; font-size:22px; letter-spacing:.02em;
+    background:linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    backdrop-filter:blur(18px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 8px 22px rgba(0,0,0,.30);
+    transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
+  }
+  .key:hover{transform:translateY(-2px)}
+  .key:active{transform:translateY(0)}
+  /* subtle row hues (glassmorphic) */
+  .row-0{background:linear-gradient(145deg, rgba(219,154,154,.22), rgba(150,110,110,.10)); border-color:rgba(219,154,154,.35)}
+  .row-1{background:linear-gradient(145deg, rgba(154,219,168,.20), rgba(110,160,125,.10)); border-color:rgba(154,219,168,.35)}
+  .row-2{background:linear-gradient(145deg, rgba(154,168,219,.20), rgba(110,125,160,.10)); border-color:rgba(154,168,219,.35)}
+  .row-3{background:linear-gradient(145deg, rgba(219,195,154,.20), rgba(160,140,110,.10)); border-color:rgba(219,195,154,.35)}
+  .row-4{background:linear-gradient(145deg, rgba(219,154,219,.20), rgba(150,110,150,.10)); border-color:rgba(219,154,219,.35)}
+  .row-5{background:linear-gradient(145deg, rgba(154,219,219,.20), rgba(110,160,160,.10)); border-color:rgba(154,219,219,.35)}
+
+  .key .num{transition:opacity .15s ease}
+  .key.matched .num{opacity:0}
+  .key.matched::before{
+    content:"✓"; position:absolute; inset:0; display:grid; place-items:center;
+    font-size:32px; font-weight:900; color:var(--ok); text-shadow:0 2px 10px rgba(16,185,129,.6); pointer-events:none;
+  }
+
+  .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
   .btn{
-    position:relative;
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:16px; cursor:pointer; aspect-ratio:1/1;
-    display:flex; align-items:center; justify-content:center;
-    color:#e5e7eb; font-size:16px; font-weight:800; user-select:none;
-    transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
-    outline:none; backdrop-filter: blur(14px) saturate(120%);
-    box-shadow:0 10px 24px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.18), inset 0 -6px 18px rgba(0,0,0,.22);
-    overflow:hidden;
+    padding:10px 14px; border-radius:12px; background:var(--glass); border:1px solid var(--line);
+    color:#fff; font-weight:600; cursor:pointer;
   }
-  .btn::after{content:""; position:absolute; inset:-120% -20% auto -20%; height:60%; transform:rotate(12deg);
-              background:linear-gradient(to bottom, rgba(255,255,255,.18), rgba(255,255,255,0)); pointer-events:none}
-  .btn:hover{transform:translateY(-1px)}
-  .btn.placeholder{opacity:.45}
-  .btn.matched{
-    color:var(--ok2);
-    border-color:rgba(16,185,129,.55);
-    background:linear-gradient(145deg, rgba(16,185,129,.22), rgba(5,150,105,.12));
-    box-shadow:0 10px 24px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -6px 18px rgba(4,120,87,.35);
+
+  /* Admin */
+  .admin{display:none; margin-top:16px; gap:16px}
+  .card{
+    flex:1 1 300px; background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:14px; padding:14px;
   }
-  /* row tint gradients (subtle) */
-  .row-0{ background:linear-gradient(145deg, var(--r0a), var(--r0b)); border-color: rgba(219,154,154,.35); }
-  .row-1{ background:linear-gradient(145deg, var(--r1a), var(--r1b)); border-color: rgba(154,219,168,.35); }
-  .row-2{ background:linear-gradient(145deg, var(--r2a), var(--r2b)); border-color: rgba(154,168,219,.35); }
-  .row-3{ background:linear-gradient(145deg, var(--r3a), var(--r3b)); border-color: rgba(219,195,154,.35); }
-  .row-4{ background:linear-gradient(145deg, var(--r4a), var(--r4b)); border-color: rgba(160,160,200,.35); }
-  .row-5{ background:linear-gradient(145deg, var(--r5a), var(--r5b)); border-color: rgba(180,220,230,.35); }
+  .card h4{margin:0 0 10px}
+  .name-input{width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#0e1422; color:#fff; margin-bottom:8px}
+  .upload{border:2px dashed rgba(255,255,255,.18); border-radius:12px; padding:18px; text-align:center; margin-bottom:10px}
+  .upload:hover{border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.03)}
+  .files{margin:0; padding:0; list-style:none; max-height:220px; overflow:auto}
+  .files li{display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px dashed rgba(255,255,255,.08)}
+  .files button{background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer}
+  .status{font-size:12px; color:var(--muted); margin-top:6px}
+  .note{color:var(--muted); text-align:center; margin-top:10px}
 
-  .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
-  .ctrl{padding:9px 14px;border-radius:12px;border:1px solid var(--line);
-        background:var(--glass);color:#fff;cursor:pointer;font-weight:700;font-size:14px;backdrop-filter:blur(8px)}
-  .timer{font-size:13px;opacity:.9}
-  .foot{margin-top:8px;text-align:center;opacity:.55;font-size:11px}
-
-  /* ===== Admin modal ===== */
-  .adminPanel{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
-              align-items:center;justify-content:center;z-index:9990}
-  .adminCard{width:min(620px,96vw);background:#0f1219;border:1px solid var(--line);
-             border-radius:14px;padding:16px;max-height:92vh;overflow:auto}
-  .adminHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .adminTitle{font-weight:700}
-  .closeAdmin{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
-  .slot{border:1px dashed var(--line);border-radius:12px;padding:12px;margin-top:12px}
-  .slot h4{margin-bottom:6px}
-  .slot p{opacity:.9;margin-bottom:8px;font-size:13px}
-  .nameRow{display:flex;gap:8px;align-items:center;margin:6px 0 8px}
-  .nameRow input{flex:1;border:1px solid var(--line);background:#0b0f17;color:#e5e7eb;border-radius:8px;padding:8px 10px}
-  .nameRow .save{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
-
-  .upload{border:2px dashed rgba(255,255,255,.18);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,255,255,.03)}
-  .upload:hover{border-color:rgba(243,208,143,.45);background:rgba(243,208,143,.06)}
-  .upload.dragover{border-color:rgba(16,185,129,.6);background:rgba(16,185,129,.08)}
-
-  .status{margin-top:6px;font-size:12px;opacity:.85}
-  .ready{color:var(--ok2)} .partial{color:#f59e0b} .empty{color:#9ca3af}
-
-  .filelist{margin-top:8px;border-top:1px solid var(--line);padding-top:8px;max-height:240px;overflow:auto}
-  .fileRow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.06)}
-  .fileRow:last-child{border-bottom:0}
-  .fname{font-size:13px;opacity:.9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:78%}
-  .del{border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.14);color:#fecaca;
-       padding:4px 8px;border-radius:8px;cursor:pointer;font-size:12px}
-  .del:hover{background:rgba(248,113,113,.2)}
-  .rowNote{opacity:.7;font-size:12px;margin-top:6px}
+  @media (max-width:560px){
+    .grid{grid-template-columns:repeat(4,1fr)}
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="title">DON'T TEST ME</div>
+    <h1>DON'T TEST ME</h1>
     <div class="subtitle">Here's one to test your hearing AND recall. Huh? <b>I SAID. TO TEST YOUR HEARING AND RECALL!!</b></div>
 
-    <div class="ticker" id="ticker">Welcome to the audio memory challenge!</div>
+    <div id="ticker" class="ticker">Welcome to the audio memory challenge!</div>
 
-    <div class="bar">
-      <div class="tabs">
-        <button class="tab active" data-game="0">Tones</button>
-        <button class="tab" data-game="1" id="tab1">Custom Set 1</button>
-        <button class="tab" data-game="2" id="tab2">Custom Set 2</button>
-      </div>
-      <button class="settingsBtn" id="openSettings">Open Settings</button>
+    <div class="tabs">
+      <button class="tab active" id="tab-tones">Tones</button>
+      <button class="tab" id="tab-c1">Custom Set 1</button>
+      <button class="tab" id="tab-c2">Custom Set 2</button>
+      <button class="tab settings" id="tab-settings" title="Password protected">Open Settings</button>
     </div>
 
-    <section class="panel">
+    <div class="panel">
       <div class="stats">
-        <div class="stat"><div class="lab">MATCHES</div><div class="val"><span id="matches">0</span>/18</div></div>
-        <div class="stat"><div class="lab">ATTEMPTS</div><div class="val" id="attempts">0</div></div>
-        <div class="stat"><div class="lab">ACCURACY</div><div class="val" id="accuracy">100%</div></div>
+        <div class="stat"><label>Matches</label><b id="statMatches">0/18</b></div>
+        <div class="stat"><label>Attempts</label><b id="statAttempts">0</b></div>
+        <div class="stat"><label>Accuracy</label><b id="statAcc">100%</b></div>
       </div>
 
-      <div class="grid" id="grid"></div>
+      <div id="grid" class="grid"></div>
 
       <div class="controls">
-        <button class="ctrl" id="newGame">New Game</button>
-        <div class="ctrl timer" id="timer">Time: 0:00 | Attempts: 0<br><span style="font-size:12px;opacity:.8">Best Time: -- | Best Attempts: --</span></div>
-        <button class="ctrl" id="toggleAudio">🔊 Audio On</button>
-        <button class="ctrl" id="scrambleBtn">Scramble</button>
-      </div>
-      <div class="foot">Upload messages & custom audio via <b>Open Settings</b>. Everything persists locally in IndexedDB.</div>
-    </section>
-  </div>
-
-  <!-- ===== Admin Modal ===== -->
-  <div class="adminPanel" id="adminPanel" aria-hidden="true">
-    <div class="adminCard">
-      <div class="adminHead">
-        <div class="adminTitle">Settings (Admin)</div>
-        <button class="closeAdmin" id="closeAdmin">Close</button>
+        <button class="btn" id="btnNew">New Game</button>
+        <div class="btn" id="timer">Time: 0:00 | Attempts: 0</div>
+        <button class="btn" id="btnAudio">🔊 Audio On</button>
+        <button class="btn" id="btnScramble">Scramble</button>
       </div>
 
-      <div class="slot">
-        <h4>Game 1: Tones</h4>
-        <p>This is the built-in tone game (18 frequencies). Cannot be modified.</p>
+      <div class="note">Upload messages & custom audio via <b>Open Settings</b>. Everything persists locally in IndexedDB.</div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="admin" class="admin">
+      <!-- Messages -->
+      <div class="card">
+        <h4>Funny Messages</h4>
+        <div class="upload">
+          <input type="file" id="msgFile" accept=".txt" />
+          <div class="status">Upload a .txt file (one phrase per line, ≤150 chars)</div>
+        </div>
+        <ul id="msgPreview" class="files"></ul>
       </div>
 
-      <div class="slot" data-slot="1">
+      <!-- Custom Set 1 -->
+      <div class="card">
         <h4>Custom Set 1</h4>
-        <div class="nameRow">
-          <input type="text" id="name1" placeholder="Enter game name" />
-          <button class="save" data-save="1">Save Name</button>
+        <input class="name-input" id="name1" placeholder="Enter game name" />
+        <div class="upload">
+          <input type="file" id="files1" multiple accept="audio/*"/>
+          <div class="status" id="status1">Empty (0/18)</div>
         </div>
-        <div class="upload" id="upload1">📁 Drop 18 audio files here or click to choose
-          <input type="file" id="files1" multiple accept="audio/*" style="display:none">
-        </div>
-        <div class="status" id="status1">Empty (0/18)</div>
-        <div class="filelist" id="list1"></div>
+        <ul id="list1" class="files"></ul>
       </div>
 
-      <div class="slot" data-slot="2">
+      <!-- Custom Set 2 -->
+      <div class="card">
         <h4>Custom Set 2</h4>
-        <div class="nameRow">
-          <input type="text" id="name2" placeholder="Enter game name" />
-          <button class="save" data-save="2">Save Name</button>
+        <input class="name-input" id="name2" placeholder="Enter game name" />
+        <div class="upload">
+          <input type="file" id="files2" multiple accept="audio/*"/>
+          <div class="status" id="status2">Empty (0/18)</div>
         </div>
-        <div class="upload" id="upload2">📁 Drop 18 audio files here or click to choose
-          <input type="file" id="files2" multiple accept="audio/*" style="display:none">
-        </div>
-        <div class="status" id="status2">Empty (0/18)</div>
-        <div class="filelist" id="list2"></div>
+        <ul id="list2" class="files"></ul>
       </div>
-
-      <div class="rowNote">Tip: exactly 18 files makes a full game. You can delete individual files (❌) or upload again to replace.</div>
     </div>
   </div>
 
 <script>
-/* ===================== IndexedDB (dbIndex) ===================== */
-const DB_NAME = 'dtm_db';
-const DB_VER  = 1;
-let idb;
-
+/* ----------------------------- IndexedDB core ----------------------------- */
+const DB_NAME = 'dtm';
+const DB_VERSION = 1;
+/*
+  stores:
+    games   key: 'c1'|'c2' -> { name: string, files: [{name, blob}], created }
+    messages key: 'rotator' -> string[]   (phrases)
+*/
 function openDB(){
   return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = e=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e)=>{
       const db = e.target.result;
-      if(!db.objectStoreNames.contains('sets')){
-        const os = db.createObjectStore('sets',{keyPath:'id'}); // id: 'custom1' | 'custom2'
-        os.createIndex('id','id',{unique:true});
-      }
-      if(!db.objectStoreNames.contains('meta')){
-        const m = db.createObjectStore('meta',{keyPath:'key'}); // {key:'records', value:{...}} ; {key:'names', value:{1:'',2:''}}
-      }
+      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
+      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
     };
-    req.onsuccess = e=>{ idb = e.target.result; resolve(); };
-    req.onerror   = e=>reject(e.target.error);
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
   });
 }
-function tx(store,mode='readonly'){ return idb.transaction(store,mode).objectStore(store); }
-
-async function saveSet(slot, files){
-  await new Promise((res,rej)=>{
-    const req = tx('sets','readwrite').put({id:`custom${slot}`, files});
-    req.onsuccess = ()=>res();
-    req.onerror = e=>rej(e.target.error);
+async function idbGet(store, key){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
   });
 }
-async function getSet(slot){
-  return new Promise((res,rej)=>{
-    const req = tx('sets').get(`custom${slot}`);
-    req.onsuccess = ()=>res(req.result || {id:`custom${slot}`, files:[]});
-    req.onerror = e=>rej(e.target.error);
+async function idbSet(store, key, val){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readwrite');
+    tx.objectStore(store).put(val, key);
+    tx.oncomplete = ()=> resolve(true);
+    tx.onerror = ()=> reject(tx.error);
   });
 }
-async function saveNames(names){
-  await new Promise((res,rej)=>{
-    const req = tx('meta','readwrite').put({key:'names', value:names});
-    req.onsuccess = ()=>res();
-    req.onerror = e=>rej(e.target.error);
-  });
-}
-async function loadNames(){
-  return new Promise((res,rej)=>{
-    const req = tx('meta').get('names');
-    req.onsuccess = ()=>res(req.result?.value || {1:'Custom Set 1',2:'Custom Set 2'});
-    req.onerror = e=>rej(e.target.error);
-  });
-}
-async function saveRecords(records){
-  await new Promise((res,rej)=>{
-    const req = tx('meta','readwrite').put({key:'records', value:records});
-    req.onsuccess = ()=>res();
-    req.onerror = e=>rej(e.target.error);
-  });
-}
-async function loadRecords(){
-  return new Promise((res,rej)=>{
-    const req = tx('meta').get('records');
-    req.onsuccess = ()=>res(req.result?.value || {0:{time:null,attempts:null},1:{time:null,attempts:null},2:{time:null,attempts:null}});
-    req.onerror = e=>rej(e.target.error);
+async function idbDel(store, key){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction(store,'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = ()=> resolve(true);
+    tx.onerror = ()=> reject(tx.error);
   });
 }
 
-/* ===================== Game Logic ===================== */
-let currentGame = 0;            // 0=tones, 1=custom1, 2=custom2
-let audioCtx = null;
-let muted=false;
-let matches=0, attempts=0, firstClick=null, matchedIndices=new Set();
-let sounds=[];                  // 36 entries: tones (frequencies) OR AudioBuffer refs
-let currentTime=0, startMs=null, timerInt=null;
-let bestRecords = {0:{time:null,attempts:null},1:{time:null,attempts:null},2:{time:null,attempts:null}};
-let customBuffers=[[],[]];      // decoded buffers for sets [0]=set1 [1]=set2
-let customNames={1:'Custom Set 1',2:'Custom Set 2'};
+/* ------------------------------ Ticker logic ------------------------------ */
+let funnyMessages = []; // from IndexedDB
+const tickerEl = document.getElementById('ticker');
 
-/* Track currently playing nodes so only one sound plays at a time */
-let currentSources=[]; // each item: {type:'osc'|'buf', node:AudioScheduledSourceNode, gain:GainNode}
+async function loadMessages(){
+  const stored = await idbGet('messages','rotator');
+  if(Array.isArray(stored)) funnyMessages = stored;
+  startTicker();
+}
+function startTicker(){
+  // initial sequence: Welcome (5s) -> "Match Pairs & Win!" (10s) -> blank (10s) -> rotation 10-on/20-off
+  tickerEl.textContent = "Welcome to the audio memory challenge!";
+  setTimeout(()=> tickerEl.textContent = "Match Pairs & Win!", 5000);
+  setTimeout(()=> tickerEl.textContent = "", 15000);
+  setTimeout(()=>{
+    if(funnyMessages.length === 0){
+      tickerEl.textContent = "Welcome to the audio memory challenge!";
+      return;
+    }
+    showFunnyMessage();
+    setInterval(showFunnyMessage, 30000); // every 30s, each message 10 visible + 20 off
+  }, 25000);
+}
+function showFunnyMessage(){
+  const msg = funnyMessages[Math.floor(Math.random()*funnyMessages.length)];
+  tickerEl.textContent = msg || "";
+  setTimeout(()=> tickerEl.textContent = "", 10000);
+}
 
-const frequencies=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174];
-
-function initAudio(){ if(!audioCtx){ try{audioCtx = new (window.AudioContext||window.webkitAudioContext)();}catch(e){console.error(e);} } }
-
-function stopAllAudio(){
-  try{
-    currentSources.forEach(s=>{
-      try{ s.node.stop(0); }catch(_){}
-      try{ s.node.disconnect(); }catch(_){}
-      try{ s.gain?.disconnect(); }catch(_){}
-    });
-  }finally{
-    currentSources=[];
+/* ------------------------------ Audio handling ---------------------------- */
+let currentAudio = null;
+function stopAudio(){
+  if(currentAudio){
+    try{ currentAudio.pause(); }catch(e){}
+    currentAudio = null;
   }
 }
-function registerSource(type,node,gain){
-  currentSources.push({type,node,gain});
-  node.onended = ()=>{
-    // cleanup that specific source
-    const i=currentSources.findIndex(s=>s.node===node);
-    if(i>-1){ currentSources.splice(i,1); }
-    try{ node.disconnect(); }catch(_){}
-    try{ gain?.disconnect(); }catch(_){}
-  };
+function playSrc(url){
+  stopAudio();
+  currentAudio = new Audio(url);
+  currentAudio.play().catch(()=>{});
 }
 
-function playTone(freq){
-  if(muted) return;
-  initAudio(); if(!audioCtx) return;
-  stopAllAudio(); // ensure only one sound at once
+/* ------------------------------- Game state -------------------------------- */
+const gridEl = document.getElementById('grid');
+const statMatches = document.getElementById('statMatches');
+const statAttempts = document.getElementById('statAttempts');
+const statAcc = document.getElementById('statAcc');
+const timerEl = document.getElementById('timer');
+const btnNew = document.getElementById('btnNew');
+const btnAudio = document.getElementById('btnAudio');
+const btnScramble = document.getElementById('btnScramble');
 
-  const osc = audioCtx.createOscillator();
-  const gain= audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.type='sine'; osc.frequency.value=freq;
-  gain.gain.setValueAtTime(0, audioCtx.currentTime);
-  gain.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime+0.02);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.45);
-  registerSource('osc',osc,gain);
-  osc.start(); osc.stop(audioCtx.currentTime+0.45);
+let attempts = 0, matches = 0, totalPairs = 18, audioOn = true;
+let startTs = 0, timerInt = null;
+let firstPick = null, locking = false;
+
+let mode = 'tones'; // 'tones' | 'c1' | 'c2'
+let cardMap = [];   // length 36, values 0..17 (pair ids)
+let sources = {};   // { tones:[18], c1:[18 urls], c2:[18 urls] }
+sources.tones = [220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174]
+  .map(f=>`data:audio/wav;base64,${tone(f,0.42)}`); // tiny inline tones
+
+// generate short inline wavs (mono 8-bit μ-law style for size) — minimalistic
+function tone(freq, dur){
+  const sr=8000, len=Math.floor(sr*dur), arr=new Uint8Array(len);
+  for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
+  // WAV header (PCM u8 mono)
+  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)}
+  function w32(v){return w16(v&65535)+w16(v>>>16)}
+  let data=Array.from(arr, c=>String.fromCharCode(c)).join('');
+  let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
+  return btoa(header+data);
 }
 
-function playBuffer(buf){
-  if(muted) return;
-  initAudio(); if(!audioCtx||!buf) return;
-  stopAllAudio(); // ensure only one sound at once
-
-  const src=audioCtx.createBufferSource();
-  const g=audioCtx.createGain();
-  src.buffer=buf; src.connect(g); g.connect(audioCtx.destination);
-  g.gain.value=.85;
-  registerSource('buf',src,g);
-  src.start();
-}
-
-function formatTime(s){ const m=Math.floor(s/60), ss=(s%60).toString().padStart(2,'0'); return `${m}:${ss}`; }
-
-function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
-
+/* ----------------------------- UI / Grid build ---------------------------- */
 function buildGrid(){
-  const grid=document.getElementById('grid'); grid.innerHTML='';
+  gridEl.innerHTML='';
   for(let i=0;i<36;i++){
     const b=document.createElement('button');
-    const row = Math.floor(i/6);
-    b.className='btn row-'+row; b.textContent=(i+1);
-    b.addEventListener('click',()=>handleClick(i));
-    grid.appendChild(b);
+    b.className=`key row-${Math.floor(i/6)}`;
+    b.innerHTML=`<span class="num">${i+1}</span>`;
+    b.dataset.pos=i;
+    b.addEventListener('click',onKey);
+    gridEl.appendChild(b);
   }
 }
-function clearClasses(){
-  document.querySelectorAll('.btn').forEach((b)=>{ b.classList.remove('matched','placeholder'); b.style.transform=''; });
+function setTabs(){
+  document.getElementById('tab-tones').classList.toggle('active',mode==='tones');
+  document.getElementById('tab-c1').classList.toggle('active',mode==='c1');
+  document.getElementById('tab-c2').classList.toggle('active',mode==='c2');
 }
-function updateStats(){
-  document.getElementById('matches').textContent=matches;
-  document.getElementById('attempts').textContent=attempts;
-  const acc = attempts===0 ? 100 : Math.round((matches/attempts)*100);
-  document.getElementById('accuracy').textContent=`${acc}%`;
+function newGame(){
+  stopAudio();
+  firstPick=null; locking=false; attempts=0; matches=0;
+  statAttempts.textContent='0';
+  statMatches.textContent=`0/${totalPairs}`;
+  statAcc.textContent='100%';
+  // create pairs 0..17 twice and shuffle
+  const arr=[...Array(18).keys(),...Array(18).keys()];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  cardMap=arr;
+  Array.from(gridEl.children).forEach(btn=>btn.classList.remove('matched'));
+  startTimer();
 }
-function updateTimerBox(){
-  const rec = bestRecords[currentGame];
-  const bestT = rec.time!=null ? formatTime(rec.time) : '--';
-  const bestA = rec.attempts!=null ? rec.attempts : '--';
-  document.getElementById('timer').innerHTML = `Time: ${formatTime(currentTime)} | Attempts: ${attempts}<br><span style="font-size:12px;opacity:.8">Best Time: ${bestT} | Best Attempts: ${bestA}</span>`;
+function updateAcc(){
+  const pct = attempts ? Math.round( (matches/attempts)*100 ) : 100;
+  statAcc.textContent = `${pct}%`;
+}
+function onKey(e){
+  const btn=e.currentTarget;
+  if(locking || btn.classList.contains('matched')) return;
+  const pos=+btn.dataset.pos;
+  const pairId = cardMap[pos];
+
+  // play audio for this pair
+  if(audioOn){
+    const url = sources[mode]?.[pairId];
+    if(url) playSrc(url);
+  }
+
+  if(!firstPick){ firstPick = {btn,pos,pairId}; return; }
+
+  // ignore double-clicking same card
+  if(firstPick.pos === pos) return;
+
+  attempts++; statAttempts.textContent=attempts; timerEl.dataset.attempts=attempts;
+
+  if(firstPick.pairId === pairId){
+    // matched
+    firstPick.btn.classList.add('matched');
+    btn.classList.add('matched');
+    matches++; statMatches.textContent=`${matches}/${totalPairs}`;
+    // little positive chirp
+    if(audioOn) setTimeout(()=> playSrc(sources.tones[12]), 120);
+    if(matches===totalPairs){ stopTimer(); }
+  }else{
+    // brief lock to prevent spam; no flip visuals in this minimal UI
+    locking=true; setTimeout(()=> { locking=false; }, 220);
+  }
+  firstPick=null; updateAcc();
 }
 function startTimer(){
-  if(startMs) return;
-  startMs=Date.now();
-  timerInt=setInterval(()=>{ currentTime=Math.floor((Date.now()-startMs)/1000); updateTimerBox(); },1000);
+  clearInterval(timerInt);
+  startTs=Date.now();
+  timerInt=setInterval(()=>{
+    const s=Math.floor((Date.now()-startTs)/1000), m=Math.floor(s/60), r=s%60;
+    timerEl.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;
+  },1000);
 }
-function stopTimer(){ if(timerInt){clearInterval(timerInt); timerInt=null;} }
+function stopTimer(){ clearInterval(timerInt); }
 
-function newSounds(){
-  if(currentGame===0){
-    const pairs=[];
-    for(const f of frequencies) pairs.push(f,f);
-    sounds=shuffle(pairs);
-  }else{
-    const setIndex=currentGame-1;
-    if(customBuffers[setIndex].length!==18){ alert(`${customNames[setIndex+1]} is not ready. Upload 18 files in Settings.`); currentGame=0; activateTab(0); return newSounds(); }
-    const pairs=[]; for(const buf of customBuffers[setIndex]) pairs.push(buf,buf);
-    sounds=shuffle(pairs);
-  }
+/* ------------------------------- Admin UI --------------------------------- */
+const adminEl = document.getElementById('admin');
+const name1 = document.getElementById('name1');
+const name2 = document.getElementById('name2');
+const list1 = document.getElementById('list1');
+const list2 = document.getElementById('list2');
+const status1 = document.getElementById('status1');
+const status2 = document.getElementById('status2');
+const files1 = document.getElementById('files1');
+const files2 = document.getElementById('files2');
+const msgFile = document.getElementById('msgFile');
+const msgPreview = document.getElementById('msgPreview');
+const tabSettings = document.getElementById('tab-settings');
+
+document.getElementById('tab-tones').onclick = ()=> switchMode('tones');
+document.getElementById('tab-c1').onclick = ()=> switchMode('c1');
+document.getElementById('tab-c2').onclick = ()=> switchMode('c2');
+tabSettings.onclick = ()=>{
+  const p = prompt('Enter admin password:');
+  if(p === 'MUSIC'){ adminEl.style.display='grid'; adminEl.style.gridTemplateColumns='1fr'; adminEl.style.gridAutoRows='1fr'; }
+  else alert('Incorrect password.');
+};
+
+btnNew.onclick = newGame;
+btnScramble.onclick = ()=>{ buildGrid(); newGame(); }
+btnAudio.onclick = ()=>{
+  audioOn = !audioOn;
+  btnAudio.textContent = audioOn ? '🔊 Audio On' : '🔇 Audio Off';
+};
+
+name1.addEventListener('input', ()=> saveName('c1', name1.value));
+name2.addEventListener('input', ()=> saveName('c2', name2.value));
+
+files1.addEventListener('change', (e)=> handleFiles('c1', e.target.files));
+files2.addEventListener('change', (e)=> handleFiles('c2', e.target.files));
+msgFile.addEventListener('change', handleMsgUpload);
+
+async function handleMsgUpload(e){
+  const f = e.target.files?.[0]; if(!f) return;
+  const text = await f.text();
+  const lines = text.split('\n').map(v=>v.trim()).filter(v=>v && v.length<=150);
+  funnyMessages = lines.slice(0,200);
+  await idbSet('messages','rotator', funnyMessages);
+  renderMessages();
+  alert(`Loaded ${funnyMessages.length} messages.`);
 }
-
-function resetGame(){
-  stopAllAudio();
-  stopTimer(); startMs=null; currentTime=0;
-  firstClick=null; matches=0; attempts=0; matchedIndices.clear();
-  clearClasses(); updateStats(); updateTimerBox(); newSounds();
-}
-function scrambleGame(){
-  if(!sounds.length){ resetGame(); return; }
-  stopAllAudio();
-  stopTimer(); startMs=null; currentTime=0; firstClick=null; matches=0; attempts=0; matchedIndices.clear();
-  sounds = shuffle(sounds); clearClasses(); updateStats(); updateTimerBox();
-}
-
-function markMatched(i1,i2){
-  const btns=document.querySelectorAll('.btn');
-  btns[i1].classList.add('matched'); btns[i2].classList.add('matched');
-  matchedIndices.add(i1); matchedIndices.add(i2); matches++; updateStats();
-  if(!muted){ setTimeout(()=>playTone(880),120); setTimeout(()=>playTone(1100),260); }
-  if(matches===18){
-    stopTimer();
-    const rec=bestRecords[currentGame];
-    let changed=false;
-    if(rec.time==null||currentTime<rec.time){ rec.time=currentTime; changed=true; }
-    if(rec.attempts==null||attempts<rec.attempts){ rec.attempts=attempts; changed=true; }
-    if(changed){ saveRecords(bestRecords).catch(console.error); }
-    updateTimerBox();
-    setTimeout(()=>alert('Perfect Match!'), 350);
-  }
-}
-
-function handleClick(index){
-  if(matchedIndices.has(index)) return;
-  if(!startMs) startTimer();
-  const btns=document.querySelectorAll('.btn'); const btn=btns[index];
-  // click animation
-  btn.style.transform='translateY(-1px) scale(.97)'; setTimeout(()=>{btn.style.transform='';},120);
-
-  const item=sounds[index];
-  if(currentGame===0) playTone(item); else playBuffer(item);
-
-  if(firstClick===null){ firstClick=index; return; }
-  if(firstClick===index){ firstClick=null; return; }
-
-  attempts++; updateStats(); updateTimerBox();
-  if(sounds[firstClick]===sounds[index]){ markMatched(firstClick,index); }
-  firstClick=null;
-}
-
-/* ===================== Admin UI & Upload ===================== */
-function dragOver(e){ e.preventDefault(); e.currentTarget.classList.add('dragover'); }
-function dragLeave(e){ e.preventDefault(); e.currentTarget.classList.remove('dragover'); }
-function dropFiles(e,slot){ e.preventDefault(); e.currentTarget.classList.remove('dragover'); const files=[...e.dataTransfer.files]; processFiles(files,slot); }
-function pickFiles(slot){ document.getElementById(`files${slot}`).click(); }
-function onPicked(e,slot){ const files=[...e.target.files]; processFiles(files,slot); e.target.value=''; }
-
-async function processFiles(files,slot){
-  if(files.length===0) return;
-  const valid = files.filter(f=>f.type.startsWith('audio/'));
-  if(valid.length===0){ alert('Please choose audio files.'); return; }
-  if(valid.length!==18 && !confirm(`You selected ${valid.length}. A full game needs 18. Continue?`)) return;
-
-  const status=document.getElementById(`status${slot}`);
-  status.textContent='Processing...'; status.className='status partial';
-
-  initAudio();
-  const decoded=[];
-  const blobsToSave=[];
-  for(let i=0;i<Math.min(valid.length,18);i++){
-    const f=valid[i];
-    status.textContent=`Decoding ${i+1}/${Math.min(valid.length,18)}...`;
-    const arr=await f.arrayBuffer();
-    const buf=await audioCtx.decodeAudioData(arr.slice(0));
-    decoded.push(buf);
-    blobsToSave.push({name:f.name, blob:new Blob([arr],{type:f.type||'audio/mpeg'})});
-  }
-
-  customBuffers[slot-1]=decoded;
-  await saveSet(slot,blobsToSave);
-  await renderFileList(slot);
-  updateSlotStatus(slot);
-  alert(`Loaded ${decoded.length} audio files into ${customNames[slot]}.`);
-}
-
-function updateSlotStatus(slot){
-  const count = customBuffers[slot-1].length;
-  const el = document.getElementById(`status${slot}`);
-  if(count===18){ el.textContent='Ready (18/18)'; el.className='status ready'; }
-  else if(count>0){ el.textContent=`Partial (${count}/18)`; el.className='status partial'; }
-  else { el.textContent='Empty (0/18)'; el.className='status empty'; }
-}
-
-async function renderFileList(slot){
-  const list=document.getElementById(`list${slot}`); list.innerHTML='';
-  const data=await getSet(slot);
-  (data.files||[]).forEach((f,idx)=>{
-    const row=document.createElement('div'); row.className='fileRow';
-    const left=document.createElement('div'); left.className='fname'; left.textContent=f.name||`audio-${idx+1}`;
-    const del=document.createElement('button'); del.className='del'; del.textContent='❌';
-    del.addEventListener('click',async ()=>{
-      if(!confirm(`Delete "${f.name||'audio'}"?`)) return;
-      const remaining=(data.files||[]).filter((_,i)=>i!==idx);
-      await saveSet(slot,remaining);
-      // also drop decoded buffer in memory for consistency
-      if(customBuffers[slot-1][idx]) customBuffers[slot-1].splice(idx,1);
-      await renderFileList(slot); updateSlotStatus(slot);
-    });
-    row.append(left,del); list.appendChild(row);
+function renderMessages(){
+  msgPreview.innerHTML='';
+  funnyMessages.slice(0,50).forEach((m,i)=>{
+    const li=document.createElement('li');
+    li.textContent = m;
+    msgPreview.appendChild(li);
   });
 }
 
-function activateTab(idx){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', Number(t.dataset.game)===idx));
-  document.getElementById('tab1').textContent = customNames[1];
-  document.getElementById('tab2').textContent = customNames[2];
+async function saveName(key, val){
+  const game = await idbGet('games', key) || {name:'',files:[]};
+  game.name = val || '';
+  await idbSet('games', key, game);
+  applyGameNames();
+}
+function applyGameNames(){
+  document.getElementById('tab-c1').textContent = (gameMeta.c1?.name?.trim() || 'Custom Set 1');
+  document.getElementById('tab-c2').textContent = (gameMeta.c2?.name?.trim() || 'Custom Set 2');
 }
 
-/* ===================== Ticker Rotation ===================== */
-(function(){
-  const el=document.getElementById('ticker'); if(!el) return;
-  const lines=[
-    "Welcome to the audio memory challenge!",
-    "Click a tile to hear a sound. Find the matching pair.",
-    "Custom sets live in your browser (IndexedDB).",
-    "Use “Open Settings” to upload your own sounds.",
-    "Tip: New Game reshuffles; Scramble preserves layout."
-  ];
-  let i=0;
-  setInterval(()=>{
-    el.style.opacity=0;
-    setTimeout(()=>{ i=(i+1)%lines.length; el.textContent=lines[i]; el.style.opacity=1; },250);
-  },18000);
-})();
+async function handleFiles(key, fileListInput){
+  const arr = Array.from(fileListInput).filter(f=>f.type.startsWith('audio/'));
+  if(arr.length===0){ alert('Please select audio files.'); return; }
+  const game = await idbGet('games', key) || {name:'',files:[]};
+  // replace entire set with up to 18 files (order preserved)
+  let keep = arr.slice(0,18);
+  const blobs = [];
+  for(const f of keep){
+    const buf = await f.arrayBuffer();
+    blobs.push({name:f.name, blob: new Blob([buf], {type:f.type||'audio/mpeg'})});
+  }
+  game.files = blobs;
+  await idbSet('games', key, game);
+  await loadGames();
+  alert(`Saved ${blobs.length} file(s) to ${key==='c1'?'Custom Set 1':'Custom Set 2'}.`);
+}
 
-/* ===================== Wiring ===================== */
-document.addEventListener('DOMContentLoaded', async ()=>{
-  await openDB();
+function renderFileList(targetListEl, key){
+  targetListEl.innerHTML='';
+  const files = (gameMeta[key]?.files)||[];
+  files.forEach((f,idx)=>{
+    const li=document.createElement('li');
+    const nameSpan=document.createElement('span');
+    nameSpan.textContent = f.name || `audio-${idx+1}`;
+    const del=document.createElement('button');
+    del.textContent = '✖';
+    del.title = 'Delete from this set';
+    del.onclick = async ()=>{
+      const g = await idbGet('games', key) || {name:'',files:[]};
+      g.files.splice(idx,1);
+      await idbSet('games', key, g);
+      await loadGames();
+    };
+    li.appendChild(nameSpan); li.appendChild(del);
+    targetListEl.appendChild(li);
+  });
+  const sEl = key==='c1'?status1:status2;
+  sEl.textContent = files.length===18 ? 'Ready (18/18)' : files.length>0 ? `Partial (${files.length}/18)` : 'Empty (0/18)';
+}
 
-  // Load names + records + sets
-  customNames = await loadNames();
-  bestRecords = await loadRecords();
+/* --------------------------- Load & prepare games ------------------------- */
+let gameMeta = {c1:null, c2:null};
 
-  const set1 = await getSet(1);
-  const set2 = await getSet(2);
+async function loadGames(){
+  gameMeta.c1 = await idbGet('games','c1') || {name:'', files:[]};
+  gameMeta.c2 = await idbGet('games','c2') || {name:'', files:[]};
 
-  // decode existing blobs into buffers
-  initAudio();
-  async function decodeToBuffers(files){ const arr=[]; for(const f of (files||[])){ const ab=await f.blob.arrayBuffer(); arr.push(await audioCtx.decodeAudioData(ab)); } return arr; }
-  customBuffers[0] = await decodeToBuffers(set1.files);
-  customBuffers[1] = await decodeToBuffers(set2.files);
+  // turn blobs into object URLs for playback
+  sources.c1 = (gameMeta.c1.files||[]).slice(0,18).map(o=> URL.createObjectURL(o.blob));
+  sources.c2 = (gameMeta.c2.files||[]).slice(0,18).map(o=> URL.createObjectURL(o.blob));
 
-  // UI text
-  document.getElementById('tab1').textContent=customNames[1];
-  document.getElementById('tab2').textContent=customNames[2];
+  // reflect in admin
+  name1.value = gameMeta.c1.name || '';
+  name2.value = gameMeta.c2.name || '';
+  renderFileList(list1, 'c1');
+  renderFileList(list2, 'c2');
+  applyGameNames();
+}
 
-  // Build grid keys with row tints
+/* ----------------------------- Mode switching ----------------------------- */
+function switchMode(next){
+  mode = next;
+  setTabs();
+  if(mode!=='tones'){
+    const have = (sources[mode] || []).length;
+    if(have < 18){
+      alert(`${document.getElementById(mode==='c1'?'tab-c1':'tab-c2').textContent} is not ready. Please upload 18 audio files in Settings.`);
+      mode='tones'; setTabs();
+    }
+  }
+  newGame();
+}
+
+/* --------------------------------- Init ---------------------------------- */
+async function init(){
   buildGrid();
-  resetGame();
+  btnAudio.textContent = '🔊 Audio On';
+  await loadGames();
+  await loadMessages();
+  switchMode('tones');
+}
 
-  // Controls
-  document.getElementById('newGame').addEventListener('click', resetGame);
-  document.getElementById('scrambleBtn').addEventListener('click', scrambleGame);
-  document.getElementById('toggleAudio').addEventListener('click', ()=>{
-    muted=!muted; document.getElementById('toggleAudio').textContent = muted ? '🔇 Audio Off' : '🔊 Audio On';
-    if(muted) stopAllAudio();
-  });
-
-  // Tabs
-  document.querySelectorAll('.tab').forEach(tab=>{
-    tab.addEventListener('click', ()=>{
-      const idx=Number(tab.dataset.game);
-      currentGame=idx; activateTab(idx); resetGame();
-    });
-  });
-
-  // Settings (Admin)
-  const adminPanel=document.getElementById('adminPanel');
-  document.getElementById('openSettings').addEventListener('click', async ()=>{
-    const pass=prompt('Enter admin password:'); if(pass!=='MUSIC') return alert('Incorrect password.');
-    // populate names, lists, statuses
-    document.getElementById('name1').value=customNames[1]||'Custom Set 1';
-    document.getElementById('name2').value=customNames[2]||'Custom Set 2';
-    await renderFileList(1); await renderFileList(2);
-    updateSlotStatus(1); updateSlotStatus(2);
-    adminPanel.style.display='flex'; adminPanel.setAttribute('aria-hidden','false');
-  });
-  document.getElementById('closeAdmin').addEventListener('click', ()=>{
-    adminPanel.style.display='none'; adminPanel.setAttribute('aria-hidden','true');
-    // Refresh tab names in UI
-    document.getElementById('tab1').textContent=customNames[1];
-    document.getElementById('tab2').textContent=customNames[2];
-  });
-
-  // Name saves
-  document.querySelectorAll('.save').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const slot=Number(btn.dataset.save);
-      const val=document.getElementById(`name${slot}`).value.trim() || `Custom Set ${slot}`;
-      customNames[slot]=val; await saveNames(customNames);
-      alert('Saved name.'); // tabs refresh when modal closes
-    });
-  });
-
-  // Upload zones
-  function wireUpload(slot){
-    const box=document.getElementById(`upload${slot}`);
-    const picker=document.getElementById(`files${slot}`);
-    box.addEventListener('click', ()=>pickFiles(slot));
-    box.addEventListener('dragover', dragOver);
-    box.addEventListener('dragleave', dragLeave);
-    box.addEventListener('drop', e=>dropFiles(e,slot));
-    picker.addEventListener('change', e=>onPicked(e,slot));
-  }
-  wireUpload(1); wireUpload(2);
-});
-
-/* Resume suspended audio context on first user interaction (mobile Safari etc.) */
-document.addEventListener('click', ()=>{
-  if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); }
-}, {once:true});
+window.addEventListener('beforeunload', stopAudio);
+init();
 </script>
 </body>
 </html>
