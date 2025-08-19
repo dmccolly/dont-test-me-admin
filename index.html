@@ -72,6 +72,11 @@
     content:"✓"; position:absolute; inset:0; display:grid; place-items:center;
     font-size:28px; font-weight:900; color:var(--ok); text-shadow:0 2px 10px rgba(16,185,129,.6); pointer-events:none;
   }
+  .key.mismatch {
+    background: linear-gradient(145deg, rgba(239,68,68,.4), rgba(239,68,68,.25));
+    border-color: rgba(239,68,68,.6);
+    transform: scale(0.95);
+  }
 
   .controls{display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap}
   .btn{
@@ -131,9 +136,7 @@
       <div class="note">Upload messages & custom audio via <b>Open Settings</b>. All data persists in your browser via IndexedDB.</div>
     </div>
 
-    <!-- ADMIN -->
     <div id="admin" class="admin">
-      <!-- Messages -->
       <div class="card">
         <h4>Funny Messages</h4>
         <div class="upload">
@@ -143,7 +146,6 @@
         <ul id="msgPreview" class="files"></ul>
       </div>
 
-      <!-- Custom Set 1 -->
       <div class="card">
         <h4>Custom Set 1</h4>
         <input class="name-input" id="name1" placeholder="Enter game name" />
@@ -154,7 +156,6 @@
         <ul id="list1" class="files"></ul>
       </div>
 
-      <!-- Custom Set 2 -->
       <div class="card">
         <h4>Custom Set 2</h4>
         <input class="name-input" id="name2" placeholder="Enter game name" />
@@ -175,9 +176,10 @@ function openDB(){
     const req=indexedDB.open(DB_NAME,DB_VERSION);
     req.onupgradeneeded=e=>{
       const db=e.target.result;
-      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');     // key: 'c1'|'c2' -> {name, files:[{name, blob}]}
-      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages'); // key: 'rotator' -> string[]
-      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');         // key: 'mode' -> 'tones'|'c1'|'c2'
+      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
+      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
+      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
+      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores'); // For best times/attempts
     };
     req.onsuccess=()=>res(req.result);
     req.onerror=()=>rej(req.error);
@@ -220,9 +222,9 @@ let attempts=0,matches=0,totalPairs=18,audioOn=true;
 let startTs=0,timerInt=null;
 let firstPick=null,locking=false;
 
-let mode='tones';                 // 'tones' | 'c1' | 'c2'
-let cardMap=[];                   // positions -> pairId 0..17
-let sources={};                   // tones/c1/c2 -> [18 urls]
+let mode='tones';               // 'tones' | 'c1' | 'c2'
+let cardMap=[];                 // positions -> pairId 0..17
+let sources={};                 // tones/c1/c2 -> [18 urls]
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
 function tone(freq,dur){ // tiny u8 WAV for inline tones
@@ -259,6 +261,19 @@ function newGame(){
   startTimer();
 }
 function updateAcc(){ const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`; }
+
+async function checkAndSaveBestScore(time, attemptsCount) {
+    const currentBest = await idbGet('scores', mode) || { time: Infinity, attempts: Infinity };
+    
+    // A better score is lower time, or same time with fewer attempts
+    if (time < currentBest.time || (time === currentBest.time && attemptsCount < currentBest.attempts)) {
+        const newBest = { time, attempts: attemptsCount };
+        await idbSet('scores', mode, newBest);
+        tickerEl.textContent = `🎉 New Record! ${time}s with ${attemptsCount} attempts!`;
+        setTimeout(() => tickerEl.textContent = "", 5000);
+    }
+}
+
 function onKey(e){
   const btn=e.currentTarget; if(locking || btn.classList.contains('matched')) return;
   const pos=+btn.dataset.pos; const pairId=cardMap[pos];
@@ -274,9 +289,27 @@ function onKey(e){
     firstPick.btn.classList.add('matched'); btn.classList.add('matched');
     matches++; statMatches.textContent=`${matches}/${totalPairs}`;
     if(audioOn) setTimeout(()=>playSrc(sources.tones[12]),120);
-    if(matches===totalPairs){ stopTimer(); }
+    if(matches===totalPairs){
+      stopTimer();
+      const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
+      checkAndSaveBestScore(finalSeconds, attempts);
+    }
   }else{
-    locking=true; setTimeout(()=>{ locking=false; }, 200);
+    // Mismatch
+    locking = true;
+    const firstBtn = firstPick.btn;
+    const secondBtn = btn;
+
+    firstBtn.classList.add('mismatch');
+    secondBtn.classList.add('mismatch');
+    
+    if (audioOn) setTimeout(() => playSrc(sources.tones[0]), 120); // Play a "wrong" sound
+
+    setTimeout(() => {
+        firstBtn.classList.remove('mismatch');
+        secondBtn.classList.remove('mismatch');
+        locking = false;
+    }, 800);
   }
   firstPick=null; updateAcc();
 }
