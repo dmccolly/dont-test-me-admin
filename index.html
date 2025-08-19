@@ -40,7 +40,7 @@
     padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.35);
   }
 
-  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px}
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px}
   .stat{background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; text-align:center; padding:10px}
   .stat label{display:block; color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px}
   .stat b{font-size:20px; font-weight:800}
@@ -58,6 +58,13 @@
     transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
   }
   .key:hover{transform:translateY(-2px)}
+  .key.selected{
+    transform:scale(0.95);
+    background:linear-gradient(145deg, rgba(16,185,129,.3), rgba(16,185,129,.1));
+    border-color:var(--ok);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 4px 15px rgba(16,185,129,.4);
+  }
+  
   /* Subtle row hues */
   .row-0{background:linear-gradient(145deg, rgba(219,154,154,.22), rgba(150,110,110,.10)); border-color:rgba(219,154,154,.35)}
   .row-1{background:linear-gradient(145deg, rgba(154,219,168,.20), rgba(110,160,125,.10)); border-color:rgba(154,219,168,.35)}
@@ -71,11 +78,6 @@
   .key.matched::before{
     content:"✓"; position:absolute; inset:0; display:grid; place-items:center;
     font-size:28px; font-weight:900; color:var(--ok); text-shadow:0 2px 10px rgba(16,185,129,.6); pointer-events:none;
-  }
-  .key.mismatch {
-    background: linear-gradient(145deg, rgba(239,68,68,.4), rgba(239,68,68,.25));
-    border-color: rgba(239,68,68,.6);
-    transform: scale(0.95);
   }
 
   .controls{display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap}
@@ -123,20 +125,60 @@
         <div class="stat"><label>Matches</label><b id="statMatches">0/18</b></div>
         <div class="stat"><label>Attempts</label><b id="statAttempts">0</b></div>
         <div class="stat"><label>Accuracy</label><b id="statAcc">100%</b></div>
+        <div class="stat"><label>Best Time</label><b id="statBest">--:--</b></div>
       </div>
 
-      <div id="grid" class="grid"></div>
+      <div id="grid" class="grid">
+        <button class="key row-0" data-pos="0" onclick="onKey(event)"><span class="num">1</span></button>
+        <button class="key row-0" data-pos="1" onclick="onKey(event)"><span class="num">2</span></button>
+        <button class="key row-0" data-pos="2" onclick="onKey(event)"><span class="num">3</span></button>
+        <button class="key row-0" data-pos="3" onclick="onKey(event)"><span class="num">4</span></button>
+        <button class="key row-0" data-pos="4" onclick="onKey(event)"><span class="num">5</span></button>
+        <button class="key row-0" data-pos="5" onclick="onKey(event)"><span class="num">6</span></button>
+        <button class="key row-1" data-pos="6" onclick="onKey(event)"><span class="num">7</span></button>
+        <button class="key row-1" data-pos="7" onclick="onKey(event)"><span class="num">8</span></button>
+        <button class="key row-1" data-pos="8" onclick="onKey(event)"><span class="num">9</span></button>
+        <button class="key row-1" data-pos="9" onclick="onKey(event)"><span class="num">10</span></button>
+        <button class="key row-1" data-pos="10" onclick="onKey(event)"><span class="num">11</span></button>
+        <button class="key row-1" data-pos="11" onclick="onKey(event)"><span class="num">12</span></button>
+        <button class="key row-2" data-pos="12" onclick="onKey(event)"><span class="num">13</span></button>
+        <button class="key row-2" data-pos="13" onclick="onKey(event)"><span class="num">14</span></button>
+        <button class="key row-2" data-pos="14" onclick="onKey(event)"><span class="num">15</span></button>
+        <button class="key row-2" data-pos="15" onclick="onKey(event)"><span class="num">16</span></button>
+        <button class="key row-2" data-pos="16" onclick="onKey(event)"><span class="num">17</span></button>
+        <button class="key row-2" data-pos="17" onclick="onKey(event)"><span class="num">18</span></button>
+        <button class="key row-3" data-pos="18" onclick="onKey(event)"><span class="num">19</span></button>
+        <button class="key row-3" data-pos="19" onclick="onKey(event)"><span class="num">20</span></button>
+        <button class="key row-3" data-pos="20" onclick="onKey(event)"><span class="num">21</span></button>
+        <button class="key row-3" data-pos="21" onclick="onKey(event)"><span class="num">22</span></button>
+        <button class="key row-3" data-pos="22" onclick="onKey(event)"><span class="num">23</span></button>
+        <button class="key row-3" data-pos="23" onclick="onKey(event)"><span class="num">24</span></button>
+        <button class="key row-4" data-pos="24" onclick="onKey(event)"><span class="num">25</span></button>
+        <button class="key row-4" data-pos="25" onclick="onKey(event)"><span class="num">26</span></button>
+        <button class="key row-4" data-pos="26" onclick="onKey(event)"><span class="num">27</span></button>
+        <button class="key row-4" data-pos="27" onclick="onKey(event)"><span class="num">28</span></button>
+        <button class="key row-4" data-pos="28" onclick="onKey(event)"><span class="num">29</span></button>
+        <button class="key row-4" data-pos="29" onclick="onKey(event)"><span class="num">30</span></button>
+        <button class="key row-5" data-pos="30" onclick="onKey(event)"><span class="num">31</span></button>
+        <button class="key row-5" data-pos="31" onclick="onKey(event)"><span class="num">32</span></button>
+        <button class="key row-5" data-pos="32" onclick="onKey(event)"><span class="num">33</span></button>
+        <button class="key row-5" data-pos="33" onclick="onKey(event)"><span class="num">34</span></button>
+        <button class="key row-5" data-pos="34" onclick="onKey(event)"><span class="num">35</span></button>
+        <button class="key row-5" data-pos="35" onclick="onKey(event)"><span class="num">36</span></button>
+      </div>
 
       <div class="controls">
-        <button class="btn" id="btnNew">New Game</button>
+        <button class="btn" id="btnNew" onclick="newGame()">New Game</button>
         <div class="timerChip" id="timer">Time: 0:00 | Attempts: 0</div>
-        <button class="btn" id="btnAudio">🔊 Audio On</button>
+        <button class="btn" id="btnAudio" onclick="toggleAudio()">🔊 Audio On</button>
       </div>
 
       <div class="note">Upload messages & custom audio via <b>Open Settings</b>. All data persists in your browser via IndexedDB.</div>
     </div>
 
+    <!-- ADMIN -->
     <div id="admin" class="admin">
+      <!-- Messages -->
       <div class="card">
         <h4>Funny Messages</h4>
         <div class="upload">
@@ -146,6 +188,7 @@
         <ul id="msgPreview" class="files"></ul>
       </div>
 
+      <!-- Custom Set 1 -->
       <div class="card">
         <h4>Custom Set 1</h4>
         <input class="name-input" id="name1" placeholder="Enter game name" />
@@ -156,6 +199,7 @@
         <ul id="list1" class="files"></ul>
       </div>
 
+      <!-- Custom Set 2 -->
       <div class="card">
         <h4>Custom Set 2</h4>
         <input class="name-input" id="name2" placeholder="Enter game name" />
@@ -165,200 +209,416 @@
         </div>
         <ul id="list2" class="files"></ul>
       </div>
+
+      <!-- Statistics Card -->
+      <div class="card">
+        <h4>Game Statistics</h4>
+        <div id="statsDisplay">Loading statistics...</div>
+        <button class="btn" id="btnClearStats" style="margin-top:8px">Clear All Statistics</button>
+      </div>
     </div>
   </div>
 
 <script>
 /* ============================= IndexedDB wrapper ============================= */
-const DB_NAME='dtm'; const DB_VERSION=1;
+const DB_NAME='dtm_enhanced'; const DB_VERSION=3;
+
 function openDB(){
   return new Promise((res,rej)=>{
     const req=indexedDB.open(DB_NAME,DB_VERSION);
     req.onupgradeneeded=e=>{
       const db=e.target.result;
-      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
-      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
-      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
-      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores');
+      
+      // Clear old stores if they exist and recreate
+      ['games','messages','meta','stats'].forEach(store=>{
+        if(db.objectStoreNames.contains(store)) db.deleteObjectStore(store);
+      });
+      
+      db.createObjectStore('games');     // key: 'c1'|'c2' -> {name, files:[{name, blob}]}
+      db.createObjectStore('messages');  // key: 'rotator' -> string[]
+      db.createObjectStore('meta');      // key: 'mode' -> 'tones'|'c1'|'c2'
+      db.createObjectStore('stats');     // key: mode -> {bestTime, gamesPlayed, totalAttempts}
     };
     req.onsuccess=()=>res(req.result);
     req.onerror=()=>rej(req.error);
   });
 }
-async function idbGet(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });}
-async function idbSet(store,key,val){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).put(val,key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
-async function idbDel(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).delete(key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+
+async function idbGet(store,key){ 
+  try {
+    const db=await openDB(); 
+    return new Promise((res,rej)=>{
+      const tx=db.transaction(store,'readonly'); 
+      const r=tx.objectStore(store).get(key); 
+      r.onsuccess=()=>res(r.result); 
+      r.onerror=()=>rej(r.error); 
+    });
+  } catch(e) {
+    console.error('idbGet error:', e);
+    return null;
+  }
+}
+
+async function idbSet(store,key,val){ 
+  try {
+    const db=await openDB(); 
+    return new Promise((res,rej)=>{
+      const tx=db.transaction(store,'readwrite'); 
+      tx.objectStore(store).put(val,key); 
+      tx.oncomplete=()=>res(true); 
+      tx.onerror=()=>rej(tx.error); 
+    });
+  } catch(e) {
+    console.error('idbSet error:', e);
+    return false;
+  }
+}
+
+async function idbDel(store,key){ 
+  try {
+    const db=await openDB(); 
+    return new Promise((res,rej)=>{
+      const tx=db.transaction(store,'readwrite'); 
+      tx.objectStore(store).delete(key); 
+      tx.oncomplete=()=>res(true); 
+      tx.onerror=()=>rej(tx.error); 
+    });
+  } catch(e) {
+    console.error('idbDel error:', e);
+    return false;
+  }
+}
 
 /* ============================== Gold ticker ============================== */
 const tickerEl=document.getElementById('ticker');
 let funnyMessages=[];
-async function loadMessages(){ const arr=await idbGet('messages','rotator'); if(Array.isArray(arr)) funnyMessages=arr; startTicker(); }
+let tickerInterval=null;
+
+async function loadMessages(){ 
+  const arr=await idbGet('messages','rotator'); 
+  if(Array.isArray(arr)) funnyMessages=arr; 
+  startTicker(); 
+}
+
 function startTicker(){
+  if(tickerInterval) clearInterval(tickerInterval);
+  
   tickerEl.textContent="Welcome to the audio memory challenge!";
+  
   setTimeout(()=>tickerEl.textContent="Match Pairs & Win!", 5000);
   setTimeout(()=>tickerEl.textContent="", 15000);
+  
   setTimeout(()=>{
-    if(!funnyMessages.length){ tickerEl.textContent="Welcome to the audio memory challenge!"; return; }
-    showFunny(); setInterval(showFunny,30000);
-  },25000);
+    if(!funnyMessages.length){ 
+      tickerEl.textContent="Welcome to the audio memory challenge!"; 
+      return; 
+    }
+    showFunny(); 
+    tickerInterval = setInterval(showFunny, 30000);
+  }, 25000);
 }
-function showFunny(){ const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; tickerEl.textContent=msg||""; setTimeout(()=>tickerEl.textContent="",10000); }
+
+function showFunny(){ 
+  if(!funnyMessages.length) return;
+  const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; 
+  tickerEl.textContent=msg||""; 
+  setTimeout(()=>tickerEl.textContent="", 10000); 
+}
 
 /* ============================ Audio management ============================ */
-function tone(freq,dur){
-  const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
-  for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
-  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
-  let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
-  return btoa(header+data);
+let currentAudio=null;
+
+function stopAudio(){ 
+  if(currentAudio){ 
+    try{
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }catch(e){
+      console.error('Audio stop error:', e);
+    } 
+    currentAudio=null; 
+  } 
 }
 
-const SOUND_EFFECTS = {
-    success: new Audio(`data:audio/wav;base64,${tone(698, 0.25)}`),
-    failure: new Audio(`data:audio/wav;base64,${tone(220, 0.35)}`)
-};
-SOUND_EFFECTS.success.load();
-SOUND_EFFECTS.failure.load();
-
-let currentCardAudio=null;
-function stopCardAudio(){ if(currentCardAudio){ try{currentCardAudio.pause();}catch(e){} currentCardAudio=null; } }
-function playCardAudio(url){
-    stopCardAudio();
-    currentCardAudio=new Audio(url);
-    currentCardAudio.play().catch(()=>{});
+function playSrc(url){ 
+  console.log('playSrc called with:', url);
+  stopAudio(); 
+  try {
+    currentAudio=new Audio(url); 
+    console.log('Audio object created');
+    currentAudio.play().then(() => {
+      console.log('Audio started playing');
+    }).catch(e=>{
+      console.error('Audio play error:', e);
+    }); 
+  } catch(e) {
+    console.error('Audio creation error:', e);
+  }
 }
-function playSuccessSfx() { if(!audioOn) return; SOUND_EFFECTS.success.currentTime = 0; SOUND_EFFECTS.success.play().catch(()=>{}); }
-function playFailureSfx() { if(!audioOn) return; SOUND_EFFECTS.failure.currentTime = 0; SOUND_EFFECTS.failure.play().catch(()=>{}); }
-
 
 /* =============================== Game state =============================== */
 const gridEl=document.getElementById('grid');
 const statMatches=document.getElementById('statMatches');
 const statAttempts=document.getElementById('statAttempts');
 const statAcc=document.getElementById('statAcc');
+const statBest=document.getElementById('statBest');
 const timerChip=document.getElementById('timer');
 const btnNew=document.getElementById('btnNew');
 const btnAudio=document.getElementById('btnAudio');
 
-let attempts=0,matches=0,totalPairs=18,audioOn=true;
-let startTs=0,timerInt=null;
-let firstPick=null,locking=false;
+let attempts=0, matches=0, totalPairs=18, audioOn=true;
+let startTs=0, timerInt=null;
+let firstPick=null, locking=false;
+let gameCompleted=false;
 
-let mode='tones';
-let cardMap=[];
-let sources={};
+let mode='tones';                 
+let cardMap=[];                   
+let sources={};                   
+let gameMeta={c1:null,c2:null};
+let urlsToRevoke=[];
+
+// Generate reliable tone sources
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
+function tone(freq,dur){ 
+  const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
+  for(let i=0;i<len;i++){ 
+    const t=i/sr; 
+    arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); 
+  }
+  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} 
+  function w32(v){return w16(v&65535)+w16(v>>>16)}
+  let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); 
+  let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
+  return btoa(header+data);
+}
 
-/* --------------------------- UI build & behavior -------------------------- */
-function buildGrid(){
-  gridEl.innerHTML='';
-  for(let i=0;i<36;i++){
-    const b=document.createElement('button');
-    b.className=`key row-${Math.floor(i/6)}`; b.innerHTML=`<span class="num">${i+1}</span>`;
-    b.dataset.pos=i; b.addEventListener('click',onKey);
-    gridEl.appendChild(b);
+/* --------------------------- Stats management ---------------------------- */
+async function loadBestTime(){
+  const stats = await idbGet('stats', mode);
+  if(stats && stats.bestTime) {
+    const minutes = Math.floor(stats.bestTime / 60);
+    const seconds = stats.bestTime % 60;
+    statBest.textContent = `${minutes}:${seconds.toString().padStart(2,'0')}`;
+  } else {
+    statBest.textContent = '--:--';
   }
 }
+
+async function saveBestTime(timeInSeconds){
+  const stats = await idbGet('stats', mode) || {bestTime: null, gamesPlayed: 0, totalAttempts: 0};
+  
+  if(!stats.bestTime || timeInSeconds < stats.bestTime) {
+    stats.bestTime = timeInSeconds;
+  }
+  
+  stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
+  stats.totalAttempts = (stats.totalAttempts || 0) + attempts;
+  
+  await idbSet('stats', mode, stats);
+  await loadBestTime();
+}
+
+async function displayAllStats(){
+  const statsDisplay = document.getElementById('statsDisplay');
+  let html = '';
+  
+  for(const gameMode of ['tones', 'c1', 'c2']) {
+    const stats = await idbGet('stats', gameMode);
+    if(stats && stats.gamesPlayed > 0) {
+      const modeName = gameMode === 'tones' ? 'Tones' : 
+                      gameMode === 'c1' ? (gameMeta.c1?.name || 'Custom Set 1') :
+                      (gameMeta.c2?.name || 'Custom Set 2');
+      
+      const bestTime = stats.bestTime ? 
+        `${Math.floor(stats.bestTime / 60)}:${(stats.bestTime % 60).toString().padStart(2,'0')}` : 
+        'N/A';
+      
+      const avgAttempts = stats.gamesPlayed > 0 ? 
+        Math.round(stats.totalAttempts / stats.gamesPlayed) : 0;
+      
+      html += `
+        <div style="margin-bottom:12px; padding:8px; background:rgba(255,255,255,.03); border-radius:8px;">
+          <strong>${modeName}</strong><br>
+          Games: ${stats.gamesPlayed} | Best Time: ${bestTime}<br>
+          Avg Attempts: ${avgAttempts}
+        </div>
+      `;
+    }
+  }
+  
+  if(!html) html = '<div>No statistics yet. Play some games!</div>';
+  statsDisplay.innerHTML = html;
+}
+
+/* --------------------------- UI build & behavior -------------------------- */
 function setTabs(){
   document.getElementById('tab-tones').classList.toggle('active',mode==='tones');
   document.getElementById('tab-c1').classList.toggle('active',mode==='c1');
   document.getElementById('tab-c2').classList.toggle('active',mode==='c2');
 }
+
+function clearSelection(){
+  Array.from(gridEl.children).forEach(btn=>btn.classList.remove('selected'));
+}
+
 function newGame(){
-  stopCardAudio();
-  firstPick=null; locking=false; attempts=0; matches=0;
-  statAttempts.textContent='0'; statMatches.textContent=`0/${totalPairs}`; statAcc.textContent='100%';
-  const arr=[...Array(18).keys(),...Array(18).keys()];
-  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
-  cardMap=arr;
-  if (audioOn && sources[mode]) {
-    const uniquePairIds = [...new Set(cardMap)];
-    uniquePairIds.forEach(id => {
-        const url = sources[mode][id];
-        if (url) { new Audio(url).load(); }
-    });
+  console.log('Starting new game...');
+  stopAudio();
+  
+  // Reset all game state
+  firstPick=null; 
+  locking=false; 
+  attempts=0; 
+  matches=0;
+  gameCompleted=false;
+  
+  // Update UI
+  statAttempts.textContent='0'; 
+  statMatches.textContent=`0/${totalPairs}`;
+  statAcc.textContent='100%';
+  
+  // Clear visual state
+  Array.from(gridEl.children).forEach(btn=>{
+    btn.classList.remove('matched', 'selected');
+  });
+  
+  // Create and shuffle pairs properly
+  const arr=[];
+  for(let i=0; i<18; i++) {
+    arr.push(i); // First copy of each pair
+    arr.push(i); // Second copy of each pair
   }
-  Array.from(gridEl.children).forEach(btn=>btn.classList.remove('matched'));
+  
+  // Fisher-Yates shuffle
+  for(let i=arr.length-1;i>0;i--){ 
+    const j=Math.floor(Math.random()*(i+1)); 
+    [arr[i],arr[j]]=[arr[j],arr[i]]; 
+  }
+  
+  cardMap=arr;
+  console.log('Card map created:', cardMap);
+  console.log('Unique pairs in map:', [...new Set(cardMap)].length);
+  
   startTimer();
 }
-function updateAcc(){ const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`; }
 
-async function checkAndSaveBestScore(time, attemptsCount) {
-    const currentBest = await idbGet('scores', mode) || { time: Infinity, attempts: Infinity };
-    if (time < currentBest.time || (time === currentBest.time && attemptsCount < currentBest.attempts)) {
-        const newBest = { time, attempts: attemptsCount };
-        await idbSet('scores', mode, newBest);
-        tickerEl.textContent = `🎉 New Record! ${time}s with ${attemptsCount} attempts!`;
-        setTimeout(() => tickerEl.textContent = "", 5000);
-    }
+function updateAcc(){ 
+  const pct=attempts?Math.round((matches/attempts)*100):100; 
+  statAcc.textContent=`${pct}%`; 
 }
 
 function onKey(e){
-  const btn = e.currentTarget;
-  if (locking || btn.classList.contains('matched')) return;
-
-  const pos = +btn.dataset.pos;
-  const pairId = cardMap[pos];
-  if (audioOn) {
-    const url = (sources[mode] || [])[pairId];
-    if (url) playCardAudio(url);
+  console.log('Key clicked:', e.currentTarget.dataset.pos);
+  const btn=e.currentTarget; 
+  
+  // Prevent interactions during lock or if already matched
+  if(locking || btn.classList.contains('matched') || gameCompleted) {
+    console.log('Click blocked - locking:', locking, 'matched:', btn.classList.contains('matched'), 'gameCompleted:', gameCompleted);
+    return;
+  }
+  
+  const pos=+btn.dataset.pos; 
+  const pairId=cardMap[pos];
+  console.log('Position:', pos, 'PairId:', pairId, 'CardMap length:', cardMap.length);
+  
+  // Play audio feedback
+  if(audioOn){ 
+    const url=(sources[mode]||[])[pairId]; 
+    console.log('Audio URL exists:', !!url, 'Mode:', mode, 'Sources available:', Object.keys(sources));
+    if(url) {
+      console.log('Playing audio for tone', pairId);
+      playSrc(url); 
+    } else {
+      console.log('No audio URL found for pairId:', pairId);
+    }
+  } else {
+    console.log('Audio is off');
   }
 
-  if (!firstPick) {
-    firstPick = { btn, pos, pairId };
+  if(!firstPick){ 
+    // First selection
+    console.log('First pick - pairId:', pairId);
+    firstPick={btn,pos,pairId}; 
+    btn.classList.add('selected');
+    return; 
+  }
+  
+  if(firstPick.pos===pos) {
+    // Same button clicked - deselect
+    console.log('Same button clicked - deselecting');
+    firstPick.btn.classList.remove('selected');
+    firstPick=null;
     return;
   }
 
-  if (firstPick.pos === pos) return;
+  // Second selection
+  console.log('Second pick - comparing pairIds:', firstPick.pairId, 'vs', pairId);
+  btn.classList.add('selected');
+  attempts++; 
+  statAttempts.textContent=attempts;
+  locking=true;
 
-  locking = true;
-  attempts++;
-  statAttempts.textContent = attempts;
-  updateAcc();
-
-  const secondPick = { btn, pos, pairId };
-
-  if (firstPick.pairId === secondPick.pairId) {
-    // It's a match
-    firstPick.btn.classList.add('matched');
-    secondPick.btn.classList.add('matched');
-    matches++;
-    statMatches.textContent = `${matches}/${totalPairs}`;
-    setTimeout(playSuccessSfx, 120);
-
-    if (matches === totalPairs) {
-      stopTimer();
-      const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
-      checkAndSaveBestScore(finalSeconds, attempts);
-    }
-    firstPick = null;
-    locking = false;
+  if(firstPick.pairId===pairId){
+    console.log('MATCH! Both have pairId:', pairId);
+    // Match found!
+    setTimeout(()=>{
+      firstPick.btn.classList.remove('selected');
+      btn.classList.remove('selected');
+      firstPick.btn.classList.add('matched'); 
+      btn.classList.add('matched');
+      
+      matches++; 
+      statMatches.textContent=`${matches}/${totalPairs}`;
+      
+      if(audioOn) playSrc(sources.tones[12]); // Success sound
+      
+      if(matches===totalPairs){ 
+        gameCompleted=true;
+        stopTimer(); 
+        
+        // Save best time
+        const finalTime = Math.floor((Date.now()-startTs)/1000);
+        saveBestTime(finalTime);
+      }
+      
+      firstPick=null; 
+      locking=false;
+    }, 300);
+    
   } else {
-    // It's a mismatch
-    firstPick.btn.classList.add('mismatch');
-    secondPick.btn.classList.add('mismatch');
-    setTimeout(playFailureSfx, 120);
-
-    setTimeout(() => {
-      firstPick.btn.classList.remove('mismatch');
-      secondPick.btn.classList.remove('mismatch');
-      firstPick = null;
-      locking = false;
+    console.log('NO MATCH:', firstPick.pairId, '!==', pairId);
+    // No match
+    setTimeout(()=>{ 
+      clearSelection();
+      firstPick=null;
+      locking=false; 
     }, 800);
   }
+  
+  updateAcc();
 }
 
 function startTimer(){
-  clearInterval(timerInt); startTs=Date.now();
-  timerInt=setInterval(()=>{ const s=Math.floor((Date.now()-startTs)/1000),m=Math.floor(s/60),r=s%60; timerChip.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;},1000);
+  clearInterval(timerInt); 
+  startTs=Date.now();
+  timerInt=setInterval(()=>{ 
+    const s=Math.floor((Date.now()-startTs)/1000);
+    const m=Math.floor(s/60);
+    const r=s%60; 
+    timerChip.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;
+  }, 1000);
 }
-function stopTimer(){ clearInterval(timerInt); }
+
+function stopTimer(){ 
+  clearInterval(timerInt); 
+}
 
 /* ------------------------------- Admin wiring ----------------------------- */
 const adminEl=document.getElementById('admin');
 const msgFile=document.getElementById('msgFile');
 const msgPreview=document.getElementById('msgPreview');
+
 const name1=document.getElementById('name1');
 const name2=document.getElementById('name2');
 const files1=document.getElementById('files1');
@@ -367,100 +627,17 @@ const list1=document.getElementById('list1');
 const list2=document.getElementById('list2');
 const status1=document.getElementById('status1');
 const status2=document.getElementById('status2');
+const btnClearStats=document.getElementById('btnClearStats');
 
 document.getElementById('tab-tones').onclick=()=> switchMode('tones');
 document.getElementById('tab-c1').onclick=()=> switchMode('c1');
 document.getElementById('tab-c2').onclick=()=> switchMode('c2');
 document.getElementById('tab-settings').onclick=async ()=>{
   const p=prompt('Enter admin password:');
-  if(p==='MUSIC'){ adminEl.style.display='block'; }
-  else alert('Incorrect password.');
-};
-
-btnNew.onclick=newGame;
-btnAudio.onclick=()=>{ audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; };
-
-msgFile.addEventListener('change', async (e)=>{
-  const f=e.target.files?.[0]; if(!f) return;
-  const text=await f.text();
-  const lines=text.split('\n').map(v=>v.trim()).filter(v=>v && v.length<=150).slice(0,200);
-  funnyMessages=lines; await idbSet('messages','rotator',funnyMessages); renderMessages(); alert(`Loaded ${funnyMessages.length} messages.`);
-});
-function renderMessages(){
-  msgPreview.innerHTML=''; funnyMessages.slice(0,50).forEach((m)=>{ const li=document.createElement('li'); li.textContent=m; msgPreview.appendChild(li); });
-}
-
-name1.addEventListener('input', ()=> saveName('c1',name1.value));
-name2.addEventListener('input', ()=> saveName('c2',name2.value));
-files1.addEventListener('change', (e)=> handleFiles('c1',e.target.files));
-files2.addEventListener('change', (e)=> handleFiles('c2',e.target.files));
-
-async function saveName(key,val){ const g=await idbGet('games',key)||{name:'',files:[]}; g.name=val||''; await idbSet('games',key,g); applyGameNames(); }
-function applyGameNames(){
-  document.getElementById('tab-c1').textContent=(gameMeta.c1?.name?.trim()||'Custom Set 1');
-  document.getElementById('tab-c2').textContent=(gameMeta.c2?.name?.trim()||'Custom Set 2');
-}
-
-async function handleFiles(key,fileList){
-  const files=Array.from(fileList).filter(f=>f.type.startsWith('audio/')); if(!files.length){ alert('Please select audio files.'); return; }
-  const g=await idbGet('games',key)||{name:'',files:[]}; g.files=[];
-  for(const f of files.slice(0,18)){
-    const buf=await f.arrayBuffer();
-    g.files.push({name:f.name, blob:new Blob([buf],{type:f.type||'audio/mpeg'})});
+  if(p==='MUSIC'){ 
+    adminEl.style.display='block'; 
+    await displayAllStats();
+  } else {
+    alert('Incorrect password.');
   }
-  await idbSet('games',key,g); await loadGames(); alert(`Saved ${g.files.length} file(s) to ${key==='c1'?'Custom Set 1':'Custom Set 2'}.`);
-}
-
-function renderFileList(ul,key){
-  ul.innerHTML='';
-  const files=(gameMeta[key]?.files)||[];
-  files.forEach((f,idx)=>{
-    const li=document.createElement('li');
-    const nameSpan=document.createElement('span'); nameSpan.textContent=f.name||`audio-${idx+1}`;
-    const del=document.createElement('button'); del.textContent='✖'; del.title='Delete';
-    del.onclick=async ()=>{ const g=await idbGet('games',key)||{name:'',files:[]}; g.files.splice(idx,1); await idbSet('games',key,g); await loadGames(); };
-    li.appendChild(nameSpan); li.appendChild(del); ul.appendChild(li);
-  });
-  const sEl=key==='c1'?status1:status2;
-  sEl.textContent=files.length===18?'Ready (18/18)':files.length>0?`Partial (${files.length}/18)`:'Empty (0/18)';
-}
-
-/* ----------------------------- Load games/meta ---------------------------- */
-let gameMeta={c1:null,c2:null};
-let urlsToRevoke=[];
-
-async function loadGames(){
-  urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); urlsToRevoke=[];
-  gameMeta.c1=await idbGet('games','c1')||{name:'',files:[]};
-  gameMeta.c2=await idbGet('games','c2')||{name:'',files:[]};
-  sources.c1=(gameMeta.c1.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
-  sources.c2=(gameMeta.c2.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
-  name1.value=gameMeta.c1.name||''; name2.value=gameMeta.c2.name||'';
-  renderFileList(list1,'c1'); renderFileList(list2,'c2'); applyGameNames();
-}
-
-/* ---------------------------- Mode persistence ---------------------------- */
-async function switchMode(next){
-  mode=next; setTabs(); await idbSet('meta','mode',mode);
-  if(mode!=='tones'){ const have=(sources[mode]||[]).length; if(have<18){ alert(`${document.getElementById(mode==='c1'?'tab-c1':'tab-c2').textContent} is not ready. Please upload 18 audio files.`); mode='tones'; setTabs(); await idbSet('meta','mode',mode); } }
-  newGame();
-}
-
-/* --------------------------------- Init ---------------------------------- */
-async function init(){
-  buildGrid();
-  btnAudio.textContent='🔊 Audio On';
-  await loadGames();
-  await loadMessages();
-  const lastMode=await idbGet('meta','mode');
-  if(lastMode && (lastMode==='tones' || lastMode==='c1' || lastMode==='c2')) mode=lastMode;
-  setTabs(); newGame();
-}
-
-window.addEventListener('beforeunload', ()=>{ stopCardAudio(); urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); });
-document.addEventListener('click',()=>{ /* warm user interaction for autoplay */ },{once:true});
-
-init();
-</script>
-</body>
-</html>
+};
