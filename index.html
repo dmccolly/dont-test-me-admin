@@ -24,20 +24,30 @@
   .wrap{width:100%; max-width:520px}
   h1{margin:0 0 6px; font-size:32px; font-weight:800; text-align:center; letter-spacing:.02em}
   .subtitle{margin:0 0 12px; text-align:center; color:var(--muted); line-height:1.3}
+
   .ticker{margin:18px 0 26px; min-height:22px; text-align:center; font-weight:700; color:var(--gold)}
 
   .tabs{display:flex; gap:8px; justify-content:center; margin-bottom:12px; flex-wrap:wrap}
-  .tab{padding:8px 12px; border-radius:12px; border:1px solid var(--line); background:var(--glass); color:#fff; cursor:pointer; font-weight:600}
+  .tab{
+    padding:8px 12px; border-radius:12px; border:1px solid var(--line);
+    background:var(--glass); color:#fff; cursor:pointer; font-weight:600;
+  }
   .tab.active{background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.35); color:var(--ok)}
-  .tab.settings{opacity:.85}
+  .tab.settings{opacity:.65}
 
-  .panel{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.35)}
-  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px}
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.35);
+  }
+
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px}
   .stat{background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; text-align:center; padding:10px}
   .stat label{display:block; color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px}
   .stat b{font-size:20px; font-weight:800}
 
-  .grid{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:12px; min-height:320px}
+  .grid{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:12px;
+  }
   .key{
     position:relative; aspect-ratio:1/1; border-radius:14px; border:1px solid rgba(255,255,255,.14);
     display:grid; place-items:center; cursor:pointer; user-select:none;
@@ -48,6 +58,7 @@
     transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
   }
   .key:hover{transform:translateY(-2px)}
+  /* Subtle row hues */
   .row-0{background:linear-gradient(145deg, rgba(219,154,154,.22), rgba(150,110,110,.10)); border-color:rgba(219,154,154,.35)}
   .row-1{background:linear-gradient(145deg, rgba(154,219,168,.20), rgba(110,160,125,.10)); border-color:rgba(154,219,168,.35)}
   .row-2{background:linear-gradient(145deg, rgba(154,168,219,.20), rgba(110,125,160,.10)); border-color:rgba(154,168,219,.35)}
@@ -61,12 +72,20 @@
     content:"✓"; position:absolute; inset:0; display:grid; place-items:center;
     font-size:28px; font-weight:900; color:var(--ok); text-shadow:0 2px 10px rgba(16,185,129,.6); pointer-events:none;
   }
+  .key.mismatch {
+    background: linear-gradient(145deg, rgba(239,68,68,.4), rgba(239,68,68,.25));
+    border-color: rgba(239,68,68,.6);
+    transform: scale(0.95);
+  }
 
   .controls{display:flex; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap}
-  .btn{padding:8px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line); color:#fff; font-weight:700; cursor:pointer}
+  .btn{
+    padding:8px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line);
+    color:#fff; font-weight:700; cursor:pointer;
+  }
   .timerChip{padding:8px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line); font-weight:700}
 
-  /* Admin */
+  /* Admin (stacked, single column) */
   .admin{display:none; margin-top:12px}
   .card{background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:12px}
   .card h4{margin:0 0 8px}
@@ -78,10 +97,11 @@
   .files button{background:none; border:1px solid rgba(239,68,68,.6); border-radius:8px; padding:2px 8px; color:#ef4444; font-weight:800; cursor:pointer}
   .status{font-size:12px; color:var(--muted); margin-top:4px}
   .note{color:var(--muted); text-align:center; margin-top:8px}
-  .error{margin-top:10px; padding:10px; border-radius:10px; border:1px solid rgba(255,0,0,.4); background:rgba(255,0,0,.06); color:#fecaca; display:none}
 
-  @media (max-width:500px){ .grid{gap:6px} .key{border-radius:12px} }
-  @media (prefers-reduced-motion: reduce){ .key, .key:hover{transition:none; transform:none} }
+  @media (max-width:500px){
+    .grid{gap:6px}
+    .key{border-radius:12px}
+  }
 </style>
 </head>
 <body>
@@ -103,7 +123,6 @@
         <div class="stat"><label>Matches</label><b id="statMatches">0/18</b></div>
         <div class="stat"><label>Attempts</label><b id="statAttempts">0</b></div>
         <div class="stat"><label>Accuracy</label><b id="statAcc">100%</b></div>
-        <div class="stat"><label>Best</label><b id="statBest">—</b></div>
       </div>
 
       <div id="grid" class="grid"></div>
@@ -115,25 +134,376 @@
       </div>
 
       <div class="note">Upload messages & custom audio via <b>Open Settings</b>. All data persists in your browser via IndexedDB.</div>
-      <div id="err" class="error"></div>
     </div>
 
-    <!-- ADMIN -->
     <div id="admin" class="admin">
-      <!-- Messages -->
       <div class="card">
         <h4>Funny Messages</h4>
         <div class="upload">
-          <input type="file" id="msgFile" accept=".txt,text/plain" />
+          <input type="file" id="msgFile" accept=".txt" />
           <div class="status">Upload a .txt file (one phrase per line, ≤150 chars)</div>
         </div>
         <ul id="msgPreview" class="files"></ul>
       </div>
 
-      <!-- Custom Set 1 -->
       <div class="card">
         <h4>Custom Set 1</h4>
         <input class="name-input" id="name1" placeholder="Enter game name" />
         <div class="upload">
-          <input type="file" id="files1" multiple
-                 accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac*
+          <input type="file" id="files1" multiple accept="audio/*"/>
+          <div class="status" id="status1">Empty (0/18)</div>
+        </div>
+        <ul id="list1" class="files"></ul>
+      </div>
+
+      <div class="card">
+        <h4>Custom Set 2</h4>
+        <input class="name-input" id="name2" placeholder="Enter game name" />
+        <div class="upload">
+          <input type="file" id="files2" multiple accept="audio/*"/>
+          <div class="status" id="status2">Empty (0/18)</div>
+        </div>
+        <ul id="list2" class="files"></ul>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ============================= IndexedDB wrapper ============================= */
+const DB_NAME='dtm'; const DB_VERSION=1;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
+      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
+      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
+      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores');
+    };
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function idbGet(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });}
+async function idbSet(store,key,val){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).put(val,key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+async function idbDel(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).delete(key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
+
+/* ============================== Gold ticker ============================== */
+const tickerEl=document.getElementById('ticker');
+let funnyMessages=[];
+async function loadMessages(){ const arr=await idbGet('messages','rotator'); if(Array.isArray(arr)) funnyMessages=arr; startTicker(); }
+function startTicker(){
+  tickerEl.textContent="Welcome to the audio memory challenge!";
+  setTimeout(()=>tickerEl.textContent="Match Pairs & Win!", 5000);
+  setTimeout(()=>tickerEl.textContent="", 15000);
+  setTimeout(()=>{
+    if(!funnyMessages.length){ tickerEl.textContent="Welcome to the audio memory challenge!"; return; }
+    showFunny(); setInterval(showFunny,30000);
+  },25000);
+}
+function showFunny(){ const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; tickerEl.textContent=msg||""; setTimeout(()=>tickerEl.textContent="",10000); }
+
+/* ============================ Audio management ============================ */
+function tone(freq,dur){
+  const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
+  for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
+  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
+  let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
+  return btoa(header+data);
+}
+
+function noise(dur) {
+    const sr = 8000; const len = Math.floor(sr * dur); const arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        const t = i / sr;
+        const randomSample = (Math.random() * 2 - 1) * 35;
+        arr[i] = 128 + Math.round(randomSample * Math.exp(-t * 8));
+    }
+    function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
+    let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
+    return btoa(header+data);
+}
+
+const SOUND_EFFECTS = {
+    success: new Audio(`data:audio/wav;base64,${tone(880, 0.25)}`),
+    failure: new Audio(`data:audio/wav;base64,${noise(0.3)}`)
+};
+SOUND_EFFECTS.success.load();
+SOUND_EFFECTS.failure.load();
+
+let currentCardAudio=null;
+function stopCardAudio(){ if(currentCardAudio){ try{currentCardAudio.pause();}catch(e){} currentCardAudio=null; } }
+function playCardAudio(url){
+    stopCardAudio();
+    currentCardAudio=new Audio(url);
+    currentCardAudio.play().catch(()=>{});
+}
+function playSuccessSfx() { if(!audioOn) return; SOUND_EFFECTS.success.currentTime = 0; SOUND_EFFECTS.success.play().catch(()=>{}); }
+function playFailureSfx() { if(!audioOn) return; SOUND_EFFECTS.failure.currentTime = 0; SOUND_EFFECTS.failure.play().catch(()=>{}); }
+
+
+/* =============================== Game state =============================== */
+const gridEl=document.getElementById('grid');
+const statMatches=document.getElementById('statMatches');
+const statAttempts=document.getElementById('statAttempts');
+const statAcc=document.getElementById('statAcc');
+const timerChip=document.getElementById('timer');
+const btnNew=document.getElementById('btnNew');
+const btnAudio=document.getElementById('btnAudio');
+
+let attempts=0,matches=0,totalPairs=18,audioOn=true;
+let startTs=0,timerInt=null;
+let firstPick=null,locking=false;
+
+let mode='tones';
+let cardMap=[];
+let sources={};
+sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
+
+
+/* --------------------------- UI build & behavior -------------------------- */
+function buildGrid(){
+  gridEl.innerHTML='';
+  for(let i=0;i<36;i++){
+    const b=document.createElement('button');
+    b.className=`key row-${Math.floor(i/6)}`; b.innerHTML=`<span class="num">${i+1}</span>`;
+    b.dataset.pos=i; b.addEventListener('click',onKey);
+    gridEl.appendChild(b);
+  }
+}
+function setTabs(){
+  document.getElementById('tab-tones').classList.toggle('active',mode==='tones');
+  document.getElementById('tab-c1').classList.toggle('active',mode==='c1');
+  document.getElementById('tab-c2').classList.toggle('active',mode==='c2');
+}
+function newGame(){
+  stopCardAudio();
+  firstPick=null; locking=false; attempts=0; matches=0;
+  statAttempts.textContent='0'; statMatches.textContent=`0/${totalPairs}`; statAcc.textContent='100%';
+  const arr=[...Array(18).keys(),...Array(18).keys()];
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  cardMap=arr;
+  if (audioOn && sources[mode]) {
+    const uniquePairIds = [...new Set(cardMap)];
+    uniquePairIds.forEach(id => {
+        const url = sources[mode][id];
+        if (url) { new Audio(url).load(); }
+    });
+  }
+  Array.from(gridEl.children).forEach(btn=>btn.classList.remove('matched'));
+  startTimer();
+}
+function updateAcc(){ const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`; }
+
+async function checkAndSaveBestScore(time, attemptsCount) {
+    const currentBest = await idbGet('scores', mode) || { time: Infinity, attempts: Infinity };
+    if (time < currentBest.time || (time === currentBest.time && attemptsCount < currentBest.attempts)) {
+        const newBest = { time, attempts: attemptsCount };
+        await idbSet('scores', mode, newBest);
+        tickerEl.textContent = `🎉 New Record! ${time}s with ${attemptsCount} attempts!`;
+        setTimeout(() => { tickerEl.textContent = ""; }, 5000);
+    }
+}
+
+function onKey(e){
+  const clickedButton = e.currentTarget;
+  if (locking || clickedButton.classList.contains('matched')) {
+      return;
+  }
+
+  const currentPos = +clickedButton.dataset.pos;
+  const currentPairId = cardMap[currentPos];
+
+  if (audioOn) {
+      const url = (sources[mode] || [])[currentPairId];
+      if (url) playCardAudio(url);
+  }
+
+  if (!firstPick) {
+      firstPick = { btn: clickedButton, pos: currentPos, pairId: currentPairId };
+      return;
+  }
+
+  if (firstPick.pos === currentPos) {
+      return;
+  }
+
+  locking = true;
+  attempts++;
+  statAttempts.textContent = attempts;
+  updateAcc();
+
+  if (firstPick.pairId === currentPairId) {
+      // --- MATCH ---
+      firstPick.btn.classList.add('matched');
+      clickedButton.classList.add('matched');
+      matches++;
+      statMatches.textContent = `${matches}/${totalPairs}`;
+      setTimeout(playSuccessSfx, 150);
+
+      if (matches === totalPairs) {
+          stopTimer();
+          const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
+          checkAndSaveBestScore(finalSeconds, attempts);
+      }
+      firstPick = null;
+      locking = false;
+  } else {
+      // --- MISMATCH ---
+      firstPick.btn.classList.add('mismatch');
+      clickedButton.classList.add('mismatch');
+      setTimeout(playFailureSfx, 150);
+
+      const firstButton = firstPick.btn; // Keep a reference to the first button
+      setTimeout(() => {
+          firstButton.classList.remove('mismatch');
+          clickedButton.classList.remove('mismatch');
+          firstPick = null;
+          locking = false;
+      }, 900);
+  }
+}
+
+function startTimer(){
+  clearInterval(timerInt); startTs=Date.now();
+  timerInt=setInterval(()=>{ const s=Math.floor((Date.now()-startTs)/1000),m=Math.floor(s/60),r=s%60; timerChip.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;},1000);
+}
+function stopTimer(){ clearInterval(timerInt); }
+
+/* ------------------------------- Admin wiring ----------------------------- */
+const adminEl=document.getElementById('admin');
+const msgFile=document.getElementById('msgFile');
+const msgPreview=document.getElementById('msgPreview');
+const name1=document.getElementById('name1');
+const name2=document.getElementById('name2');
+const files1=document.getElementById('files1');
+const files2=document.getElementById('files2');
+const list1=document.getElementById('list1');
+const list2=document.getElementById('list2');
+const status1=document.getElementById('status1');
+const status2=document.getElementById('status2');
+
+document.getElementById('tab-tones').onclick=()=> switchMode('tones');
+document.getElementById('tab-c1').onclick=()=> switchMode('c1');
+document.getElementById('tab-c2').onclick=()=> switchMode('c2');
+document.getElementById('tab-settings').onclick=async ()=>{
+  const p=prompt('Enter admin password:');
+  if(p==='MUSIC'){ adminEl.style.display='block'; }
+  else alert('Incorrect password.');
+};
+
+btnNew.onclick=newGame;
+btnAudio.onclick=()=>{ audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; };
+
+msgFile.addEventListener('change', async (e)=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  const text=await f.text();
+  const lines=text.split('\n').map(v=>v.trim()).filter(v=>v && v.length<=150).slice(0,200);
+  funnyMessages=lines; await idbSet('messages','rotator',funnyMessages); renderMessages(); alert(`Loaded ${funnyMessages.length} messages.`);
+});
+function renderMessages(){
+  msgPreview.innerHTML=''; funnyMessages.slice(0,50).forEach((m)=>{ const li=document.createElement('li'); li.textContent=m; msgPreview.appendChild(li); });
+}
+
+name1.addEventListener('input', ()=> saveName('c1',name1.value));
+name2.addEventListener('input', ()=> saveName('c2',name2.value));
+files1.addEventListener('change', (e)=> handleFiles('c1',e.target.files));
+files2.addEventListener('change', (e)=> handleFiles('c2',e.target.files));
+
+async function saveName(key,val){ const g=await idbGet('games',key)||{name:'',files:[]}; g.name=val||''; await idbSet('games',key,g); applyGameNames(); }
+function applyGameNames(){
+  document.getElementById('tab-c1').textContent=(gameMeta.c1?.name?.trim()||'Custom Set 1');
+  document.getElementById('tab-c2').textContent=(gameMeta.c2?.name?.trim()||'Custom Set 2');
+}
+
+async function handleFiles(key, fileList) {
+    const files = Array.from(fileList).filter(f => f.type.startsWith('audio/'));
+    if (!files.length) {
+        alert('Please select audio files.');
+        return;
+    }
+
+    const statusEl = key === 'c1' ? status1 : status2;
+    const originalStatus = statusEl.textContent;
+    tickerEl.textContent = '⏳ Processing audio files... please wait.';
+    statusEl.textContent = 'Processing...';
+    document.body.style.cursor = 'wait';
+
+    try {
+        const g = await idbGet('games', key) || { name: '', files: [] };
+        g.files = [];
+
+        for (const f of files.slice(0, 18)) {
+            const buf = await f.arrayBuffer();
+            g.files.push({ name: f.name, blob: new Blob([buf], { type: f.type || 'audio/mpeg' }) });
+        }
+
+        await idbSet('games', key, g);
+        await loadGames();
+
+        tickerEl.textContent = `✅ Saved ${g.files.length} audio file(s).`;
+        setTimeout(() => { tickerEl.textContent = ""; }, 5000);
+
+    } catch (error) {
+        console.error('Error handling files:', error);
+        tickerEl.textContent = '❌ Error saving files. See console for details.';
+        statusEl.textContent = originalStatus;
+    } finally {
+        document.body.style.cursor = 'default';
+    }
+}
+
+function renderFileList(ul,key){
+  ul.innerHTML='';
+  const files=(gameMeta[key]?.files)||[];
+  files.forEach((f,idx)=>{
+    const li=document.createElement('li');
+    const nameSpan=document.createElement('span'); nameSpan.textContent=f.name||`audio-${idx+1}`;
+    const del=document.createElement('button'); del.textContent='✖'; del.title='Delete';
+    del.onclick=async ()=>{ const g=await idbGet('games',key)||{name:'',files:[]}; g.files.splice(idx,1); await idbSet('games',key,g); await loadGames(); };
+    li.appendChild(nameSpan); li.appendChild(del); ul.appendChild(li);
+  });
+  const sEl=key==='c1'?status1:status2;
+  sEl.textContent=files.length===18?'Ready (18/18)':files.length>0?`Partial (${files.length}/18)`:'Empty (0/18)';
+}
+
+/* ----------------------------- Load games/meta ---------------------------- */
+let gameMeta={c1:null,c2:null};
+let urlsToRevoke=[];
+
+async function loadGames(){
+  urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); urlsToRevoke=[];
+  gameMeta.c1=await idbGet('games','c1')||{name:'',files:[]};
+  gameMeta.c2=await idbGet('games','c2')||{name:'',files:[]};
+  sources.c1=(gameMeta.c1.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
+  sources.c2=(gameMeta.c2.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
+  name1.value=gameMeta.c1.name||''; name2.value=gameMeta.c2.name||'';
+  renderFileList(list1,'c1'); renderFileList(list2,'c2'); applyGameNames();
+}
+
+/* ---------------------------- Mode persistence ---------------------------- */
+async function switchMode(next){
+  mode=next; setTabs(); await idbSet('meta','mode',mode);
+  if(mode!=='tones'){ const have=(sources[mode]||[]).length; if(have<18){ alert(`${document.getElementById(mode==='c1'?'tab-c1':'tab-c2').textContent} is not ready. Please upload 18 audio files.`); mode='tones'; setTabs(); await idbSet('meta','mode',mode); } }
+  newGame();
+}
+
+/* --------------------------------- Init ---------------------------------- */
+async function init(){
+  buildGrid();
+  btnAudio.textContent='🔊 Audio On';
+  await loadGames();
+  await loadMessages();
+  const lastMode=await idbGet('meta','mode');
+  if(lastMode && (lastMode==='tones' || lastMode==='c1' || lastMode==='c2')) mode=lastMode;
+  setTabs(); newGame();
+}
+
+window.addEventListener('beforeunload', ()=>{ stopCardAudio(); urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); });
+document.addEventListener('click',()=>{ /* warm user interaction for autoplay */ },{once:true});
+
+init();
+</script>
+</body>
+</html>
