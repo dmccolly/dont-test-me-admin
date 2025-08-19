@@ -301,8 +301,13 @@ async function loadGamesFromServer() {
         settingsTab.title = 'Create a new game';
         settingsTab.textContent = '⊕ Create New';
         settingsTab.onclick = () => {
-            const adminEl = document.getElementById('admin');
-            adminEl.style.display = adminEl.style.display === 'block' ? 'none' : 'block';
+            const p = prompt('Enter admin password:');
+            if (p === 'MUSIC') {
+                const adminEl = document.getElementById('admin');
+                adminEl.style.display = 'block';
+            } else if (p !== null) {
+                alert('Incorrect password.');
+            }
         };
         tabsContainer.appendChild(settingsTab);
 
