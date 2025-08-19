@@ -58,7 +58,6 @@
     transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .2s ease;
   }
   .key:hover{transform:translateY(-2px)}
-  /* Subtle row hues */
   .row-0{background:linear-gradient(145deg, rgba(219,154,154,.22), rgba(150,110,110,.10)); border-color:rgba(219,154,154,.35)}
   .row-1{background:linear-gradient(145deg, rgba(154,219,168,.20), rgba(110,160,125,.10)); border-color:rgba(154,219,168,.35)}
   .row-2{background:linear-gradient(145deg, rgba(154,168,219,.20), rgba(110,125,160,.10)); border-color:rgba(154,168,219,.35)}
@@ -85,7 +84,6 @@
   }
   .timerChip{padding:8px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line); font-weight:700}
 
-  /* Admin (stacked, single column) */
   .admin{display:none; margin-top:12px}
   .card{background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:12px}
   .card h4{margin:0 0 8px}
@@ -110,7 +108,7 @@
 
     <div id="tabsContainer" class="tabs">
       <button class="tab active" data-mode="tones">Tones</button>
-      </div>
+    </div>
 
     <div class="panel">
       <div class="stats">
@@ -118,15 +116,12 @@
         <div class="stat"><label>Attempts</label><b id="statAttempts">0</b></div>
         <div class="stat"><label>Accuracy</label><b id="statAcc">100%</b></div>
       </div>
-
       <div id="grid" class="grid"></div>
-
       <div class="controls">
         <button class="btn" id="btnNew">New Game</button>
         <div class="timerChip" id="timer">Time: 0:00 | Attempts: 0</div>
         <button class="btn" id="btnAudio">🔊 Audio On</button>
       </div>
-
       <div class="note">Game data is loaded from a secure server.</div>
     </div>
 
@@ -144,7 +139,8 @@
   </div>
 
 <script>
-/* ============================ Audio management ============================ */
+const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:pYeQctVX';
+
 function tone(freq,dur){
   const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
   for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
@@ -180,7 +176,6 @@ function playCardAudio(url){
 function playSuccessSfx() { if(!audioOn) return; SOUND_EFFECTS.success.currentTime = 0; SOUND_EFFECTS.success.play().catch(()=>{}); }
 function playFailureSfx() { if(!audioOn) return; SOUND_EFFECTS.failure.currentTime = 0; SOUND_EFFECTS.failure.play().catch(()=>{}); }
 
-/* =============================== Game state =============================== */
 const tickerEl = document.getElementById('ticker');
 const gridEl=document.getElementById('grid');
 const statMatches=document.getElementById('statMatches');
@@ -200,8 +195,6 @@ let cardMap=[];
 let sources={};
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
-
-/* --------------------------- UI build & behavior -------------------------- */
 function buildGrid(){
   gridEl.innerHTML='';
   for(let i=0;i<36;i++){
@@ -262,7 +255,7 @@ function onKey(e){
       clickedButton.classList.add('matched');
       matches++;
       statMatches.textContent = `${matches}/${totalPairs}`;
-      updateAcc(); // Update accuracy after match
+      updateAcc();
       setTimeout(playSuccessSfx, 150);
       if (matches === totalPairs) stopTimer();
       firstPick = null;
@@ -270,7 +263,7 @@ function onKey(e){
   } else {
       firstPick.btn.classList.add('mismatch');
       clickedButton.classList.add('mismatch');
-      updateAcc(); // Update accuracy on mismatch
+      updateAcc();
       setTimeout(playFailureSfx, 150);
       const firstButton = firstPick.btn;
       setTimeout(() => {
@@ -288,15 +281,10 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInt); }
 
-
-/* --------------------------- Server Communication ------------------------- */
 async function loadGamesFromServer() {
-    // THIS IS THE MODIFIED TEST CODE
-    const XANO_TEST_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1/games';
-
     try {
-        const response = await fetch(XANO_TEST_URL);
-        if (!response.ok) throw new Error(`Failed to fetch games list. Status: ${response.status}`);
+        const response = await fetch(`${XANO_BASE_URL}/game`);
+        if (!response.ok) throw new Error('Failed to fetch games list');
         const games = await response.json();
 
         games.forEach(game => {
@@ -329,10 +317,6 @@ async function switchMode(newMode, gameId = null) {
     mode = newMode;
     updateTabs();
     tickerEl.textContent = 'Loading game...';
-    
-    // THIS URL IS ALSO HARDCODED FOR THE TEST
-    const XANO_BASE_URL_FOR_SWITCH = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1';
-
 
     if (mode === 'tones') {
         newGame();
@@ -341,7 +325,7 @@ async function switchMode(newMode, gameId = null) {
     }
 
     try {
-        const response = await fetch(`${XANO_BASE_URL_FOR_SWITCH}/games/${gameId}`);
+        const response = await fetch(`${XANO_BASE_URL}/game/${gameId}`);
         if (!response.ok) throw new Error('Failed to fetch game data');
         const audioFiles = await response.json();
 
@@ -359,11 +343,8 @@ async function switchMode(newMode, gameId = null) {
     }
 }
 
-
-/* ------------------------------- Admin wiring ----------------------------- */
 const newNameInput = document.getElementById('newName');
 const newFilesInput = document.getElementById('newFiles');
-const uploadStatus = document.getElementById('uploadStatus');
 const btnUpload = document.getElementById('btnUpload');
 
 btnNew.onclick = newGame;
@@ -378,9 +359,6 @@ tabsContainer.addEventListener('click', (e) => {
 });
 
 btnUpload.onclick = async () => {
-    // THIS URL IS ALSO HARDCODED FOR THE TEST
-    const XANO_BASE_URL_FOR_UPLOAD = 'https://xajo-bs7d-cagt.n7e.xano.io/api:v1';
-    
     const name = newNameInput.value.trim();
     const files = Array.from(newFilesInput.files);
 
@@ -393,7 +371,7 @@ btnUpload.onclick = async () => {
         return;
     }
 
-    tickerEl.textContent = '⏳ Uploading new game... this may take a moment.';
+    tickerEl.textContent = '⏳ Uploading new game...';
     btnUpload.disabled = true;
     document.body.style.cursor = 'wait';
 
@@ -404,7 +382,7 @@ btnUpload.onclick = async () => {
     });
 
     try {
-        const response = await fetch(`${XANO_BASE_URL_FOR_UPLOAD}/games`, {
+        const response = await fetch(`${XANO_BASE_URL}/game`, {
             method: 'POST',
             body: formData
         });
@@ -424,7 +402,6 @@ btnUpload.onclick = async () => {
     }
 };
 
-/* --------------------------------- Init ---------------------------------- */
 async function init(){
   buildGrid();
   btnAudio.textContent='🔊 Audio On';
@@ -433,7 +410,7 @@ async function init(){
 }
 
 window.addEventListener('beforeunload', () => stopCardAudio());
-document.addEventListener('click', () => { /* warm user interaction for autoplay */ }, {once:true});
+document.addEventListener('click', () => {}, {once:true});
 
 init();
 </script>
