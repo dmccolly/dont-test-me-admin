@@ -168,9 +168,9 @@
       </div>
 
       <div class="controls">
-        <button class="btn" id="btnNew">New Game</button>
+        <button class="btn" id="btnNew" onclick="newGame()">New Game</button>
         <div class="timerChip" id="timer">Time: 0:00 | Attempts: 0</div>
-        <button class="btn" id="btnAudio">🔊 Audio On</button>
+        <button class="btn" id="btnAudio" onclick="toggleAudio()">🔊 Audio On</button>
       </div>
 
       <div class="note">Upload messages & custom audio via <b>Open Settings</b>. All data persists in your browser via IndexedDB.</div>
@@ -520,17 +520,17 @@ function onKey(e){
   
   const pos=+btn.dataset.pos; 
   const pairId=cardMap[pos];
-  console.log('Position:', pos, 'PairId:', pairId, 'Mode:', mode);
+  console.log('Position:', pos, 'PairId:', pairId, 'CardMap length:', cardMap.length);
   
   // Play audio feedback
   if(audioOn){ 
     const url=(sources[mode]||[])[pairId]; 
-    console.log('Audio URL:', url);
+    console.log('Audio URL exists:', !!url, 'Mode:', mode, 'Sources available:', Object.keys(sources));
     if(url) {
       console.log('Playing audio for tone', pairId);
       playSrc(url); 
     } else {
-      console.log('No audio URL found');
+      console.log('No audio URL found for pairId:', pairId);
     }
   } else {
     console.log('Audio is off');
@@ -538,7 +538,7 @@ function onKey(e){
 
   if(!firstPick){ 
     // First selection
-    console.log('First pick');
+    console.log('First pick - pairId:', pairId);
     firstPick={btn,pos,pairId}; 
     btn.classList.add('selected');
     return; 
@@ -553,14 +553,14 @@ function onKey(e){
   }
 
   // Second selection
-  console.log('Second pick');
+  console.log('Second pick - comparing pairIds:', firstPick.pairId, 'vs', pairId);
   btn.classList.add('selected');
   attempts++; 
   statAttempts.textContent=attempts;
   locking=true;
 
   if(firstPick.pairId===pairId){
-    console.log('Match found!');
+    console.log('MATCH! Both have pairId:', pairId);
     // Match found!
     setTimeout(()=>{
       firstPick.btn.classList.remove('selected');
@@ -587,7 +587,7 @@ function onKey(e){
     }, 300);
     
   } else {
-    console.log('No match');
+    console.log('NO MATCH:', firstPick.pairId, '!==', pairId);
     // No match
     setTimeout(()=>{ 
       clearSelection();
