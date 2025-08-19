@@ -92,9 +92,6 @@
   .name-input{width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#0e1422; color:#fff; margin-bottom:8px}
   .upload{border:2px dashed rgba(255,255,255,.18); border-radius:12px; padding:14px; text-align:center; margin-bottom:8px}
   .upload:hover{border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.03)}
-  .files{margin:0; padding:0; list-style:none; max-height:200px; overflow:auto}
-  .files li{display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px dashed rgba(255,255,255,.08); gap:8px}
-  .files button{background:none; border:1px solid rgba(239,68,68,.6); border-radius:8px; padding:2px 8px; color:#ef4444; font-weight:800; cursor:pointer}
   .status{font-size:12px; color:var(--muted); margin-top:4px}
   .note{color:var(--muted); text-align:center; margin-top:8px}
 
@@ -111,12 +108,9 @@
 
     <div id="ticker" class="ticker">Welcome to the audio memory challenge!</div>
 
-    <div class="tabs">
-      <button class="tab active" id="tab-tones">Tones</button>
-      <button class="tab" id="tab-c1">Custom Set 1</button>
-      <button class="tab" id="tab-c2">Custom Set 2</button>
-      <button class="tab settings" id="tab-settings" title="Password protected">Open Settings</button>
-    </div>
+    <div id="tabsContainer" class="tabs">
+      <button class="tab active" data-mode="tones">Tones</button>
+      </div>
 
     <div class="panel">
       <div class="stats">
@@ -133,76 +127,26 @@
         <button class="btn" id="btnAudio">🔊 Audio On</button>
       </div>
 
-      <div class="note">Upload messages & custom audio via <b>Open Settings</b>. All data persists in your browser via IndexedDB.</div>
+      <div class="note">Game data is loaded from a secure server.</div>
     </div>
 
     <div id="admin" class="admin">
       <div class="card">
-        <h4>Funny Messages</h4>
+        <h4>Create New Custom Game</h4>
+        <input class="name-input" id="newName" placeholder="Enter new game name" />
         <div class="upload">
-          <input type="file" id="msgFile" accept=".txt" />
-          <div class="status">Upload a .txt file (one phrase per line, ≤150 chars)</div>
+          <input type="file" id="newFiles" multiple accept="audio/*"/>
+          <div class="status" id="uploadStatus">Select exactly 18 audio files.</div>
         </div>
-        <ul id="msgPreview" class="files"></ul>
-      </div>
-
-      <div class="card">
-        <h4>Custom Set 1</h4>
-        <input class="name-input" id="name1" placeholder="Enter game name" />
-        <div class="upload">
-          <input type="file" id="files1" multiple accept="audio/*"/>
-          <div class="status" id="status1">Empty (0/18)</div>
-        </div>
-        <ul id="list1" class="files"></ul>
-      </div>
-
-      <div class="card">
-        <h4>Custom Set 2</h4>
-        <input class="name-input" id="name2" placeholder="Enter game name" />
-        <div class="upload">
-          <input type="file" id="files2" multiple accept="audio/*"/>
-          <div class="status" id="status2">Empty (0/18)</div>
-        </div>
-        <ul id="list2" class="files"></ul>
+        <button class="btn" id="btnUpload">Upload New Game</button>
       </div>
     </div>
   </div>
 
 <script>
-/* ============================= IndexedDB wrapper ============================= */
-const DB_NAME='dtm'; const DB_VERSION=1;
-function openDB(){
-  return new Promise((res,rej)=>{
-    const req=indexedDB.open(DB_NAME,DB_VERSION);
-    req.onupgradeneeded=e=>{
-      const db=e.target.result;
-      if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
-      if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
-      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
-      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores');
-    };
-    req.onsuccess=()=>res(req.result);
-    req.onerror=()=>rej(req.error);
-  });
-}
-async function idbGet(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readonly'); const r=tx.objectStore(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });}
-async function idbSet(store,key,val){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).put(val,key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
-async function idbDel(store,key){ const db=await openDB(); return new Promise((res,rej)=>{ const tx=db.transaction(store,'readwrite'); tx.objectStore(store).delete(key); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); });}
-
-/* ============================== Gold ticker ============================== */
-const tickerEl=document.getElementById('ticker');
-let funnyMessages=[];
-async function loadMessages(){ const arr=await idbGet('messages','rotator'); if(Array.isArray(arr)) funnyMessages=arr; startTicker(); }
-function startTicker(){
-  tickerEl.textContent="Welcome to the audio memory challenge!";
-  setTimeout(()=>tickerEl.textContent="Match Pairs & Win!", 5000);
-  setTimeout(()=>tickerEl.textContent="", 15000);
-  setTimeout(()=>{
-    if(!funnyMessages.length){ tickerEl.textContent="Welcome to the audio memory challenge!"; return; }
-    showFunny(); setInterval(showFunny,30000);
-  },25000);
-}
-function showFunny(){ const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; tickerEl.textContent=msg||""; setTimeout(()=>tickerEl.textContent="",10000); }
+/* ============================ CONFIGURATION ============================= */
+// YOUR XANO API URL GOES HERE. The last part (/api:...) is your API Group.
+const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:your_api_group';
 
 /* ============================ Audio management ============================ */
 function tone(freq,dur){
@@ -212,7 +156,6 @@ function tone(freq,dur){
   let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
   return btoa(header+data);
 }
-
 function noise(dur) {
     const sr = 8000; const len = Math.floor(sr * dur); const arr = new Uint8Array(len);
     for (let i = 0; i < len; i++) {
@@ -224,7 +167,6 @@ function noise(dur) {
     let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
     return btoa(header+data);
 }
-
 const SOUND_EFFECTS = {
     success: new Audio(`data:audio/wav;base64,${tone(880, 0.25)}`),
     failure: new Audio(`data:audio/wav;base64,${noise(0.3)}`)
@@ -242,8 +184,8 @@ function playCardAudio(url){
 function playSuccessSfx() { if(!audioOn) return; SOUND_EFFECTS.success.currentTime = 0; SOUND_EFFECTS.success.play().catch(()=>{}); }
 function playFailureSfx() { if(!audioOn) return; SOUND_EFFECTS.failure.currentTime = 0; SOUND_EFFECTS.failure.play().catch(()=>{}); }
 
-
 /* =============================== Game state =============================== */
+const tickerEl = document.getElementById('ticker');
 const gridEl=document.getElementById('grid');
 const statMatches=document.getElementById('statMatches');
 const statAttempts=document.getElementById('statAttempts');
@@ -251,6 +193,7 @@ const statAcc=document.getElementById('statAcc');
 const timerChip=document.getElementById('timer');
 const btnNew=document.getElementById('btnNew');
 const btnAudio=document.getElementById('btnAudio');
+const tabsContainer=document.getElementById('tabsContainer');
 
 let attempts=0,matches=0,totalPairs=18,audioOn=true;
 let startTs=0,timerInt=null;
@@ -272,45 +215,27 @@ function buildGrid(){
     gridEl.appendChild(b);
   }
 }
-function setTabs(){
-  document.getElementById('tab-tones').classList.toggle('active',mode==='tones');
-  document.getElementById('tab-c1').classList.toggle('active',mode==='c1');
-  document.getElementById('tab-c2').classList.toggle('active',mode==='c2');
+
+function updateTabs(){
+  Array.from(tabsContainer.children).forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.mode === mode);
+  });
 }
+
 function newGame(){
   stopCardAudio();
-  firstPick=null; locking=false; attempts=0; matches=0;
+  firstPick=null; locking=false; attempts=0, matches=0;
   statAttempts.textContent='0'; statMatches.textContent=`0/${totalPairs}`; statAcc.textContent='100%';
   const arr=[...Array(18).keys(),...Array(18).keys()];
   for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
   cardMap=arr;
-  if (audioOn && sources[mode]) {
-    const uniquePairIds = [...new Set(cardMap)];
-    uniquePairIds.forEach(id => {
-        const url = sources[mode][id];
-        if (url) { new Audio(url).load(); }
-    });
-  }
   Array.from(gridEl.children).forEach(btn=>btn.classList.remove('matched'));
   startTimer();
-}
-function updateAcc(){ const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`; }
-
-async function checkAndSaveBestScore(time, attemptsCount) {
-    const currentBest = await idbGet('scores', mode) || { time: Infinity, attempts: Infinity };
-    if (time < currentBest.time || (time === currentBest.time && attemptsCount < currentBest.attempts)) {
-        const newBest = { time, attempts: attemptsCount };
-        await idbSet('scores', mode, newBest);
-        tickerEl.textContent = `🎉 New Record! ${time}s with ${attemptsCount} attempts!`;
-        setTimeout(() => { tickerEl.textContent = ""; }, 5000);
-    }
 }
 
 function onKey(e){
   const clickedButton = e.currentTarget;
-  if (locking || clickedButton.classList.contains('matched')) {
-      return;
-  }
+  if (locking || clickedButton.classList.contains('matched')) return;
 
   const currentPos = +clickedButton.dataset.pos;
   const currentPairId = cardMap[currentPos];
@@ -325,37 +250,27 @@ function onKey(e){
       return;
   }
 
-  if (firstPick.pos === currentPos) {
-      return;
-  }
+  if (firstPick.pos === currentPos) return;
 
   locking = true;
   attempts++;
   statAttempts.textContent = attempts;
-  updateAcc();
+  const pct=attempts?Math.round((matches/attempts)*100):100; statAcc.textContent=`${pct}%`;
 
   if (firstPick.pairId === currentPairId) {
-      // --- MATCH ---
       firstPick.btn.classList.add('matched');
       clickedButton.classList.add('matched');
       matches++;
       statMatches.textContent = `${matches}/${totalPairs}`;
       setTimeout(playSuccessSfx, 150);
-
-      if (matches === totalPairs) {
-          stopTimer();
-          const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
-          checkAndSaveBestScore(finalSeconds, attempts);
-      }
+      if (matches === totalPairs) stopTimer();
       firstPick = null;
       locking = false;
   } else {
-      // --- MISMATCH ---
       firstPick.btn.classList.add('mismatch');
       clickedButton.classList.add('mismatch');
       setTimeout(playFailureSfx, 150);
-
-      const firstButton = firstPick.btn; // Keep a reference to the first button
+      const firstButton = firstPick.btn;
       setTimeout(() => {
           firstButton.classList.remove('mismatch');
           clickedButton.classList.remove('mismatch');
@@ -371,137 +286,142 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInt); }
 
-/* ------------------------------- Admin wiring ----------------------------- */
-const adminEl=document.getElementById('admin');
-const msgFile=document.getElementById('msgFile');
-const msgPreview=document.getElementById('msgPreview');
-const name1=document.getElementById('name1');
-const name2=document.getElementById('name2');
-const files1=document.getElementById('files1');
-const files2=document.getElementById('files2');
-const list1=document.getElementById('list1');
-const list2=document.getElementById('list2');
-const status1=document.getElementById('status1');
-const status2=document.getElementById('status2');
 
-document.getElementById('tab-tones').onclick=()=> switchMode('tones');
-document.getElementById('tab-c1').onclick=()=> switchMode('c1');
-document.getElementById('tab-c2').onclick=()=> switchMode('c2');
-document.getElementById('tab-settings').onclick=async ()=>{
-  const p=prompt('Enter admin password:');
-  if(p==='MUSIC'){ adminEl.style.display='block'; }
-  else alert('Incorrect password.');
-};
+/* --------------------------- Server Communication ------------------------- */
+async function loadGamesFromServer() {
+    try {
+        const response = await fetch(`${XANO_BASE_URL}/games`);
+        if (!response.ok) throw new Error('Failed to fetch games list');
+        const games = await response.json();
 
-btnNew.onclick=newGame;
-btnAudio.onclick=()=>{ audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; };
+        games.forEach(game => {
+            const tab = document.createElement('button');
+            tab.className = 'tab';
+            tab.dataset.mode = `game_${game.id}`;
+            tab.textContent = game.name;
+            tabsContainer.appendChild(tab);
+        });
+        
+        const settingsTab = document.createElement('button');
+        settingsTab.className = 'tab settings';
+        settingsTab.id = 'tab-settings';
+        settingsTab.title = 'Create a new game';
+        settingsTab.textContent = '⊕ Create New';
+        settingsTab.onclick = () => {
+            const adminEl = document.getElementById('admin');
+            adminEl.style.display = adminEl.style.display === 'block' ? 'none' : 'block';
+        };
+        tabsContainer.appendChild(settingsTab);
 
-msgFile.addEventListener('change', async (e)=>{
-  const f=e.target.files?.[0]; if(!f) return;
-  const text=await f.text();
-  const lines=text.split('\n').map(v=>v.trim()).filter(v=>v && v.length<=150).slice(0,200);
-  funnyMessages=lines; await idbSet('messages','rotator',funnyMessages); renderMessages(); alert(`Loaded ${funnyMessages.length} messages.`);
-});
-function renderMessages(){
-  msgPreview.innerHTML=''; funnyMessages.slice(0,50).forEach((m)=>{ const li=document.createElement('li'); li.textContent=m; msgPreview.appendChild(li); });
+    } catch (error) {
+        console.error('Error loading games:', error);
+        tickerEl.textContent = '❌ Could not load custom games from server.';
+    }
 }
 
-name1.addEventListener('input', ()=> saveName('c1',name1.value));
-name2.addEventListener('input', ()=> saveName('c2',name2.value));
-files1.addEventListener('change', (e)=> handleFiles('c1',e.target.files));
-files2.addEventListener('change', (e)=> handleFiles('c2',e.target.files));
+async function switchMode(newMode, gameId = null) {
+    if (mode === newMode) return;
+    mode = newMode;
+    updateTabs();
+    tickerEl.textContent = 'Loading game...';
 
-async function saveName(key,val){ const g=await idbGet('games',key)||{name:'',files:[]}; g.name=val||''; await idbSet('games',key,g); applyGameNames(); }
-function applyGameNames(){
-  document.getElementById('tab-c1').textContent=(gameMeta.c1?.name?.trim()||'Custom Set 1');
-  document.getElementById('tab-c2').textContent=(gameMeta.c2?.name?.trim()||'Custom Set 2');
-}
-
-async function handleFiles(key, fileList) {
-    const files = Array.from(fileList).filter(f => f.type.startsWith('audio/'));
-    if (!files.length) {
-        alert('Please select audio files.');
+    if (mode === 'tones') {
+        newGame();
+        tickerEl.textContent = 'Tones game ready!';
         return;
     }
 
-    const statusEl = key === 'c1' ? status1 : status2;
-    const originalStatus = statusEl.textContent;
-    tickerEl.textContent = '⏳ Processing audio files... please wait.';
-    statusEl.textContent = 'Processing...';
-    document.body.style.cursor = 'wait';
-
     try {
-        const g = await idbGet('games', key) || { name: '', files: [] };
-        g.files = [];
+        const response = await fetch(`${XANO_BASE_URL}/games/${gameId}`);
+        if (!response.ok) throw new Error('Failed to fetch game data');
+        const audioFiles = await response.json();
 
-        for (const f of files.slice(0, 18)) {
-            const buf = await f.arrayBuffer();
-            g.files.push({ name: f.name, blob: new Blob([buf], { type: f.type || 'audio/mpeg' }) });
+        if (audioFiles.length < 18) {
+            tickerEl.textContent = `❌ Game is incomplete. Requires 18 sounds.`;
+            return;
         }
 
-        await idbSet('games', key, g);
-        await loadGames();
-
-        tickerEl.textContent = `✅ Saved ${g.files.length} audio file(s).`;
-        setTimeout(() => { tickerEl.textContent = ""; }, 5000);
-
+        sources[mode] = audioFiles.map(file => file.audio.url);
+        newGame();
+        tickerEl.textContent = 'Custom game ready!';
     } catch (error) {
-        console.error('Error handling files:', error);
-        tickerEl.textContent = '❌ Error saving files. See console for details.';
-        statusEl.textContent = originalStatus;
-    } finally {
-        document.body.style.cursor = 'default';
+        console.error('Error loading specific game:', error);
+        tickerEl.textContent = `❌ Could not load game ${gameId}.`;
     }
 }
 
-function renderFileList(ul,key){
-  ul.innerHTML='';
-  const files=(gameMeta[key]?.files)||[];
-  files.forEach((f,idx)=>{
-    const li=document.createElement('li');
-    const nameSpan=document.createElement('span'); nameSpan.textContent=f.name||`audio-${idx+1}`;
-    const del=document.createElement('button'); del.textContent='✖'; del.title='Delete';
-    del.onclick=async ()=>{ const g=await idbGet('games',key)||{name:'',files:[]}; g.files.splice(idx,1); await idbSet('games',key,g); await loadGames(); };
-    li.appendChild(nameSpan); li.appendChild(del); ul.appendChild(li);
-  });
-  const sEl=key==='c1'?status1:status2;
-  sEl.textContent=files.length===18?'Ready (18/18)':files.length>0?`Partial (${files.length}/18)`:'Empty (0/18)';
-}
 
-/* ----------------------------- Load games/meta ---------------------------- */
-let gameMeta={c1:null,c2:null};
-let urlsToRevoke=[];
+/* ------------------------------- Admin wiring ----------------------------- */
+const newNameInput = document.getElementById('newName');
+const newFilesInput = document.getElementById('newFiles');
+const uploadStatus = document.getElementById('uploadStatus');
+const btnUpload = document.getElementById('btnUpload');
 
-async function loadGames(){
-  urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); urlsToRevoke=[];
-  gameMeta.c1=await idbGet('games','c1')||{name:'',files:[]};
-  gameMeta.c2=await idbGet('games','c2')||{name:'',files:[]};
-  sources.c1=(gameMeta.c1.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
-  sources.c2=(gameMeta.c2.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
-  name1.value=gameMeta.c1.name||''; name2.value=gameMeta.c2.name||'';
-  renderFileList(list1,'c1'); renderFileList(list2,'c2'); applyGameNames();
-}
+btnNew.onclick = newGame;
+btnAudio.onclick = () => { audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; };
 
-/* ---------------------------- Mode persistence ---------------------------- */
-async function switchMode(next){
-  mode=next; setTabs(); await idbSet('meta','mode',mode);
-  if(mode!=='tones'){ const have=(sources[mode]||[]).length; if(have<18){ alert(`${document.getElementById(mode==='c1'?'tab-c1':'tab-c2').textContent} is not ready. Please upload 18 audio files.`); mode='tones'; setTabs(); await idbSet('meta','mode',mode); } }
-  newGame();
-}
+tabsContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tab') && !e.target.classList.contains('settings')) {
+        const newMode = e.target.dataset.mode;
+        const gameId = newMode.startsWith('game_') ? newMode.split('_')[1] : null;
+        switchMode(newMode, gameId);
+    }
+});
+
+btnUpload.onclick = async () => {
+    const name = newNameInput.value.trim();
+    const files = Array.from(newFilesInput.files);
+
+    if (!name) {
+        alert('Please enter a name for the new game.');
+        return;
+    }
+    if (files.length !== 18) {
+        alert('Please select exactly 18 audio files.');
+        return;
+    }
+
+    tickerEl.textContent = '⏳ Uploading new game... this may take a moment.';
+    btnUpload.disabled = true;
+    document.body.style.cursor = 'wait';
+
+    const formData = new FormData();
+    formData.append('name', name);
+    files.forEach(file => {
+        formData.append('files[]', file);
+    });
+
+    try {
+        const response = await fetch(`${XANO_BASE_URL}/games`, {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
+        
+        tickerEl.textContent = '✅ Upload complete! Reloading page...';
+        setTimeout(() => window.location.reload(), 2000);
+
+    } catch(error) {
+        console.error('Upload error:', error);
+        tickerEl.textContent = `❌ Upload Failed: ${error.message}`;
+        btnUpload.disabled = false;
+        document.body.style.cursor = 'default';
+    }
+};
 
 /* --------------------------------- Init ---------------------------------- */
 async function init(){
   buildGrid();
   btnAudio.textContent='🔊 Audio On';
-  await loadGames();
-  await loadMessages();
-  const lastMode=await idbGet('meta','mode');
-  if(lastMode && (lastMode==='tones' || lastMode==='c1' || lastMode==='c2')) mode=lastMode;
-  setTabs(); newGame();
+  await loadGamesFromServer();
+  switchMode('tones');
 }
 
-window.addEventListener('beforeunload', ()=>{ stopCardAudio(); urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); });
-document.addEventListener('click',()=>{ /* warm user interaction for autoplay */ },{once:true});
+window.addEventListener('beforeunload', () => stopCardAudio());
+document.addEventListener('click', () => { /* warm user interaction for autoplay */ }, {once:true});
 
 init();
 </script>
