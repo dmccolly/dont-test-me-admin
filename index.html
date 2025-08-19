@@ -179,7 +179,7 @@ function openDB(){
       if(!db.objectStoreNames.contains('games')) db.createObjectStore('games');
       if(!db.objectStoreNames.contains('messages')) db.createObjectStore('messages');
       if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
-      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores'); // For best times/attempts
+      if(!db.objectStoreNames.contains('scores')) db.createObjectStore('scores');
     };
     req.onsuccess=()=>res(req.result);
     req.onerror=()=>rej(req.error);
@@ -205,9 +205,31 @@ function startTicker(){
 function showFunny(){ const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; tickerEl.textContent=msg||""; setTimeout(()=>tickerEl.textContent="",10000); }
 
 /* ============================ Audio management ============================ */
-let currentAudio=null;
-function stopAudio(){ if(currentAudio){ try{currentAudio.pause();}catch(e){} currentAudio=null; } }
-function playSrc(url){ stopAudio(); currentAudio=new Audio(url); currentAudio.play().catch(()=>{}); }
+function tone(freq,dur){ // This function must be defined before it is used below
+  const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
+  for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
+  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
+  let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
+  return btoa(header+data);
+}
+
+const SOUND_EFFECTS = {
+    success: new Audio(`data:audio/wav;base64,${tone(698, 0.25)}`),
+    failure: new Audio(`data:audio/wav;base64,${tone(220, 0.35)}`)
+};
+SOUND_EFFECTS.success.load();
+SOUND_EFFECTS.failure.load();
+
+let currentCardAudio=null;
+function stopCardAudio(){ if(currentCardAudio){ try{currentCardAudio.pause();}catch(e){} currentCardAudio=null; } }
+function playCardAudio(url){
+    stopCardAudio();
+    currentCardAudio=new Audio(url);
+    currentCardAudio.play().catch(()=>{});
+}
+function playSuccessSfx() { SOUND_EFFECTS.success.currentTime = 0; SOUND_EFFECTS.success.play().catch(()=>{}); }
+function playFailureSfx() { SOUND_EFFECTS.failure.currentTime = 0; SOUND_EFFECTS.failure.play().catch(()=>{}); }
+
 
 /* =============================== Game state =============================== */
 const gridEl=document.getElementById('grid');
@@ -227,13 +249,6 @@ let cardMap=[];
 let sources={};
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
-function tone(freq,dur){
-  const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
-  for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
-  function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
-  let data=Array.from(arr,c=>String.fromCharCode(c)).join(''); let header="RIFF"+w32(36+len)+"WAVEfmt "+w32(16)+w16(1)+w16(1)+w32(sr)+w32(sr)+w16(1)+w16(8)+"data"+w32(len);
-  return btoa(header+data);
-}
 
 /* --------------------------- UI build & behavior -------------------------- */
 function buildGrid(){
@@ -251,7 +266,7 @@ function setTabs(){
   document.getElementById('tab-c2').classList.toggle('active',mode==='c2');
 }
 function newGame(){
-  stopAudio();
+  stopCardAudio();
   firstPick=null; locking=false; attempts=0; matches=0;
   statAttempts.textContent='0'; statMatches.textContent=`0/${totalPairs}`; statAcc.textContent='100%';
   const arr=[...Array(18).keys(),...Array(18).keys()];
@@ -276,7 +291,7 @@ function onKey(e){
   const btn=e.currentTarget; if(locking || btn.classList.contains('matched')) return;
   const pos=+btn.dataset.pos; const pairId=cardMap[pos];
 
-  if(audioOn){ const url=(sources[mode]||[])[pairId]; if(url) playSrc(url); }
+  if(audioOn){ const url=(sources[mode]||[])[pairId]; if(url) playCardAudio(url); }
 
   if(!firstPick){
     firstPick={btn,pos,pairId};
@@ -293,7 +308,7 @@ function onKey(e){
     btn.classList.add('matched');
     matches++;
     statMatches.textContent=`${matches}/${totalPairs}`;
-    if(audioOn) setTimeout(()=>playSrc(sources.tones[12]),120);
+    if(audioOn) setTimeout(playSuccessSfx, 120);
     if(matches===totalPairs){
       stopTimer();
       const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
@@ -306,7 +321,7 @@ function onKey(e){
     const secondBtn = btn;
     firstBtn.classList.add('mismatch');
     secondBtn.classList.add('mismatch');
-    if (audioOn) setTimeout(() => playSrc(sources.tones[0]), 120);
+    if (audioOn) setTimeout(playFailureSfx, 120);
     setTimeout(() => {
         firstBtn.classList.remove('mismatch');
         secondBtn.classList.remove('mismatch');
@@ -425,8 +440,8 @@ async function init(){
   setTabs(); newGame();
 }
 
-window.addEventListener('beforeunload', ()=>{ stopAudio(); urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); });
-document.addEventListener('click',()=>{ if(currentAudio){ /* warm user interaction for autoplay */ } },{once:true});
+window.addEventListener('beforeunload', ()=>{ stopCardAudio(); urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); });
+document.addEventListener('click',()=>{ /* warm user interaction for autoplay */ },{once:true});
 
 init();
 </script>
