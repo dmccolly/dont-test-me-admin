@@ -427,4 +427,168 @@ function fmtBest(stats){
 /* =========================== Game lifecycle =========================== */
 function newShuffledMap(){
   const arr=[...Array(18).keys(),...Array(18).keys()];
-  for(let i=arr.length-1;i>0;
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+async function newGame(fromResume=false){
+  stopAllAudio();
+  firstPick=null; resolving=false;
+  attempts=0; matches=0;
+  matchedPositions = new Array(36).fill(false);
+  statAttempts.textContent='0'; statMatches.textContent=`0/${totalPairs}`; statAcc.textContent='100%';
+  Array.from(gridEl.children).forEach(btn=>btn.classList.remove('matched'));
+  if(!fromResume){
+    cardMap = newShuffledMap();
+    startTimer(true);
+  }
+  scheduleSave();
+}
+function updateAcc(){
+  const pct=attempts?Math.round((matches/attempts)*100):100;
+  statAcc.textContent=`${pct}%`;
+}
+function updateStatsUI(stats){
+  statBest.textContent = fmtBest(stats);
+}
+
+/* =========================== Click handling (race-free) =========================== */
+let lastClickAt=0;
+function onKey(e){
+  const now = performance.now();
+  if(resolving) return;                 // fully lock while deciding a pair
+  if(now - lastClickAt < 80) return;    // gentle debounce for double taps
+  lastClickAt = now;
+
+  const btn=e.currentTarget;
+  const pos=+btn.dataset.pos;
+  if(matchedPositions[pos]) return;     // already matched
+  if(firstPick && firstPick.pos===pos) return; // ignore second tap on same tile
+
+  const pairId=cardMap[pos];
+
+  // AUDIO first to feel responsive
+  if(audioOn){
+    if(mode==='tones'){ AudioEngine.playTone(toneFreqs[pairId]); }
+    else{
+      const url=(sources[mode]||[])[pairId]; if(url) AudioEngine.playCustom(mode, url);
+    }
+  }
+
+  if(!firstPick){
+    firstPick={btn,pos,pairId};
+    return;
+  }
+
+  // we have a second pick -> resolve exactly once
+  resolving = true;
+  attempts++; statAttempts.textContent=attempts;
+
+  if(firstPick.pairId===pairId){
+    matchedPositions[firstPick.pos]=true;
+    matchedPositions[pos]=true;
+    firstPick.btn.classList.add('matched'); btn.classList.add('matched');
+    matches++; statMatches.textContent=`${matches}/${totalPairs}`;
+    if(audioOn && mode!=='tones'){ // small “ding” using tone engine
+      setTimeout(()=>AudioEngine.playTone(988,0.2), 80);
+    }
+    firstPick=null; updateAcc(); scheduleSave();
+    resolving=false;
+
+    if(matches===totalPairs){
+      stopTimer();
+      handleWin();
+    }
+  }else{
+    firstPick=null; updateAcc(); scheduleSave();
+    // short delay where we ignore clicks to avoid churn
+    setTimeout(()=>{ resolving=false; }, 180);
+  }
+}
+
+/* ============================== Timer ============================== */
+function startTimer(resetStart=false){
+  clearInterval(timerInt);
+  if(resetStart) startTs=Date.now();
+  timerInt=setInterval(()=>{
+    const s=Math.floor((Date.now()-startTs)/1000);
+    const m=Math.floor(s/60), r=s%60;
+    timerChip.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;
+  },1000);
+}
+function stopTimer(){ clearInterval(timerInt); }
+
+/* ============================== Win ============================== */
+async function handleWin(){
+  const totalSec = Math.floor((Date.now()-startTs)/1000);
+  const stats = await loadStats();
+  if(stats.bestTimeSec==null || totalSec < stats.bestTimeSec){ stats.bestTimeSec = totalSec; }
+  if(stats.fewestAttempts==null || attempts < stats.fewestAttempts){ stats.fewestAttempts = attempts; }
+  stats.gamesPlayed = (stats.gamesPlayed||0)+1;
+  stats.lastCompletedAt = Date.now();
+  await persistStats(stats);
+  updateStatsUI(stats);
+  await persistState();
+}
+
+/* ============================== Audio sources ============================== */
+function stopAllAudio(){ /* best-effort: WebAudio tones are short; custom pools paused before reuse */ }
+
+/* ------------------------------- Admin wiring ----------------------------- */
+document.getElementById('tab-tones').onclick=()=> switchMode('tones');
+document.getElementById('tab-c1').onclick=()=> switchMode('c1');
+document.getElementById('tab-c2').onclick=()=> switchMode('c2');
+document.getElementById('tab-settings').onclick=async ()=>{
+  const p=prompt('Enter admin password:');
+  if(p==='MUSIC'){ adminEl.style.display='block'; }
+  else alert('Incorrect password.');
+};
+
+btnNew.onclick=async ()=>{
+  await idbDel(STORES.state, stateKey()); // fresh round; keep stats
+  await newGame(false);
+};
+btnAudio.onclick=()=>{ audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; scheduleSave(); };
+
+/* Messages upload */
+msgFile?.addEventListener('change', async (e)=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  const text=await f.text();
+  const lines=text.split('\n').map(v=>v.trim()).filter(v=>v && v.length<=150).slice(0,200);
+  funnyMessages=lines; await idbSet(STORES.messages,'rotator',funnyMessages); renderMessages(); alert(`Loaded ${funnyMessages.length} messages.`);
+});
+function renderMessages(){
+  if(!msgPreview) return;
+  msgPreview.innerHTML='';
+  funnyMessages.slice(0,50).forEach((m)=>{ const li=document.createElement('li'); li.textContent=m; msgPreview.appendChild(li); });
+}
+
+/* Custom sets */
+name1?.addEventListener('input', ()=> saveName('c1',name1.value));
+name2?.addEventListener('input', ()=> saveName('c2',name2.value));
+files1?.addEventListener('change', (e)=> handleFiles('c1',e.target.files));
+files2?.addEventListener('change', (e)=> handleFiles('c2',e.target.files));
+
+async function saveName(key,val){ const g=await idbGet(STORES.games,key)||{name:'',files:[]}; g.name=val||''; await idbSet(STORES.games,key,g); applyGameNames(); }
+function applyGameNames(){
+  const c1=(gameMeta.c1?.name||'').trim();
+  const c2=(gameMeta.c2?.name||'').trim();
+  document.getElementById('tab-c1').textContent=c1||'Custom Set 1';
+  document.getElementById('tab-c2').textContent=c2||'Custom Set 2';
+}
+
+async function handleFiles(key,fileList){
+  const files=Array.from(fileList).filter(f=>f.type.startsWith('audio/'));
+  if(!files.length){ alert('Please select audio files.'); return; }
+  const g=await idbGet(STORES.games,key)||{name:'',files:[]}; g.files=[];
+  // Deterministic order prevents accidental “same-sounding-neighbors” confusion
+  files.sort((a,b)=>a.name.localeCompare(b.name));
+  for(const f of files.slice(0,18)){
+    const buf=await f.arrayBuffer();
+    g.files.push({name:f.name, blob:new Blob([buf],{type:f.type||'audio/mpeg'})});
+  }
+  await idbSet(STORES.games,key,g);
+  await loadGames();
+  alert(`Saved ${g.files.length} file(s) to ${key==='c1'?'Custom Set 1':'Custom Set 2'}.`);
+}
+
+/* --------------*
