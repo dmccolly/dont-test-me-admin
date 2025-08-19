@@ -222,12 +222,12 @@ let attempts=0,matches=0,totalPairs=18,audioOn=true;
 let startTs=0,timerInt=null;
 let firstPick=null,locking=false;
 
-let mode='tones';               // 'tones' | 'c1' | 'c2'
-let cardMap=[];                 // positions -> pairId 0..17
-let sources={};                 // tones/c1/c2 -> [18 urls]
+let mode='tones';
+let cardMap=[];
+let sources={};
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
-function tone(freq,dur){ // tiny u8 WAV for inline tones
+function tone(freq,dur){
   const sr=8000,len=Math.floor(sr*dur),arr=new Uint8Array(len);
   for(let i=0;i<len;i++){ const t=i/sr; arr[i]=128+Math.round(60*Math.sin(2*Math.PI*freq*t)*Math.exp(-3*t)); }
   function w16(v){return String.fromCharCode(v&255,(v>>8)&255)} function w32(v){return w16(v&65535)+w16(v>>>16)}
@@ -264,8 +264,6 @@ function updateAcc(){ const pct=attempts?Math.round((matches/attempts)*100):100;
 
 async function checkAndSaveBestScore(time, attemptsCount) {
     const currentBest = await idbGet('scores', mode) || { time: Infinity, attempts: Infinity };
-    
-    // A better score is lower time, or same time with fewer attempts
     if (time < currentBest.time || (time === currentBest.time && attemptsCount < currentBest.attempts)) {
         const newBest = { time, attempts: attemptsCount };
         await idbSet('scores', mode, newBest);
@@ -280,39 +278,45 @@ function onKey(e){
 
   if(audioOn){ const url=(sources[mode]||[])[pairId]; if(url) playSrc(url); }
 
-  if(!firstPick){ firstPick={btn,pos,pairId}; return; }
-  if(firstPick.pos===pos) return; // same button
+  if(!firstPick){
+    firstPick={btn,pos,pairId};
+    return;
+  }
 
-  attempts++; statAttempts.textContent=attempts;
+  if(firstPick.pos===pos) return;
+
+  attempts++;
+  statAttempts.textContent=attempts;
 
   if(firstPick.pairId===pairId){
-    firstPick.btn.classList.add('matched'); btn.classList.add('matched');
-    matches++; statMatches.textContent=`${matches}/${totalPairs}`;
+    firstPick.btn.classList.add('matched');
+    btn.classList.add('matched');
+    matches++;
+    statMatches.textContent=`${matches}/${totalPairs}`;
     if(audioOn) setTimeout(()=>playSrc(sources.tones[12]),120);
     if(matches===totalPairs){
       stopTimer();
       const finalSeconds = Math.floor((Date.now() - startTs) / 1000);
       checkAndSaveBestScore(finalSeconds, attempts);
     }
+    firstPick=null;
   }else{
-    // Mismatch
     locking = true;
     const firstBtn = firstPick.btn;
     const secondBtn = btn;
-
     firstBtn.classList.add('mismatch');
     secondBtn.classList.add('mismatch');
-    
-    if (audioOn) setTimeout(() => playSrc(sources.tones[0]), 120); // Play a "wrong" sound
-
+    if (audioOn) setTimeout(() => playSrc(sources.tones[0]), 120);
     setTimeout(() => {
         firstBtn.classList.remove('mismatch');
         secondBtn.classList.remove('mismatch');
         locking = false;
+        firstPick=null;
     }, 800);
   }
-  firstPick=null; updateAcc();
+  updateAcc();
 }
+
 function startTimer(){
   clearInterval(timerInt); startTs=Date.now();
   timerInt=setInterval(()=>{ const s=Math.floor((Date.now()-startTs)/1000),m=Math.floor(s/60),r=s%60; timerChip.textContent=`Time: ${m}:${r.toString().padStart(2,'0')} | Attempts: ${attempts}`;},1000);
@@ -323,7 +327,6 @@ function stopTimer(){ clearInterval(timerInt); }
 const adminEl=document.getElementById('admin');
 const msgFile=document.getElementById('msgFile');
 const msgPreview=document.getElementById('msgPreview');
-
 const name1=document.getElementById('name1');
 const name2=document.getElementById('name2');
 const files1=document.getElementById('files1');
@@ -395,15 +398,11 @@ let gameMeta={c1:null,c2:null};
 let urlsToRevoke=[];
 
 async function loadGames(){
-  // Revoke previous object URLs to avoid leaks
   urlsToRevoke.forEach(u=>URL.revokeObjectURL(u)); urlsToRevoke=[];
-
   gameMeta.c1=await idbGet('games','c1')||{name:'',files:[]};
   gameMeta.c2=await idbGet('games','c2')||{name:'',files:[]};
-
   sources.c1=(gameMeta.c1.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
   sources.c2=(gameMeta.c2.files||[]).slice(0,18).map(o=>{const u=URL.createObjectURL(o.blob); urlsToRevoke.push(u); return u;});
-
   name1.value=gameMeta.c1.name||''; name2.value=gameMeta.c2.name||'';
   renderFileList(list1,'c1'); renderFileList(list2,'c2'); applyGameNames();
 }
@@ -421,8 +420,7 @@ async function init(){
   btnAudio.textContent='🔊 Audio On';
   await loadGames();
   await loadMessages();
-
-  const lastMode=await idbGet('meta','mode'); // restore last chosen mode
+  const lastMode=await idbGet('meta','mode');
   if(lastMode && (lastMode==='tones' || lastMode==='c1' || lastMode==='c2')) mode=lastMode;
   setTabs(); newGame();
 }
