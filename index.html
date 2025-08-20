@@ -33,8 +33,7 @@
     background:var(--glass); color:#fff; cursor:pointer; font-weight:600;
   }
   .tab.active{background:rgba(16,185,129,.14); border-color:rgba(16,185,129,.35); color:var(--ok)}
-  .tab.settings{opacity:.65}
-
+  
   .panel{
     background:var(--panel); border:1px solid var(--line); border-radius:16px;
     padding:14px; box-shadow:0 18px 40px rgba(0,0,0,.35);
@@ -84,15 +83,23 @@
   }
   .timerChip{padding:8px 12px; border-radius:12px; background:var(--glass); border:1px solid var(--line); font-weight:700}
 
+  .footer{
+    display: flex; justify-content: space-between; align-items: center;
+    color:var(--muted); text-align:center; margin-top:12px; padding:0 10px; font-size:14px;
+  }
+  #adminBtn {
+    font-size:24px; cursor:pointer; opacity:0.35; transition: opacity .2s ease;
+  }
+  #adminBtn:hover { opacity:0.8; }
+
   .admin{display:none; margin-top:12px}
   .card{background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:12px}
-  .card h4{margin:0 0 8px}
+  .card h4{margin:0 0 10px}
   .name-input{width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#0e1422; color:#fff; margin-bottom:8px}
   .upload{border:2px dashed rgba(255,255,255,.18); border-radius:12px; padding:14px; text-align:center; margin-bottom:8px}
   .upload:hover{border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.03)}
   .status{font-size:12px; color:var(--muted); margin-top:4px}
-  .note{color:var(--muted); text-align:center; margin-top:8px}
-
+  
   @media (max-width:500px){
     .grid{gap:6px}
     .key{border-radius:12px}
@@ -122,18 +129,30 @@
         <div class="timerChip" id="timer">Time: 0:00 | Attempts: 0</div>
         <button class="btn" id="btnAudio">🔊 Audio On</button>
       </div>
-      <div class="note">Game data is loaded from a secure server.</div>
+    </div>
+    
+    <div class="footer">
+      <span>Game data is loaded from a secure server.</span>
+      <span id="adminBtn" title="Admin Settings">⚙️</span>
     </div>
 
     <div id="admin" class="admin">
       <div class="card">
-        <h4>Create New Custom Game</h4>
-        <input class="name-input" id="newName" placeholder="Enter new game name" />
+        <h4>Create New Audio Game</h4>
+        <input class="name-input" id="newName" placeholder="e.g., Randomables I" />
         <div class="upload">
           <input type="file" id="newFiles" multiple accept="audio/*"/>
-          <div class="status" id="uploadStatus">Select exactly 18 audio files.</div>
+          <div class="status">Select exactly 18 audio files.</div>
         </div>
-        <button class="btn" id="btnUpload">Upload New Game</button>
+        <button class="btn" id="btnUploadGame">Upload Audio Game</button>
+      </div>
+      <div class="card">
+        <h4>Upload Ticker Messages</h4>
+        <div class="upload">
+          <input type="file" id="msgFile" accept=".txt" />
+          <div class="status">Upload a .txt file (one phrase per line)</div>
+        </div>
+        <button class="btn" id="btnUploadMsgs">Upload Messages</button>
       </div>
     </div>
   </div>
@@ -193,6 +212,7 @@ let firstPick=null,locking=false;
 let mode='tones';
 let cardMap=[];
 let sources={};
+let funnyMessages=[];
 sources.tones=[220,246,261,293,329,349,392,440,493,523,587,659,698,783,880,987,1046,1174].map(f=>`data:audio/wav;base64,${tone(f,0.42)}`);
 
 function buildGrid(){
@@ -281,12 +301,27 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInt); }
 
+function startTicker(){
+  tickerEl.textContent="Welcome to the audio memory challenge!";
+  setTimeout(()=>tickerEl.textContent="Match Pairs & Win!", 5000);
+  setTimeout(()=>tickerEl.textContent="", 15000);
+  setTimeout(()=>{
+    if(!funnyMessages.length) return;
+    const showFunny = () => { 
+        const msg=funnyMessages[Math.floor(Math.random()*funnyMessages.length)]; 
+        tickerEl.textContent=msg||""; 
+        setTimeout(()=>tickerEl.textContent="",10000); 
+    };
+    showFunny(); 
+    setInterval(showFunny,30000);
+  }, 16000);
+}
+
 async function loadGamesFromServer() {
     try {
         const response = await fetch(`${XANO_BASE_URL}/game`);
         if (!response.ok) throw new Error('Failed to fetch games list');
         const games = await response.json();
-
         games.forEach(game => {
             const tab = document.createElement('button');
             tab.className = 'tab';
@@ -294,26 +329,22 @@ async function loadGamesFromServer() {
             tab.textContent = game.name;
             tabsContainer.appendChild(tab);
         });
-        
-        const settingsTab = document.createElement('button');
-        settingsTab.className = 'tab settings';
-        settingsTab.id = 'tab-settings';
-        settingsTab.title = 'Create a new game';
-        settingsTab.textContent = '⊕ Create New';
-        settingsTab.onclick = () => {
-            const p = prompt('Enter admin password:');
-            if (p === 'MUSIC') {
-                const adminEl = document.getElementById('admin');
-                adminEl.style.display = 'block';
-            } else if (p !== null) {
-                alert('Incorrect password.');
-            }
-        };
-        tabsContainer.appendChild(settingsTab);
-
     } catch (error) {
         console.error('Error loading games:', error);
-        tickerEl.textContent = '❌ Could not load custom games from server.';
+        tickerEl.textContent = '❌ Could not load custom games.';
+    }
+}
+
+async function loadTickerMessagesFromServer() {
+    try {
+        const response = await fetch(`${XANO_BASE_URL}/messages`);
+        if (!response.ok) throw new Error('Failed to fetch messages');
+        const msgs = await response.json();
+        funnyMessages = msgs.map(m => m.content);
+        startTicker();
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        startTicker();
     }
 }
 
@@ -321,13 +352,15 @@ async function switchMode(newMode, gameId = null) {
     if (mode === newMode) return;
     mode = newMode;
     updateTabs();
-    tickerEl.textContent = 'Loading game...';
-
+    
     if (mode === 'tones') {
-        newGame();
         tickerEl.textContent = 'Tones game ready!';
+        newGame();
         return;
     }
+    
+    tickerEl.textContent = '⏳ Loading audio from server...';
+    gridEl.style.opacity = '0.2'; // Visual feedback for loading
 
     try {
         const response = await fetch(`${XANO_BASE_URL}/game/${gameId}`);
@@ -338,84 +371,117 @@ async function switchMode(newMode, gameId = null) {
             tickerEl.textContent = `❌ Game is incomplete. Requires 18 sounds.`;
             return;
         }
-
         sources[mode] = audioFiles.map(file => file.audio.url);
         newGame();
         tickerEl.textContent = 'Custom game ready!';
     } catch (error) {
         console.error('Error loading specific game:', error);
-        tickerEl.textContent = `❌ Could not load game ${gameId}.`;
+        tickerEl.textContent = `❌ Could not load game.`;
+    } finally {
+        gridEl.style.opacity = '1';
     }
 }
 
+// --- Admin ---
+const adminBtn = document.getElementById('adminBtn');
 const newNameInput = document.getElementById('newName');
 const newFilesInput = document.getElementById('newFiles');
-const btnUpload = document.getElementById('btnUpload');
+const btnUploadGame = document.getElementById('btnUploadGame');
+const msgFileInput = document.getElementById('msgFile');
+const btnUploadMsgs = document.getElementById('btnUploadMsgs');
 
+adminBtn.onclick = () => {
+    const p = prompt('Enter admin password:');
+    if (p === 'MUSIC') {
+        document.getElementById('admin').style.display = 'block';
+    } else if (p !== null) {
+        alert('Incorrect password.');
+    }
+};
+
+btnUploadGame.onclick = async () => {
+    const name = newNameInput.value.trim();
+    const files = Array.from(newFilesInput.files);
+    if (!name || files.length !== 18) {
+        alert('Please provide a name and exactly 18 audio files.');
+        return;
+    }
+
+    tickerEl.textContent = '⏳ Uploading new game...';
+    btnUploadGame.disabled = true;
+    const formData = new FormData();
+    formData.append('name', name);
+    files.forEach(file => formData.append('files[]', file));
+
+    try {
+        const response = await fetch(`${XANO_BASE_URL}/game`, { method: 'POST', body: formData });
+        if (!response.ok) throw new Error((await response.json()).message || 'Upload failed');
+        tickerEl.textContent = '✅ Upload complete! Reloading...';
+        setTimeout(() => window.location.reload(), 2000);
+    } catch(error) {
+        tickerEl.textContent = `❌ Upload Failed: ${error.message}`;
+        btnUploadGame.disabled = false;
+    }
+};
+
+btnUploadMsgs.onclick = async () => {
+    const file = msgFileInput.files?.[0];
+    if (!file) { alert('Please select a .txt file.'); return; }
+
+    tickerEl.textContent = '⏳ Uploading messages...';
+    btnUploadMsgs.disabled = true;
+
+    try {
+        const text = await file.text();
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        const response = await fetch(`${XANO_BASE_URL}/messages`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ messages_list: lines })
+        });
+        if (!response.ok) throw new Error((await response.json()).message || 'Upload failed');
+        tickerEl.textContent = '✅ Messages updated! Reloading...';
+        setTimeout(() => window.location.reload(), 2000);
+    } catch (error) {
+        tickerEl.textContent = `❌ Upload Failed: ${error.message}`;
+        btnUploadMsgs.disabled = false;
+    }
+};
+
+// --- Main Event Listeners ---
 btnNew.onclick = newGame;
 btnAudio.onclick = () => { audioOn=!audioOn; btnAudio.textContent=audioOn?'🔊 Audio On':'🔇 Audio Off'; };
 
 tabsContainer.addEventListener('click', (e) => {
-    if (e.target.classList.contains('tab') && !e.target.classList.contains('settings')) {
+    if (e.target.classList.contains('tab')) {
         const newMode = e.target.dataset.mode;
         const gameId = newMode.startsWith('game_') ? newMode.split('_')[1] : null;
         switchMode(newMode, gameId);
     }
 });
 
-btnUpload.onclick = async () => {
-    const name = newNameInput.value.trim();
-    const files = Array.from(newFilesInput.files);
-
-    if (!name) {
-        alert('Please enter a name for the new game.');
-        return;
+// A function to unlock audio on the first user interaction
+const unlockAudio = () => {
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    if (context.state === 'suspended') {
+        context.resume();
     }
-    if (files.length !== 18) {
-        alert('Please select exactly 18 audio files.');
-        return;
-    }
-
-    tickerEl.textContent = '⏳ Uploading new game...';
-    btnUpload.disabled = true;
-    document.body.style.cursor = 'wait';
-
-    const formData = new FormData();
-    formData.append('name', name);
-    files.forEach(file => {
-        formData.append('files[]', file);
-    });
-
-    try {
-        const response = await fetch(`${XANO_BASE_URL}/game`, {
-            method: 'POST',
-            body: formData
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Upload failed');
-        }
-        
-        tickerEl.textContent = '✅ Upload complete! Reloading page...';
-        setTimeout(() => window.location.reload(), 2000);
-
-    } catch(error) {
-        console.error('Upload error:', error);
-        tickerEl.textContent = `❌ Upload Failed: ${error.message}`;
-        btnUpload.disabled = false;
-        document.body.style.cursor = 'default';
-    }
+    document.body.removeEventListener('click', unlockAudio);
 };
+document.body.addEventListener('click', unlockAudio, {once: true});
+
 
 async function init(){
   buildGrid();
   btnAudio.textContent='🔊 Audio On';
-  await loadGamesFromServer();
+  await Promise.all([
+      loadGamesFromServer(),
+      loadTickerMessagesFromServer()
+  ]);
   switchMode('tones');
 }
 
 window.addEventListener('beforeunload', () => stopCardAudio());
-document.addEventListener('click', () => {}, {once:true});
 
 init();
 </script>
