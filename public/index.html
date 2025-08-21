@@ -134,9 +134,13 @@
 
         .card {
             aspect-ratio: 1;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));        backdrop-filter: blur(20px);
-            border: 2px solid transparent;
-            border-radius: 12px;
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.05)
+            );
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -144,23 +148,85 @@
             font-weight: bold;
             color: white;
             cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
 
-        .card:nth-child(6n+1) { border-color: rgba(0, 191, 255, 0.6); }
-        .card:nth-child(6n+2) { border-color: rgba(255, 20, 147, 0.6); }
-        .card:nth-child(6n+3) { border-color: rgba(138, 43, 226, 0.6); }
-        .card:nth-child(6n+4) { border-color: rgba(255, 140, 0, 0.6); }
-        .card:nth-child(6n+5) { border-color: rgba(50, 205, 50, 0.6); }
-        .card:nth-child(6n+6) { border-color: rgba(255, 69, 0, 0.6); }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:nth-child(6n+1) { 
+            border-color: rgba(0, 191, 255, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(0, 191, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+2) { 
+            border-color: rgba(255, 20, 147, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 20, 147, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+3) { 
+            border-color: rgba(138, 43, 226, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(138, 43, 226, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+4) { 
+            border-color: rgba(255, 140, 0, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 140, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+5) { 
+            border-color: rgba(50, 205, 50, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(50, 205, 50, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+6) { 
+            border-color: rgba(255, 69, 0, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 69, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
 
         .card:hover {
-            transform: translateY(-8px) scale(1.05);        box-shadow: 
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            background: rgba(60, 65, 80, 0.9);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .card.matched {
@@ -408,7 +474,7 @@
 <body>
     <div class="game-container">
         <h1 class="game-title">DON'T TEST ME</h1>
-        <p class="game-subtitle">Here's one to test your hearing AND recall. Huh? I SAID, Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong>!</p>
+        <p class="game-subtitle">Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong></p>
         
         <div class="ticker" id="ticker"></div>
         
@@ -518,12 +584,12 @@
         let customMessagesStarted = false;
         let tickerTimer = null;
 
+        // User's specific ticker sequence
         const tickerSequence = [
-            { text: "", duration: 10000, isBlank: true },  // 10s delay
-            { text: "Welcome to This", duration: 6000, isBlank: false },  // 6s
-            { text: "", duration: 3000, isBlank: true },   // 3s blank
-            { text: "A NEW way to waste time!", duration: 5000, isBlank: false },  // 5s
-            { text: "", duration: 5000, isBlank: true }    // 5s blank
+            { text: "Welcome to the audio challenge!", duration: 8000, isBlank: false },  // 8s
+            { text: "", duration: 5000, isBlank: true },   // 5s blank
+            { text: "Can you match them all?", duration: 6000, isBlank: false },  // 6s
+            { text: "", duration: 10000, isBlank: true }    // 10s blank before custom messages
         ];
 
         // Initialize game
@@ -682,10 +748,11 @@
             // Stop any currently playing audio
             if (currentAudio) {
                 currentAudio.pause();
+                currentAudio.currentTime = 0;
                 currentAudio = null;
             }
             
-            // For demo, create a simple beep sound
+            // Play the actual audio file
             playAudioFile(index);
             
             flippedCards.push(index);
@@ -705,27 +772,28 @@
         }
 
         function playAudioFile(index) {
-            // Create a simple audio context for demo sounds
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                // Different frequencies for different cards
-                const frequency = 200 + (index * 50);
-                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            } catch (error) {
-                console.log('Audio not available');
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            
+            // Play the actual audio file from the current game
+            if (gameBoard && gameBoard[index] && gameBoard[index].path) {
+                try {
+                    currentAudio = new Audio(gameBoard[index].path);
+                    currentAudio.play().catch(error => {
+                        console.error('Audio play failed:', error);
+                        document.getElementById('ticker').textContent = 'Audio playback failed. Check browser permissions.';
+                    });
+                } catch (error) {
+                    console.error('Error creating audio:', error);
+                    document.getElementById('ticker').textContent = 'Audio file not found.';
+                }
+            } else {
+                console.error('No audio file found for index:', index);
+                document.getElementById('ticker').textContent = 'Audio file missing.';
             }
         }
 
@@ -795,10 +863,19 @@
             });
         }
 
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         // Stop audio on any key press
         document.addEventListener('keydown', function() {
             if (currentAudio) {
                 currentAudio.pause();
+                currentAudio.currentTime = 0;
                 currentAudio = null;
             }
         });
@@ -938,8 +1015,8 @@
                 
                 if (response.ok) {
                     alert('Game deleted successfully!');
-                    closeAdminModal();
                     loadGames();
+                    loadDeleteOptions();
                 } else {
                     alert('Failed to delete game.');
                 }
@@ -947,14 +1024,6 @@
                 console.error('Delete error:', error);
                 alert('Delete failed. Please try again.');
             }
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
         }
 
         // Handle password modal enter key
