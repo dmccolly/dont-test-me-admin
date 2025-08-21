@@ -579,54 +579,14 @@
         let timerInterval = null;
         let currentAudio = null;
         let customTickerMessages = [];
-        let currentTickerStep = 0;
         let customMessageIndex = 0;
-        let customMessagesStarted = false;
         let tickerTimer = null;
-
-        // User's specific ticker sequence
-        const tickerSequence = [
-            { text: "Welcome to the audio challenge!", duration: 8000, isBlank: false },  // 8s
-            { text: "", duration: 5000, isBlank: true },   // 5s blank
-            { text: "Can you match them all?", duration: 6000, isBlank: false },  // 6s
-            { text: "", duration: 10000, isBlank: true }    // 10s blank before custom messages
-        ];
 
         // Initialize game
         document.addEventListener('DOMContentLoaded', function() {
             loadGames();
-            startTickerSequence();
             loadCustomTickerMessages();
         });
-
-        function startTickerSequence() {
-            const ticker = document.getElementById('ticker');
-            currentTickerStep = 0;
-            customMessagesStarted = false;
-            
-            function runTickerSequence() {
-                if (currentTickerStep < tickerSequence.length) {
-                    const step = tickerSequence[currentTickerStep];
-                    if (step.isBlank) {
-                        ticker.textContent = "";
-                        ticker.classList.add('hidden');
-                    } else {
-                        ticker.textContent = step.text;
-                        ticker.classList.remove('hidden');
-                    }
-                    
-                    tickerTimer = setTimeout(() => {
-                        currentTickerStep++;
-                        runTickerSequence();
-                    }, step.duration);
-                } else if (!customMessagesStarted) {
-                    customMessagesStarted = true;
-                    startCustomMessagesCycle();
-                }
-            }
-
-            runTickerSequence();
-        }
 
         function startCustomMessagesCycle() {
             const ticker = document.getElementById('ticker');
@@ -779,21 +739,32 @@
                 currentAudio = null;
             }
             
-            // Play the actual audio file from the current game
-            if (gameBoard && gameBoard[index] && gameBoard[index].path) {
-                try {
-                    currentAudio = new Audio(gameBoard[index].path);
-                    currentAudio.play().catch(error => {
-                        console.error('Audio play failed:', error);
-                        document.getElementById('ticker').textContent = 'Audio playback failed. Check browser permissions.';
-                    });
-                } catch (error) {
-                    console.error('Error creating audio:', error);
-                    document.getElementById('ticker').textContent = 'Audio file not found.';
-                }
-            } else {
-                console.error('No audio file found for index:', index);
-                document.getElementById('ticker').textContent = 'Audio file missing.';
+            // For demo purposes, create a simple beep sound since actual audio files don't exist
+            // This will be replaced when real audio upload functionality is implemented
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Different frequencies for different cards based on their pair ID
+                const pairId = gameBoard[index] ? gameBoard[index].pairId : index;
+                const frequency = 200 + (pairId * 50);
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+                
+                console.log(`Playing demo tone for card ${index + 1}, pair ${pairId}, frequency ${frequency}Hz`);
+            } catch (error) {
+                console.error('Audio context error:', error);
+                document.getElementById('ticker').textContent = 'Audio not available in this browser.';
             }
         }
 
@@ -991,6 +962,9 @@
                 if (response.ok) {
                     const data = await response.json();
                     customTickerMessages = data.messages || [];
+                    if (customTickerMessages.length > 0) {
+                        startCustomMessagesCycle();
+                    }
                 }
             } catch (error) {
                 console.error('Error loading ticker messages:', error);
