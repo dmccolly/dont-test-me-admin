@@ -50,10 +50,17 @@
             text-align: center;
             font-size: 1.1rem;
             color: #ffd700;
-            font-weight: bold;
+            font-weight: normal; /* REMOVED BOLD */
             margin-bottom: 20px;
-            min-height: 25px;
+            min-height: 75px; /* FIXED HEIGHT FOR UP TO 3 LINES */
+            max-height: 75px;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            padding: 5px;
         }
 
         .ticker.hidden {
@@ -891,17 +898,27 @@
                 return;
             }
             
+            if (files.length === 0) {
+                alert('Please select audio files.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('name', name);
+            
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+            
             try {
                 const response = await fetch(`${API_BASE_URL}/games`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name: name })
+                    body: formData
                 });
                 
                 if (response.ok) {
-                    alert('Game uploaded successfully!');
+                    const result = await response.json();
+                    alert(`Game uploaded successfully! ${result.files_uploaded} audio files uploaded, ${result.total_files} total files in game.`);
                     document.getElementById('gameName').value = '';
                     document.getElementById('audioFiles').value = '';
                     closeAdminModal();
