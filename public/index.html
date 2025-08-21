@@ -408,7 +408,7 @@
 <body>
     <div class="game-container">
         <h1 class="game-title">DON'T TEST ME</h1>
-        <p class="game-subtitle">Here's one to test your hearing AND recall. Huh? I SAID, TO TEST YOUR HEARING AND RECALL!!</p>
+        <p class="game-subtitle">Here's one to test your hearing AND recall. Huh? I SAID, Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong>!</p>
         
         <div class="ticker" id="ticker"></div>
         
@@ -686,7 +686,7 @@
             }
             
             // For demo, create a simple beep sound
-            playDemoSound(index);
+            playAudioFile(index);
             
             flippedCards.push(index);
             
@@ -704,7 +704,7 @@
             }
         }
 
-        function playDemoSound(index) {
+        function playAudioFile(index) {
             // Create a simple audio context for demo sounds
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
