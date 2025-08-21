@@ -299,25 +299,20 @@
         }
 
         .admin-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(145deg, #FF9800, #F57C00);
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            margin-left: 10px;
             transition: all 0.3s ease;
-            z-index: 1000;
         }
 
         .admin-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .modal {
@@ -546,6 +541,7 @@
                 New Game
                 <span class="badge" id="newGameBadge">2</span>
             </button>
+            <button class="admin-btn" id="adminBtn">⚙</button>
         </div>
 
         <div class="game-info" id="gameInfo">
