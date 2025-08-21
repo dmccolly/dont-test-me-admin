@@ -299,15 +299,18 @@
         }
 
         .admin-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            border-radius: 6px;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             cursor: pointer;
-            padding: 8px 12px;
-            margin-left: 10px;
+            padding: 6px 8px;
             transition: all 0.3s ease;
+            z-index: 100;
         }
 
         .admin-btn:hover {
@@ -550,8 +553,6 @@
         </div>
     </div>
 
-    <button class="admin-btn" id="adminBtn">⚙</button>
-
     <!-- Admin Modal -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
@@ -658,35 +659,53 @@
                 clearInterval(tickerInterval);
             }
 
-            if (tickerMessages.length === 0) {
-                document.getElementById('ticker').textContent = '';
-                return;
-            }
-
-            let showingMessage = false;
-            let messageStartTime = 0;
+            let gameStartTime = Date.now();
+            let currentPhase = 'initial'; // 'initial', 'first_message', 'blank', 'messages'
+            let phaseStartTime = gameStartTime;
+            let messageIndex = 0;
 
             tickerInterval = setInterval(() => {
                 const now = Date.now();
-                
-                if (!showingMessage) {
-                    // Show message
-                    if (currentTickerIndex >= tickerMessages.length) {
-                        currentTickerIndex = 0;
+                const elapsed = now - phaseStartTime;
+
+                if (currentPhase === 'initial') {
+                    // Wait 30 seconds, then show "Match pairs to WIN!"
+                    if (elapsed >= 30000) {
+                        document.getElementById('ticker').textContent = 'Match pairs to WIN!';
+                        currentPhase = 'first_message';
+                        phaseStartTime = now;
                     }
-                    
-                    const message = tickerMessages[currentTickerIndex];
-                    document.getElementById('ticker').textContent = message;
-                    showingMessage = true;
-                    messageStartTime = now;
-                    currentTickerIndex++;
-                } else {
-                    // Check if message should be hidden
-                    const messageDisplayTime = 10000; // 10 seconds
-                    if (now - messageStartTime >= messageDisplayTime) {
+                } else if (currentPhase === 'first_message') {
+                    // Show "Match pairs to WIN!" for 10 seconds
+                    if (elapsed >= 10000) {
                         document.getElementById('ticker').textContent = '';
-                        showingMessage = false;
-                        messageStartTime = now;
+                        currentPhase = 'blank';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'blank') {
+                    // Blank for 20 seconds
+                    if (elapsed >= 20000) {
+                        if (tickerMessages.length > 0) {
+                            // Show next custom message
+                            if (messageIndex >= tickerMessages.length) {
+                                messageIndex = 0;
+                            }
+                            document.getElementById('ticker').textContent = tickerMessages[messageIndex];
+                            messageIndex++;
+                            currentPhase = 'messages';
+                            phaseStartTime = now;
+                        } else {
+                            // No custom messages, stay blank
+                            currentPhase = 'initial';
+                            phaseStartTime = now;
+                        }
+                    }
+                } else if (currentPhase === 'messages') {
+                    // Show message for 10 seconds
+                    if (elapsed >= 10000) {
+                        document.getElementById('ticker').textContent = '';
+                        currentPhase = 'blank';
+                        phaseStartTime = now;
                     }
                 }
             }, 1000);
