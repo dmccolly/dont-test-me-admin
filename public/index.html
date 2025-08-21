@@ -544,13 +544,14 @@
                 New Game
                 <span class="badge" id="newGameBadge">2</span>
             </button>
-            <button class="admin-btn" id="adminBtn">⚙</button>
         </div>
 
         <div class="game-info" id="gameInfo">
             Game ready. Find the matching sounds!<br>
             <span id="gameTimer">Time: 0:00 | Attempts: 0</span>
         </div>
+        
+        <button class="admin-btn" id="adminBtn">⚙</button>
     </div>
 
     <!-- Admin Modal -->
@@ -921,6 +922,7 @@
             document.getElementById('adminPassword').value = '';
         }
 
+        // Admin login
         document.getElementById('adminLoginBtn').addEventListener('click', () => {
             const password = document.getElementById('adminPassword').value;
             if (password === 'MUSIC') {
@@ -932,50 +934,62 @@
         });
 
         // Upload game
-        document.getElementById('uploadGameBtn').addEventListener('click', async () => {
-            const gameName = document.getElementById('gameName').value;
-            const files = document.getElementById('audioFiles').files;
+        async function uploadGame() {
+            const gameName = document.getElementById('gameName').value.trim();
+            const audioFiles = document.getElementById('audioFiles').files;
 
-            if (!gameName || files.length === 0) {
-                alert('Please enter a game name and select audio files');
+            console.log('Upload attempt:', { gameName, fileCount: audioFiles.length });
+
+            if (!gameName) {
+                alert('Please enter a game name');
+                return;
+            }
+
+            if (audioFiles.length !== 18) {
+                alert('Please select exactly 18 audio files');
                 return;
             }
 
             const formData = new FormData();
             formData.append('name', gameName);
             
-            for (let i = 0; i < Math.min(files.length, 18); i++) {
-                formData.append('files', files[i]);
+            for (let i = 0; i < audioFiles.length; i++) {
+                formData.append('files', audioFiles[i]);
             }
 
             try {
+                console.log('Sending upload request...');
                 const response = await fetch(`${API_BASE_URL}/games`, {
                     method: 'POST',
                     body: formData
                 });
 
+                console.log('Upload response:', response.status);
+                const result = await response.json();
+                console.log('Upload result:', result);
+
                 if (response.ok) {
-                    const result = await response.json();
-                    alert(`Game "${result.game_name}" uploaded successfully! Files: ${result.files_uploaded}/${result.total_files}`);
-                    await loadGames();
+                    alert('Game uploaded successfully!');
                     document.getElementById('gameName').value = '';
                     document.getElementById('audioFiles').value = '';
+                    await loadGames();
                 } else {
-                    const error = await response.json();
-                    alert(`Upload failed: ${error.error}`);
+                    alert(`Upload failed: ${result.error}`);
                 }
             } catch (error) {
                 console.error('Upload error:', error);
                 alert('Upload failed. Please try again.');
             }
-        });
+        }
+
+        document.getElementById('uploadGameBtn').addEventListener('click', uploadGame);
 
         // Upload ticker messages
         document.getElementById('uploadTickerBtn').addEventListener('click', async () => {
-            const messages = document.getElementById('tickerMessages').value;
+            const messages = document.getElementById('tickerMessages').value.trim();
             
-            if (!messages.trim()) {
-                alert('Please enter ticker messages');
+            if (!messages) {
+                alert('Please enter some ticker messages');
                 return;
             }
 
@@ -985,15 +999,13 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ messages: messages })
+                    body: JSON.stringify({ messages })
                 });
 
                 if (response.ok) {
-                    const result = await response.json();
-                    alert(`${result.count} ticker messages uploaded successfully!`);
-                    await loadTickerMessages();
-                    startTicker();
+                    alert('Ticker messages uploaded successfully!');
                     document.getElementById('tickerMessages').value = '';
+                    await loadTickerMessages();
                 } else {
                     const error = await response.json();
                     alert(`Upload failed: ${error.error}`);
