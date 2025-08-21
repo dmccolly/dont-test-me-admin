@@ -20,7 +20,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 400px;
             margin: 0 auto;
             padding: 20px;
             background: rgba(30, 35, 50, 0.95);
@@ -134,7 +134,7 @@
 
         .card {
             aspect-ratio: 1;
-            background: rgba(50, 55, 70, 0.9);
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));        backdrop-filter: blur(20px);
             border: 2px solid transparent;
             border-radius: 12px;
             display: flex;
@@ -158,7 +158,7 @@
         .card:nth-child(6n+6) { border-color: rgba(255, 69, 0, 0.6); }
 
         .card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-8px) scale(1.05);        box-shadow: 
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             background: rgba(60, 65, 80, 0.9);
         }
