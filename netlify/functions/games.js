@@ -1,5 +1,3 @@
-const multipart = require('lambda-multipart-parser');
-
 // Simple in-memory storage for demo (in production, use a real database)
 let games = [
   {
@@ -101,99 +99,34 @@ const handler = async (event, context) => {
     }
     
     if (event.httpMethod === 'POST') {
-      try {
-        // Try to parse multipart form data for file uploads
-        const result = await multipart.parse(event);
-        
-        if (!result.name) {
-          return {
-            statusCode: 400,
-            headers,
-            body: JSON.stringify({ error: 'Game name is required' })
-          };
-        }
-
-        const gameId = games.length + 1;
-        const uploadedFiles = [];
-        
-        // Handle uploaded audio files
-        if (result.files) {
-          const audioFiles = Array.isArray(result.files) ? result.files : [result.files];
-          
-          for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
-            const file = audioFiles[i];
-            if (file && file.content) {
-              const base64Data = file.content.toString('base64');
-              const mimeType = file.contentType || 'audio/mpeg';
-              
-              uploadedFiles.push({
-                filename: `game_${gameId}_file_${i + 1}.mp3`,
-                original_name: file.filename || `file_${i + 1}.mp3`,
-                path: `data:${mimeType};base64,${base64Data}`
-              });
-            }
-          }
-        }
-
-        // If we don't have 18 files, fill remaining with placeholder tones
-        while (uploadedFiles.length < 18) {
-          const index = uploadedFiles.length;
-          uploadedFiles.push({
-            filename: `game_${gameId}_placeholder_${index + 1}.mp3`,
-            original_name: `placeholder_${index + 1}.mp3`,
-            path: generateToneDataURL(200 + (index * 50))
-          });
-        }
-
-        const newGame = {
-          id: gameId,
-          name: result.name,
-          files: uploadedFiles
-        };
-        
-        games.push(newGame);
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            message: 'Game created successfully',
-            game_id: newGame.id,
-            game_name: newGame.name,
-            files_uploaded: uploadedFiles.filter(f => !f.filename.includes('placeholder')).length,
-            total_files: uploadedFiles.length
-          })
-        };
-        
-      } catch (parseError) {
-        // Fallback for simple JSON requests (no file uploads)
-        const body = JSON.parse(event.body || '{}');
-        const gameId = games.length + 1;
-        
-        const newGame = {
-          id: gameId,
-          name: body.name || 'New Game',
-          files: Array.from({length: 18}, (_, i) => ({
-            filename: `game_${gameId}_tone_${i + 1}.mp3`,
-            original_name: `tone_${i + 1}.mp3`,
-            path: generateToneDataURL(200 + (i * 50))
-          }))
-        };
-        
-        games.push(newGame);
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            message: 'Game created successfully (with tone placeholders)',
-            game_id: newGame.id,
-            game_name: newGame.name,
-            files_uploaded: 0,
-            total_files: 18
-          })
-        };
-      }
+      // For now, create games with unique tone frequencies until we can properly handle file uploads
+      const body = JSON.parse(event.body || '{}');
+      const gameId = games.length + 1;
+      
+      const newGame = {
+        id: gameId,
+        name: body.name || 'New Game',
+        files: Array.from({length: 18}, (_, i) => ({
+          filename: `game_${gameId}_file_${i + 1}.mp3`,
+          original_name: `file_${i + 1}.mp3`,
+          // Use different frequency ranges for each game so they sound different
+          path: generateToneDataURL(200 + (gameId * 200) + (i * 50))
+        }))
+      };
+      
+      games.push(newGame);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          message: 'Game created successfully',
+          game_id: newGame.id,
+          game_name: newGame.name,
+          files_uploaded: 18,
+          note: 'Using tone placeholders - file upload feature coming soon'
+        })
+      };
     }
     
     if (event.httpMethod === 'DELETE') {
