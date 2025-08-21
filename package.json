@@ -1,7 +1,14 @@
 {
-  "name": "dont-test-me-admin",
-  "private": true,
+  "name": "audio-memory-game",
+  "version": "1.0.0",
+  "description": "Audio Memory Game with Netlify Functions",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build complete'"
+  },
   "dependencies": {
-    "@netlify/blobs": "^6.0.0"
+    "@netlify/functions": "^2.0.0",
+    "formidable": "^3.5.1"
   }
 }
+
