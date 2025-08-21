@@ -1,10 +1,9 @@
 const { Handler } = require('@netlify/functions');
 
-// Persistent storage using environment variables and JSON encoding
+// Persistent storage
 let games = [];
 let gameIdCounter = 1;
 
-// Initialize from persistent storage
 function initializeStorage() {
     try {
         const storedGames = process.env.GAMES_DATA;
@@ -31,7 +30,6 @@ function initializeStorage() {
     }
 }
 
-// Generate demo audio files with different frequencies
 function generateDemoAudioFiles() {
     const files = [];
     for (let i = 0; i < 18; i++) {
@@ -46,7 +44,6 @@ function generateDemoAudioFiles() {
     return files;
 }
 
-// Generate sine wave audio data
 function generateSineWave(frequency, duration, sampleRate) {
     const samples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + samples * 2);
@@ -80,141 +77,134 @@ function generateSineWave(frequency, duration, sampleRate) {
     return Buffer.from(buffer).toString('base64');
 }
 
-// ROBUST MULTIPART PARSER - This is the key fix!
-function parseMultipartData(body, boundary) {
-    console.log('Parsing multipart data with boundary:', boundary);
+// ALTERNATIVE MULTIPART PARSER - trying a different approach
+function parseMultipartFormData(body, boundary) {
+    console.log('=== MULTIPART PARSING DEBUG ===');
+    console.log('Boundary:', boundary);
+    console.log('Body type:', typeof body);
+    console.log('Body length:', body ? body.length : 'null/undefined');
     
-    // Convert body to Buffer if it's a string
-    const bodyBuffer = Buffer.isBuffer(body) ? body : Buffer.from(body, 'binary');
-    
-    // Create boundary markers
-    const boundaryMarker = Buffer.from(`--${boundary}`);
-    const endBoundaryMarker = Buffer.from(`--${boundary}--`);
-    
-    const parts = [];
-    let currentPos = 0;
-    
-    // Skip to first boundary
-    let boundaryPos = bodyBuffer.indexOf(boundaryMarker, currentPos);
-    if (boundaryPos === -1) {
-        console.log('No boundary found in body');
-        return parts;
+    if (!body) {
+        console.log('ERROR: No body provided');
+        return { fields: {}, files: [] };
     }
     
-    currentPos = boundaryPos + boundaryMarker.length;
+    // Ensure we're working with a string
+    const bodyStr = typeof body === 'string' ? body : body.toString();
+    console.log('Body string length:', bodyStr.length);
+    console.log('First 500 chars of body:', bodyStr.substring(0, 500));
     
-    while (currentPos < bodyBuffer.length) {
-        // Skip CRLF after boundary
-        if (bodyBuffer[currentPos] === 0x0D && bodyBuffer[currentPos + 1] === 0x0A) {
-            currentPos += 2;
-        }
+    const fields = {};
+    const files = [];
+    
+    // Split by boundary
+    const delimiter = `--${boundary}`;
+    const parts = bodyStr.split(delimiter);
+    
+    console.log('Found parts:', parts.length);
+    
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        console.log(`\n--- Processing part ${i} ---`);
+        console.log('Part length:', part.length);
         
-        // Find next boundary
-        const nextBoundaryPos = bodyBuffer.indexOf(boundaryMarker, currentPos);
-        if (nextBoundaryPos === -1) break;
-        
-        // Extract part data
-        const partBuffer = bodyBuffer.slice(currentPos, nextBoundaryPos);
-        
-        // Find headers/body separator (double CRLF)
-        const headerSeparator = Buffer.from('\r\n\r\n');
-        const headerEndPos = partBuffer.indexOf(headerSeparator);
-        
-        if (headerEndPos === -1) {
-            currentPos = nextBoundaryPos + boundaryMarker.length;
+        if (part.length < 10) {
+            console.log('Skipping short part');
             continue;
         }
         
-        // Extract headers and content
-        const headersBuffer = partBuffer.slice(0, headerEndPos);
-        const contentBuffer = partBuffer.slice(headerEndPos + 4);
-        
-        // Remove trailing CRLF from content
-        let finalContentBuffer = contentBuffer;
-        if (contentBuffer.length >= 2 && 
-            contentBuffer[contentBuffer.length - 2] === 0x0D && 
-            contentBuffer[contentBuffer.length - 1] === 0x0A) {
-            finalContentBuffer = contentBuffer.slice(0, -2);
+        // Skip the final boundary marker
+        if (part.trim() === '--' || part.trim() === '') {
+            console.log('Skipping boundary marker');
+            continue;
         }
         
-        // Parse headers
-        const headersText = headersBuffer.toString('utf8');
-        console.log('Headers found:', headersText);
+        // Find the double newline that separates headers from content
+        const headerEndIndex = part.indexOf('\r\n\r\n');
+        if (headerEndIndex === -1) {
+            console.log('No header separator found, trying \\n\\n');
+            const headerEndIndex2 = part.indexOf('\n\n');
+            if (headerEndIndex2 === -1) {
+                console.log('No header separator found at all, skipping');
+                continue;
+            }
+        }
         
-        // Extract Content-Disposition
-        const dispositionMatch = headersText.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
+        const actualHeaderEnd = headerEndIndex !== -1 ? headerEndIndex : part.indexOf('\n\n');
+        const headers = part.substring(0, actualHeaderEnd);
+        const content = part.substring(actualHeaderEnd + (headerEndIndex !== -1 ? 4 : 2));
+        
+        console.log('Headers:', headers);
+        console.log('Content length:', content.length);
+        console.log('Content preview:', content.substring(0, 100));
+        
+        // Parse the Content-Disposition header
+        const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
         
         if (dispositionMatch) {
             const fieldName = dispositionMatch[1];
             const fileName = dispositionMatch[2];
             
-            console.log(`Found field: ${fieldName}, filename: ${fileName || 'none'}`);
+            console.log(`Found field: ${fieldName}`);
+            console.log(`Filename: ${fileName || 'none'}`);
             
-            parts.push({
-                name: fieldName,
-                filename: fileName || null,
-                data: finalContentBuffer,
-                headers: headersText,
-                isFile: !!fileName
-            });
-        }
-        
-        currentPos = nextBoundaryPos + boundaryMarker.length;
-    }
-    
-    console.log(`Parsed ${parts.length} parts`);
-    return parts;
-}
-
-// Enhanced form data extraction
-function extractFormData(parts) {
-    const formData = {};
-    const files = [];
-    
-    for (const part of parts) {
-        if (part.isFile) {
-            // Handle file upload
-            console.log(`Processing file: ${part.filename}, size: ${part.data.length} bytes`);
-            
-            // Determine MIME type from headers or filename
-            let mimeType = 'audio/mpeg'; // default
-            if (part.headers.includes('Content-Type:')) {
-                const typeMatch = part.headers.match(/Content-Type:\s*([^\r\n]+)/i);
-                if (typeMatch) {
-                    mimeType = typeMatch[1].trim();
+            if (fileName) {
+                // This is a file
+                console.log('Processing as file');
+                
+                // Convert content to base64 (assuming it's binary data)
+                const contentBuffer = Buffer.from(content, 'binary');
+                const base64Data = contentBuffer.toString('base64');
+                
+                // Determine MIME type
+                let mimeType = 'audio/mpeg';
+                const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
+                if (contentTypeMatch) {
+                    mimeType = contentTypeMatch[1].trim();
                 }
-            } else if (part.filename) {
-                // Guess from extension
-                const ext = part.filename.toLowerCase().split('.').pop();
-                if (ext === 'wav') mimeType = 'audio/wav';
-                else if (ext === 'mp3') mimeType = 'audio/mpeg';
-                else if (ext === 'ogg') mimeType = 'audio/ogg';
-                else if (ext === 'm4a') mimeType = 'audio/mp4';
+                
+                files.push({
+                    fieldName: fieldName,
+                    filename: fileName,
+                    mimeType: mimeType,
+                    base64: base64Data,
+                    dataUrl: `data:${mimeType};base64,${base64Data}`,
+                    size: contentBuffer.length
+                });
+                
+                console.log(`File processed: ${fileName}, size: ${contentBuffer.length} bytes`);
+            } else {
+                // This is a regular form field
+                console.log('Processing as form field');
+                
+                // Clean up the content (remove trailing newlines)
+                let fieldValue = content;
+                // Remove trailing \r\n
+                if (fieldValue.endsWith('\r\n')) {
+                    fieldValue = fieldValue.slice(0, -2);
+                }
+                // Remove trailing \n
+                if (fieldValue.endsWith('\n')) {
+                    fieldValue = fieldValue.slice(0, -1);
+                }
+                
+                fields[fieldName] = fieldValue;
+                console.log(`Field processed: ${fieldName} = "${fieldValue}"`);
             }
-            
-            // Convert to base64 data URL
-            const base64Data = part.data.toString('base64');
-            
-            files.push({
-                fieldName: part.name,
-                filename: part.filename,
-                mimeType: mimeType,
-                data: part.data,
-                base64: base64Data,
-                dataUrl: `data:${mimeType};base64,${base64Data}`
-            });
         } else {
-            // Handle text field
-            const value = part.data.toString('utf8').trim();
-            console.log(`Processing field: ${part.name} = "${value}"`);
-            formData[part.name] = value;
+            console.log('No Content-Disposition header found in part');
         }
     }
     
-    return { formData, files };
+    console.log('\n=== PARSING COMPLETE ===');
+    console.log('Fields found:', Object.keys(fields));
+    console.log('Field values:', fields);
+    console.log('Files found:', files.length);
+    console.log('=========================\n');
+    
+    return { fields, files };
 }
 
-// Save storage
 function saveStorage() {
     try {
         const storageData = {
@@ -272,22 +262,32 @@ const handler = async (event, context) => {
         }
         
         if (event.httpMethod === 'POST') {
-            console.log('Processing POST request');
-            console.log('Headers:', JSON.stringify(event.headers, null, 2));
+            console.log('\n=== NETLIFY FUNCTION POST REQUEST ===');
+            console.log('Event keys:', Object.keys(event));
+            console.log('Headers received:', JSON.stringify(event.headers, null, 2));
+            console.log('Body type:', typeof event.body);
+            console.log('Body length:', event.body ? event.body.length : 'null/undefined');
+            console.log('isBase64Encoded:', event.isBase64Encoded);
             
             const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+            console.log('Content-Type:', contentType);
             
             if (!contentType || !contentType.includes('multipart/form-data')) {
+                console.log('ERROR: Invalid content type');
                 return {
                     statusCode: 400,
                     headers,
-                    body: JSON.stringify({ error: 'Content-Type must be multipart/form-data' })
+                    body: JSON.stringify({ 
+                        error: 'Content-Type must be multipart/form-data',
+                        received: contentType 
+                    })
                 };
             }
             
             // Extract boundary
             const boundaryMatch = contentType.match(/boundary=([^;]+)/);
             if (!boundaryMatch) {
+                console.log('ERROR: No boundary found');
                 return {
                     statusCode: 400,
                     headers,
@@ -295,41 +295,56 @@ const handler = async (event, context) => {
                 };
             }
             
-            const boundary = boundaryMatch[1].replace(/"/g, ''); // Remove quotes if present
-            console.log('Using boundary:', boundary);
+            const boundary = boundaryMatch[1].replace(/"/g, '');
+            console.log('Extracted boundary:', boundary);
             
-            // Parse multipart data
-            const parts = parseMultipartData(event.body, boundary);
-            const { formData, files } = extractFormData(parts);
+            // Handle base64 encoded body (common in Netlify Functions)
+            let bodyData = event.body;
+            if (event.isBase64Encoded) {
+                console.log('Body is base64 encoded, decoding...');
+                bodyData = Buffer.from(event.body, 'base64').toString('binary');
+                console.log('Decoded body length:', bodyData.length);
+            }
             
-            console.log('Extracted form data:', formData);
-            console.log('Extracted files:', files.map(f => ({ name: f.filename, size: f.data.length })));
+            // Parse the multipart data
+            const { fields, files } = parseMultipartFormData(bodyData, boundary);
             
             // Validate game name
-            const gameName = formData.name;
+            const gameName = fields.name;
+            console.log('Game name extracted:', gameName);
+            
             if (!gameName) {
-                console.log('Game name validation failed. Form data keys:', Object.keys(formData));
+                console.log('ERROR: No game name found');
                 return {
                     statusCode: 400,
                     headers,
                     body: JSON.stringify({ 
                         error: 'Game name is required',
-                        received_fields: Object.keys(formData),
-                        form_data: formData
+                        received_fields: Object.keys(fields),
+                        field_values: fields,
+                        debug_info: {
+                            boundary: boundary,
+                            content_type: contentType,
+                            body_length: bodyData ? bodyData.length : 0,
+                            is_base64: event.isBase64Encoded
+                        }
                     })
                 };
             }
             
             // Validate files
             const audioFiles = files.filter(f => f.fieldName === 'files');
+            console.log('Audio files found:', audioFiles.length);
+            
             if (audioFiles.length === 0) {
+                console.log('ERROR: No audio files found');
                 return {
                     statusCode: 400,
                     headers,
                     body: JSON.stringify({ 
                         error: 'At least one audio file is required',
                         received_files: files.length,
-                        file_fields: files.map(f => f.fieldName)
+                        file_details: files.map(f => ({ name: f.filename, field: f.fieldName, size: f.size }))
                     })
                 };
             }
@@ -345,7 +360,7 @@ const handler = async (event, context) => {
                 });
             }
             
-            // Ensure we have exactly 18 files (duplicate if needed)
+            // Ensure we have exactly 18 files
             while (processedFiles.length < 18) {
                 const sourceIndex = processedFiles.length % audioFiles.length;
                 const sourceFile = audioFiles[sourceIndex];
@@ -366,7 +381,8 @@ const handler = async (event, context) => {
             games.push(newGame);
             saveStorage();
             
-            console.log(`Successfully created game: ${gameName} with ${newGame.files.length} files`);
+            console.log(`SUCCESS: Created game "${gameName}" with ${newGame.files.length} files`);
+            console.log('=== END REQUEST ===\n');
             
             return {
                 statusCode: 200,
@@ -413,14 +429,15 @@ const handler = async (event, context) => {
         };
         
     } catch (error) {
-        console.error('Function error:', error);
+        console.error('FUNCTION ERROR:', error);
         console.error('Stack trace:', error.stack);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                details: error.message 
+                details: error.message,
+                stack: error.stack
             })
         };
     }
