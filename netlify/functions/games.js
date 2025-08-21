@@ -59,6 +59,47 @@ function generateToneDataURL(frequency) {
   return `data:audio/wav;base64,${base64}`;
 }
 
+// Parse multipart form data without external dependencies
+function parseMultipart(body, boundary) {
+  const parts = [];
+  const boundaryBuffer = Buffer.from(`--${boundary}`);
+  const bodyBuffer = Buffer.from(body, 'base64');
+  
+  let start = 0;
+  let end = bodyBuffer.indexOf(boundaryBuffer, start);
+  
+  while (end !== -1) {
+    if (start !== 0) {
+      const partBuffer = bodyBuffer.slice(start, end);
+      const headerEnd = partBuffer.indexOf('\r\n\r\n');
+      
+      if (headerEnd !== -1) {
+        const headers = partBuffer.slice(0, headerEnd).toString();
+        const content = partBuffer.slice(headerEnd + 4);
+        
+        // Parse Content-Disposition header
+        const nameMatch = headers.match(/name="([^"]+)"/);
+        const filenameMatch = headers.match(/filename="([^"]+)"/);
+        const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/);
+        
+        if (nameMatch) {
+          parts.push({
+            name: nameMatch[1],
+            filename: filenameMatch ? filenameMatch[1] : null,
+            contentType: contentTypeMatch ? contentTypeMatch[1] : 'text/plain',
+            content: content
+          });
+        }
+      }
+    }
+    
+    start = end + boundaryBuffer.length;
+    end = bodyBuffer.indexOf(boundaryBuffer, start);
+  }
+  
+  return parts;
+}
+
 const handler = async (event, context) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -99,34 +140,116 @@ const handler = async (event, context) => {
     }
     
     if (event.httpMethod === 'POST') {
-      // For now, create games with unique tone frequencies until we can properly handle file uploads
-      const body = JSON.parse(event.body || '{}');
-      const gameId = games.length + 1;
-      
-      const newGame = {
-        id: gameId,
-        name: body.name || 'New Game',
-        files: Array.from({length: 18}, (_, i) => ({
-          filename: `game_${gameId}_file_${i + 1}.mp3`,
-          original_name: `file_${i + 1}.mp3`,
-          // Use different frequency ranges for each game so they sound different
-          path: generateToneDataURL(200 + (gameId * 200) + (i * 50))
-        }))
-      };
-      
-      games.push(newGame);
-      
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          message: 'Game created successfully',
-          game_id: newGame.id,
-          game_name: newGame.name,
-          files_uploaded: 18,
-          note: 'Using tone placeholders - file upload feature coming soon'
-        })
-      };
+      try {
+        const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+        
+        if (contentType && contentType.includes('multipart/form-data')) {
+          // Handle file upload
+          const boundary = contentType.split('boundary=')[1];
+          if (!boundary) {
+            throw new Error('No boundary found in multipart data');
+          }
+          
+          const parts = parseMultipart(event.body, boundary);
+          
+          let gameName = 'New Game';
+          const audioFiles = [];
+          
+          parts.forEach(part => {
+            if (part.name === 'name') {
+              gameName = part.content.toString();
+            } else if (part.name === 'files' && part.filename) {
+              audioFiles.push(part);
+            }
+          });
+          
+          const gameId = games.length + 1;
+          const uploadedFiles = [];
+          
+          // Process uploaded audio files
+          for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
+            const file = audioFiles[i];
+            const base64Data = file.content.toString('base64');
+            const mimeType = file.contentType || 'audio/mpeg';
+            
+            uploadedFiles.push({
+              filename: `game_${gameId}_file_${i + 1}.mp3`,
+              original_name: file.filename,
+              path: `data:${mimeType};base64,${base64Data}`
+            });
+          }
+          
+          // Fill remaining slots with placeholder tones if needed
+          while (uploadedFiles.length < 18) {
+            const index = uploadedFiles.length;
+            uploadedFiles.push({
+              filename: `game_${gameId}_placeholder_${index + 1}.mp3`,
+              original_name: `placeholder_${index + 1}.mp3`,
+              path: generateToneDataURL(200 + (index * 50))
+            });
+          }
+          
+          const newGame = {
+            id: gameId,
+            name: gameName,
+            files: uploadedFiles
+          };
+          
+          games.push(newGame);
+          
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+              message: 'Game created successfully',
+              game_id: newGame.id,
+              game_name: newGame.name,
+              files_uploaded: audioFiles.length,
+              total_files: uploadedFiles.length
+            })
+          };
+          
+        } else {
+          // Handle JSON request (fallback)
+          const body = JSON.parse(event.body || '{}');
+          const gameId = games.length + 1;
+          
+          const newGame = {
+            id: gameId,
+            name: body.name || 'New Game',
+            files: Array.from({length: 18}, (_, i) => ({
+              filename: `game_${gameId}_tone_${i + 1}.mp3`,
+              original_name: `tone_${i + 1}.mp3`,
+              path: generateToneDataURL(200 + (i * 50))
+            }))
+          };
+          
+          games.push(newGame);
+          
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+              message: 'Game created successfully (with tone placeholders)',
+              game_id: newGame.id,
+              game_name: newGame.name,
+              files_uploaded: 0,
+              total_files: 18
+            })
+          };
+        }
+        
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            error: 'Failed to parse request', 
+            details: parseError.message 
+          })
+        };
+      }
     }
     
     if (event.httpMethod === 'DELETE') {
