@@ -1,328 +1,280 @@
 const { Handler } = require('@netlify/functions');
 
-// Persistent storage using environment variables and JSON encoding
-// This survives function restarts and deployments
-let games = [];
-let gameIdCounter = 1;
+// Simple in-memory storage for demo (in production, use a real database)
+let games = [
+  {
+    id: 1,
+    name: "Demo Game",
+    files: generateDemoAudio()
+  }
+];
 
-// Initialize from persistent storage
-function initializeStorage() {
-    try {
-        // Try to load from environment variable
-        const storedGames = process.env.GAMES_DATA;
-        if (storedGames) {
-            const parsed = JSON.parse(storedGames);
-            games = parsed.games || [];
-            gameIdCounter = parsed.counter || 1;
-        } else {
-            // Initialize with demo game
-            games = [{
-                id: 1,
-                name: "Demo Game",
-                files: generateDemoAudioFiles()
-            }];
-            gameIdCounter = 2;
-        }
-    } catch (error) {
-        console.error('Error loading persistent storage:', error);
-        // Fallback to demo game
-        games = [{
-            id: 1,
-            name: "Demo Game", 
-            files: generateDemoAudioFiles()
-        }];
-        gameIdCounter = 2;
-    }
-}
+let gameIdCounter = 2;
 
-// Generate demo audio files with different frequencies
-function generateDemoAudioFiles() {
-    const files = [];
-    for (let i = 0; i < 18; i++) {
-        const frequency = 200 + (i * 50); // 200Hz, 250Hz, 300Hz, etc.
-        const audioData = generateSineWave(frequency, 1.0, 44100);
-        files.push({
-            filename: `demo_file_${i + 1}.mp3`,
-            original_name: `demo_${i + 1}.mp3`,
-            path: `data:audio/wav;base64,${audioData}`
-        });
-    }
-    return files;
+// Generate demo audio with sine waves
+function generateDemoAudio() {
+  const files = [];
+  for (let i = 0; i < 18; i++) {
+    const frequency = 200 + (i * 50); // 200Hz, 250Hz, 300Hz, etc.
+    const audioData = generateSineWave(frequency, 1.0); // 1 second duration
+    files.push({
+      filename: `demo_file_${i + 1}.wav`,
+      original_name: `demo_${i + 1}.wav`,
+      path: `data:audio/wav;base64,${audioData}`
+    });
+  }
+  return files;
 }
 
 // Generate sine wave audio data
-function generateSineWave(frequency, duration, sampleRate) {
-    const samples = Math.floor(sampleRate * duration);
-    const buffer = new ArrayBuffer(44 + samples * 2);
-    const view = new DataView(buffer);
-    
-    // WAV header
-    const writeString = (offset, string) => {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    };
-    
-    writeString(0, 'RIFF');
-    view.setUint32(4, 36 + samples * 2, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, 1, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * 2, true);
-    view.setUint16(32, 2, true);
-    view.setUint16(34, 16, true);
-    writeString(36, 'data');
-    view.setUint32(40, samples * 2, true);
-    
-    // Audio data
-    for (let i = 0; i < samples; i++) {
-        const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
-        view.setInt16(44 + i * 2, sample * 32767, true);
+function generateSineWave(frequency, duration) {
+  const sampleRate = 44100;
+  const numSamples = sampleRate * duration;
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+  
+  // WAV header
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
     }
-    
-    return Buffer.from(buffer).toString('base64');
+  };
+  
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+  
+  // Generate sine wave samples
+  for (let i = 0; i < numSamples; i++) {
+    const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
+    const intSample = Math.max(-32768, Math.min(32767, Math.floor(sample * 32767)));
+    view.setInt16(44 + i * 2, intSample, true);
+  }
+  
+  // Convert to base64
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
 // Parse multipart form data manually
 function parseMultipartData(body, boundary) {
-    const parts = [];
-    const boundaryBuffer = Buffer.from(`--${boundary}`);
-    const bodyBuffer = Buffer.from(body, 'binary');
-    
-    let start = 0;
-    while (true) {
-        const boundaryIndex = bodyBuffer.indexOf(boundaryBuffer, start);
-        if (boundaryIndex === -1) break;
-        
-        const nextBoundaryIndex = bodyBuffer.indexOf(boundaryBuffer, boundaryIndex + boundaryBuffer.length);
-        if (nextBoundaryIndex === -1) break;
-        
-        const partData = bodyBuffer.slice(boundaryIndex + boundaryBuffer.length, nextBoundaryIndex);
-        const headerEndIndex = partData.indexOf('\r\n\r\n');
-        
-        if (headerEndIndex !== -1) {
-            const headers = partData.slice(0, headerEndIndex).toString();
-            const content = partData.slice(headerEndIndex + 4);
-            
-            const nameMatch = headers.match(/name="([^"]+)"/);
-            const filenameMatch = headers.match(/filename="([^"]+)"/);
-            
-            if (nameMatch) {
-                parts.push({
-                    name: nameMatch[1],
-                    filename: filenameMatch ? filenameMatch[1] : null,
-                    data: content,
-                    headers: headers
-                });
-            }
+  const parts = body.split(`--${boundary}`);
+  const formData = {};
+  const files = [];
+  
+  for (const part of parts) {
+    if (part.includes('Content-Disposition')) {
+      const lines = part.split('\r\n');
+      let name = '';
+      let filename = '';
+      let contentType = '';
+      let data = '';
+      
+      // Parse headers
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes('Content-Disposition')) {
+          const nameMatch = line.match(/name="([^"]+)"/);
+          const filenameMatch = line.match(/filename="([^"]+)"/);
+          if (nameMatch) name = nameMatch[1];
+          if (filenameMatch) filename = filenameMatch[1];
+        } else if (line.includes('Content-Type')) {
+          contentType = line.split(': ')[1];
+        } else if (line === '' && i < lines.length - 1) {
+          // Data starts after empty line
+          data = lines.slice(i + 1).join('\r\n');
+          break;
         }
+      }
+      
+      if (filename) {
+        // This is a file
+        // Convert binary data to base64
+        const binaryData = data.split('').map(char => char.charCodeAt(0));
+        const uint8Array = new Uint8Array(binaryData);
+        let binary = '';
+        for (let i = 0; i < uint8Array.length; i++) {
+          binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64Data = btoa(binary);
         
-        start = nextBoundaryIndex;
+        files.push({
+          filename: filename,
+          original_name: filename,
+          path: `data:${contentType};base64,${base64Data}`
+        });
+      } else if (name) {
+        // This is a form field
+        formData[name] = data.trim();
+      }
     }
-    
-    return parts;
-}
-
-// Save persistent storage (in production, this would use a database)
-function saveStorage() {
-    try {
-        const storageData = {
-            games: games,
-            counter: gameIdCounter
-        };
-        // In a real implementation, this would save to a database
-        // For now, we'll use in-memory storage that persists during the function lifecycle
-        console.log('Storage saved:', games.length, 'games');
-    } catch (error) {
-        console.error('Error saving storage:', error);
-    }
+  }
+  
+  return { formData, files };
 }
 
 const handler = async (event, context) => {
-    // Initialize storage on first run
-    if (games.length === 0) {
-        initializeStorage();
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  const path = event.path.replace('/.netlify/functions/games', '');
+  
+  try {
+    if (event.httpMethod === 'GET') {
+      if (path === '' || path === '/') {
+        // Get all games
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(games)
+        };
+      } else {
+        // Get specific game
+        const gameId = parseInt(path.split('/')[1]);
+        const game = games.find(g => g.id === gameId);
+        if (!game) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({ error: 'Game not found' })
+          };
+        }
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(game)
+        };
+      }
     }
     
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS'
+    if (event.httpMethod === 'POST') {
+      // Handle file upload
+      const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+      
+      if (!contentType || !contentType.includes('multipart/form-data')) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Content-Type must be multipart/form-data' })
+        };
+      }
+      
+      // Extract boundary
+      const boundaryMatch = contentType.match(/boundary=(.+)$/);
+      if (!boundaryMatch) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No boundary found in Content-Type' })
+        };
+      }
+      
+      const boundary = boundaryMatch[1];
+      const body = event.isBase64Encoded ? 
+        Buffer.from(event.body, 'base64').toString('binary') : 
+        event.body;
+      
+      const { formData, files } = parseMultipartData(body, boundary);
+      
+      console.log('Parsed form data:', formData);
+      console.log('Parsed files count:', files.length);
+      
+      const gameName = formData.name;
+      
+      if (!gameName || gameName.trim() === '') {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Game name is required' })
+        };
+      }
+      
+      if (files.length !== 18) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: `Expected 18 files, got ${files.length}` })
+        };
+      }
+      
+      // Create new game
+      const newGame = {
+        id: gameIdCounter++,
+        name: gameName.trim(),
+        files: files
+      };
+      
+      games.push(newGame);
+      
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify({ 
+          message: 'Game uploaded successfully', 
+          game: newGame 
+        })
+      };
+    }
+    
+    if (event.httpMethod === 'DELETE') {
+      const gameId = parseInt(path.split('/')[1]);
+      const gameIndex = games.findIndex(g => g.id === gameId);
+      
+      if (gameIndex === -1) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Game not found' })
+        };
+      }
+      
+      games.splice(gameIndex, 1);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ message: 'Game deleted successfully' })
+      };
+    }
+    
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
     };
-
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers, body: '' };
-    }
-
-    const path = event.path.replace('/.netlify/functions/games', '');
     
-    try {
-        if (event.httpMethod === 'GET') {
-            if (path === '' || path === '/') {
-                // Get all games
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify(games)
-                };
-            } else {
-                // Get specific game
-                const gameId = parseInt(path.split('/')[1]);
-                const game = games.find(g => g.id === gameId);
-                if (!game) {
-                    return {
-                        statusCode: 404,
-                        headers,
-                        body: JSON.stringify({ error: 'Game not found' })
-                    };
-                }
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify(game)
-                };
-            }
-        }
-        
-        if (event.httpMethod === 'POST') {
-            const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-            
-            if (!contentType || !contentType.includes('multipart/form-data')) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: 'Content-Type must be multipart/form-data' })
-                };
-            }
-            
-            const boundary = contentType.split('boundary=')[1];
-            if (!boundary) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: 'No boundary found in Content-Type' })
-                };
-            }
-            
-            const parts = parseMultipartData(event.body, boundary);
-            
-            let gameName = '';
-            const audioFiles = [];
-            
-            for (const part of parts) {
-                if (part.name === 'name') {
-                    gameName = part.data.toString().trim();
-                } else if (part.name === 'files' && part.filename) {
-                    // Convert audio file to base64 data URL
-                    const base64Data = part.data.toString('base64');
-                    const mimeType = part.headers.includes('audio/mpeg') ? 'audio/mpeg' : 
-                                   part.headers.includes('audio/wav') ? 'audio/wav' : 'audio/mpeg';
-                    
-                    audioFiles.push({
-                        filename: `game_${gameIdCounter}_file_${audioFiles.length + 1}.mp3`,
-                        original_name: part.filename,
-                        path: `data:${mimeType};base64,${base64Data}`
-                    });
-                }
-            }
-            
-            if (!gameName) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: 'Game name is required' })
-                };
-            }
-            
-            if (audioFiles.length === 0) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: 'At least one audio file is required' })
-                };
-            }
-            
-            // Ensure we have exactly 18 files (pad with duplicates if needed)
-            while (audioFiles.length < 18) {
-                const sourceIndex = audioFiles.length % audioFiles.length;
-                const sourceFile = audioFiles[sourceIndex];
-                audioFiles.push({
-                    filename: `game_${gameIdCounter}_file_${audioFiles.length + 1}.mp3`,
-                    original_name: sourceFile.original_name,
-                    path: sourceFile.path
-                });
-            }
-            
-            // Limit to 18 files
-            const finalFiles = audioFiles.slice(0, 18);
-            
-            const newGame = {
-                id: gameIdCounter++,
-                name: gameName,
-                files: finalFiles
-            };
-            
-            games.push(newGame);
-            saveStorage();
-            
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    message: 'Game uploaded successfully',
-                    game_name: gameName,
-                    files_uploaded: finalFiles.length,
-                    total_files: 18,
-                    game_id: newGame.id
-                })
-            };
-        }
-        
-        if (event.httpMethod === 'DELETE') {
-            const gameId = parseInt(path.split('/')[1]);
-            const gameIndex = games.findIndex(g => g.id === gameId);
-            
-            if (gameIndex === -1) {
-                return {
-                    statusCode: 404,
-                    headers,
-                    body: JSON.stringify({ error: 'Game not found' })
-                };
-            }
-            
-            const deletedGame = games.splice(gameIndex, 1)[0];
-            saveStorage();
-            
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    message: 'Game deleted successfully',
-                    deleted_game: deletedGame.name
-                })
-            };
-        }
-        
-        return {
-            statusCode: 405,
-            headers,
-            body: JSON.stringify({ error: 'Method not allowed' })
-        };
-        
-    } catch (error) {
-        console.error('Function error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ 
-                error: 'Internal server error',
-                details: error.message 
-            })
-        };
-    }
+  } catch (error) {
+    console.error('Handler error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: error.message 
+      })
+    };
+  }
 };
 
 module.exports = { handler };
