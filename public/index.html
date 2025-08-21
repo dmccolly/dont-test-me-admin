@@ -18,6 +18,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0;
             padding: 20px;
         }
 
@@ -27,8 +28,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             padding: 30px;
-            max-width: 400px;
-            width: 100%;
+            width: 320px;
             box-shadow: 
                 0 20px 40px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -72,6 +72,7 @@
 
         .game-selector {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
@@ -456,7 +457,9 @@
 
         @media (max-width: 768px) {
             .container {
-                max-width: 100%;
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
                 padding: 20px;
             }
             
@@ -483,6 +486,9 @@
 
         @media (max-width: 480px) {
             .container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
                 padding: 15px;
             }
             
@@ -749,33 +755,43 @@
             createGameBoard();
         }
 
-        // Create game board
+        // Create game board - FIXED: Cards are numbered 1-36, audio is randomized
         function createGameBoard() {
             if (!currentGame) return;
 
             const board = document.getElementById('gameBoard');
             board.innerHTML = '';
 
-            // Create pairs and shuffle
-            gameBoard = [];
+            // Create audio mapping: each of 18 audio files appears twice
+            const audioMapping = [];
             for (let i = 0; i < 18; i++) {
-                gameBoard.push({ index: i, matched: false });
-                gameBoard.push({ index: i, matched: false });
+                audioMapping.push(i); // First occurrence
+                audioMapping.push(i); // Second occurrence (pair)
             }
             
-            // Shuffle the board
-            for (let i = gameBoard.length - 1; i > 0; i--) {
+            // Shuffle only the audio assignments, not the card numbers
+            for (let i = audioMapping.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [gameBoard[i], gameBoard[j]] = [gameBoard[j], gameBoard[i]];
+                [audioMapping[i], audioMapping[j]] = [audioMapping[j], audioMapping[i]];
             }
 
-            // Create cards
+            // Create the game board with fixed card numbers 1-36
+            gameBoard = [];
+            for (let cardPosition = 0; cardPosition < 36; cardPosition++) {
+                gameBoard.push({
+                    cardNumber: cardPosition + 1,        // Always 1-36 in order
+                    audioIndex: audioMapping[cardPosition], // Randomized audio
+                    matched: false
+                });
+            }
+
+            // Create card elements
             gameBoard.forEach((card, position) => {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card';
-                cardElement.textContent = card.index + 1;
+                cardElement.textContent = card.cardNumber; // Display card number (1-36)
                 cardElement.dataset.position = position;
-                cardElement.dataset.index = card.index;
+                cardElement.dataset.audioIndex = card.audioIndex;
                 cardElement.addEventListener('click', () => handleCardClick(position));
                 board.appendChild(cardElement);
             });
@@ -792,9 +808,9 @@
                 card.classList.add('selected');
                 selectedCards.push(position);
                 
-                // Play audio
-                const cardIndex = parseInt(card.dataset.index);
-                playAudioFile(cardIndex);
+                // Play audio based on the audio index, not card number
+                const audioIndex = parseInt(card.dataset.audioIndex);
+                playAudioFile(audioIndex);
 
                 if (selectedCards.length === 2) {
                     attempts++;
@@ -815,7 +831,7 @@
                 currentAudio.currentTime = 0;
             }
             
-            // Play the actual audio file from the current game
+            // Play the audio file from the current game
             if (currentGame && currentGame.files && currentGame.files[index]) {
                 const audioPath = currentGame.files[index].path;
                 currentAudio = new Audio(audioPath);
@@ -828,16 +844,16 @@
             }
         }
 
-        // Check for match
+        // Check for match - FIXED: Check audio index, not card number
         function checkMatch() {
             const [pos1, pos2] = selectedCards;
             const card1 = document.querySelector(`[data-position="${pos1}"]`);
             const card2 = document.querySelector(`[data-position="${pos2}"]`);
             
-            const index1 = parseInt(card1.dataset.index);
-            const index2 = parseInt(card2.dataset.index);
+            const audioIndex1 = parseInt(card1.dataset.audioIndex);
+            const audioIndex2 = parseInt(card2.dataset.audioIndex);
 
-            if (index1 === index2) {
+            if (audioIndex1 === audioIndex2) {
                 // Match found
                 card1.classList.add('matched');
                 card2.classList.add('matched');
@@ -864,7 +880,7 @@
             updateStats();
         }
 
-        // Reset game
+        // Reset game - FIXED: Only randomize audio, keep card numbers the same
         function resetGame() {
             selectedCards = [];
             matches = 0;
@@ -1063,11 +1079,11 @@
             }
         });
 
-        // New game button
+        // New game button - FIXED: Just reshuffles audio assignments
         document.getElementById('newGameBtn').addEventListener('click', () => {
             if (currentGame) {
                 resetGame();
-                createGameBoard();
+                createGameBoard(); // This will create new random audio assignments
             }
         });
 
@@ -1076,4 +1092,3 @@
     </script>
 </body>
 </html>
-
