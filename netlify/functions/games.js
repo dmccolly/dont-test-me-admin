@@ -1,33 +1,81 @@
-const { Handler } = require('@netlify/functions');
+const { getStore } = require('@netlify/blobs');
 
-// Persistent storage using environment variables and JSON encoding
-let games = [];
+// Initialize blob storage
+let gameStore;
 let gameIdCounter = 1;
 
-// Initialize from persistent storage
-function initializeStorage() {
+// Initialize storage with Netlify Blobs
+async function initializeStorage() {
     try {
-        const storedGames = process.env.GAMES_DATA;
-        if (storedGames) {
-            const parsed = JSON.parse(storedGames);
-            games = parsed.games || [];
+        // Get the blob store
+        gameStore = getStore('audio-memory-games');
+        
+        // Try to load existing data
+        const existingData = await gameStore.get('games-data');
+        
+        if (existingData) {
+            const parsed = JSON.parse(existingData);
             gameIdCounter = parsed.counter || 1;
+            console.log('Loaded existing games from blob storage');
+            return parsed.games || [];
         } else {
-            games = [{
+            // Initialize with demo game
+            const initialGames = [{
                 id: 1,
                 name: "Demo Game",
                 files: generateDemoAudioFiles()
             }];
             gameIdCounter = 2;
+            
+            // Save initial data to blob storage
+            await saveToBlobs(initialGames);
+            console.log('Initialized new games in blob storage');
+            return initialGames;
         }
     } catch (error) {
-        console.error('Error loading persistent storage:', error);
-        games = [{
+        console.error('Error initializing blob storage:', error);
+        // Fallback to demo game
+        const fallbackGames = [{
             id: 1,
-            name: "Demo Game", 
+            name: "Demo Game",
             files: generateDemoAudioFiles()
         }];
         gameIdCounter = 2;
+        return fallbackGames;
+    }
+}
+
+// Save games to blob storage
+async function saveToBlobs(games) {
+    try {
+        const dataToSave = {
+            games: games,
+            counter: gameIdCounter,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        await gameStore.set('games-data', JSON.stringify(dataToSave));
+        console.log('Successfully saved games to blob storage');
+        return true;
+    } catch (error) {
+        console.error('Error saving to blob storage:', error);
+        return false;
+    }
+}
+
+// Load games from blob storage
+async function loadFromBlobs() {
+    try {
+        const data = await gameStore.get('games-data');
+        if (data) {
+            const parsed = JSON.parse(data);
+            gameIdCounter = parsed.counter || 1;
+            return parsed.games || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error loading from blob storage:', error);
+        return [];
     }
 }
 
@@ -208,23 +256,9 @@ function parseMultipartFormData(body, boundary) {
     return { fields, files };
 }
 
-function saveStorage() {
-    try {
-        const storageData = {
-            games: games,
-            counter: gameIdCounter
-        };
-        console.log('Storage saved:', games.length, 'games');
-    } catch (error) {
-        console.error('Error saving storage:', error);
-    }
-}
-
 const handler = async (event, context) => {
-    // Initialize storage on first run
-    if (games.length === 0) {
-        initializeStorage();
-    }
+    // Initialize blob storage and load games
+    let games = await initializeStorage();
     
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -241,13 +275,21 @@ const handler = async (event, context) => {
     try {
         if (event.httpMethod === 'GET') {
             if (path === '' || path === '/') {
+                // Reload from blobs to get latest data
+                games = await loadFromBlobs();
+                if (games.length === 0) {
+                    games = await initializeStorage();
+                }
+                
                 return {
                     statusCode: 200,
                     headers,
                     body: JSON.stringify(games)
                 };
             } else {
+                // Get specific game
                 const gameId = parseInt(path.split('/')[1]);
+                games = await loadFromBlobs();
                 const game = games.find(g => g.id === gameId);
                 if (!game) {
                     return {
@@ -352,6 +394,9 @@ const handler = async (event, context) => {
                 };
             }
             
+            // Load current games from storage
+            games = await loadFromBlobs();
+            
             // Process audio files
             const processedFiles = [];
             for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
@@ -378,11 +423,21 @@ const handler = async (event, context) => {
             const newGame = {
                 id: gameIdCounter++,
                 name: gameName,
-                files: processedFiles.slice(0, 18)
+                files: processedFiles.slice(0, 18),
+                created: new Date().toISOString()
             };
             
             games.push(newGame);
-            saveStorage();
+            
+            // Save to blob storage
+            const saveSuccess = await saveToBlobs(games);
+            if (!saveSuccess) {
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ error: 'Failed to save game to storage' })
+                };
+            }
             
             console.log(`SUCCESS: Created game "${gameName}" with ${newGame.files.length} files`);
             console.log('=== END REQUEST ===\n');
@@ -402,6 +457,9 @@ const handler = async (event, context) => {
         
         if (event.httpMethod === 'DELETE') {
             const gameId = parseInt(path.split('/')[1]);
+            
+            // Load current games
+            games = await loadFromBlobs();
             const gameIndex = games.findIndex(g => g.id === gameId);
             
             if (gameIndex === -1) {
@@ -413,7 +471,16 @@ const handler = async (event, context) => {
             }
             
             const deletedGame = games.splice(gameIndex, 1)[0];
-            saveStorage();
+            
+            // Save updated games to blob storage
+            const saveSuccess = await saveToBlobs(games);
+            if (!saveSuccess) {
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ error: 'Failed to delete game from storage' })
+                };
+            }
             
             return {
                 statusCode: 200,
