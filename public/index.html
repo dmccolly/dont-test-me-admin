@@ -1,1091 +1,516 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Memory Game</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+const { getStore } = require('@netlify/blobs');
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 0;
-        }
+// Initialize blob storage
+let gameStore;
+let gameIdCounter = 1;
 
-        .container {
-            background: rgba(40, 44, 52, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            width: 400px;
-            position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .subtitle {
-            font-size: 0.9rem;
-            color: #b0b3b8;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .ticker {
-            min-height: 75px;
-            max-height: 75px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffd700;
-            font-size: 0.9rem;
-            font-weight: normal;
-            text-align: center;
-            line-height: 1.3;
-            padding: 10px;
-            overflow: hidden;
-        }
-
-        .game-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .game-btn {
-            background: linear-gradient(145deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .game-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .game-btn.active {
-            background: linear-gradient(145deg, #45a049, #4CAF50);
-            transform: translateY(-1px);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #b0b3b8;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-        }
-
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            aspect-ratio: 1;
-            background: linear-gradient(145deg, 
-                rgba(255, 255, 255, 0.15), 
-                rgba(255, 255, 255, 0.05)
-            );
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card:nth-child(6n+1) { 
-            border-color: rgba(0, 191, 255, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(0, 191, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+2) { 
-            border-color: rgba(255, 20, 147, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 20, 147, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+3) { 
-            border-color: rgba(138, 43, 226, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(138, 43, 226, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+4) { 
-            border-color: rgba(255, 140, 0, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 140, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+5) { 
-            border-color: rgba(50, 205, 50, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(50, 205, 50, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+6) { 
-            border-color: rgba(255, 69, 0, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 69, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.4),
-                0 0 30px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-
-        .card.matched {
-            background: linear-gradient(145deg, rgba(76, 175, 80, 0.3), rgba(69, 160, 73, 0.3));
-            border-color: rgba(76, 175, 80, 0.6);
-            color: #4CAF50;
-        }
-
-        .card.matched::after {
-            content: '✓';
-            position: absolute;
-            font-size: 1.5rem;
-            color: #4CAF50;
-        }
-
-        .card.selected {
-            background: linear-gradient(145deg, rgba(255, 193, 7, 0.3), rgba(255, 152, 0, 0.3));
-            border-color: rgba(255, 193, 7, 0.6);
-            transform: translateY(-4px) scale(1.02);
-        }
-
-        .controls {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .new-game-btn {
-            background: linear-gradient(145deg, #2196F3, #1976D2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .new-game-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .new-game-btn .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .game-info {
-            text-align: center;
-            color: #b0b3b8;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-        }
-
-        .admin-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 6px 8px;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .admin-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(40, 44, 52, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-title {
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #b0b3b8;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            color: white;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: #2196F3;
-            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .file-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .file-input:hover {
-            border-color: #2196F3;
-            background: rgba(33, 150, 243, 0.05);
-        }
-
-        .btn {
-            background: linear-gradient(145deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-danger {
-            background: linear-gradient(145deg, #f44336, #d32f2f);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(145deg, #6c757d, #5a6268);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                padding: 20px;
-            }
-            
-            .title {
-                font-size: 1.5rem;
-            }
-            
-            .game-board {
-                gap: 6px;
-            }
-            
-            .card {
-                font-size: 0.8rem;
-            }
-            
-            .stats {
-                gap: 10px;
-            }
-            
-            .stat {
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                padding: 15px;
-            }
-            
-            .title {
-                font-size: 1.3rem;
-            }
-            
-            .game-board {
-                gap: 4px;
-            }
-            
-            .card {
-                font-size: 0.7rem;
-            }
-            
-            .game-selector {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr;
-                gap: 8px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">DON'T TEST ME</h1>
-            <p class="subtitle">Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong></p>
-            <div id="ticker" class="ticker"></div>
-        </div>
-
-        <div class="game-selector" id="gameSelector">
-            <button class="game-btn active" data-game="1">Demo Game</button>
-        </div>
-
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-label">MATCHES</div>
-                <div class="stat-value" id="matches">0/18</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">ATTEMPTS</div>
-                <div class="stat-value" id="attempts">0</div>
-            </div>
-            <div class="stat">
-                <div class="stat-label">ACCURACY</div>
-                <div class="stat-value" id="accuracy">100%</div>
-            </div>
-        </div>
-
-        <div class="game-board" id="gameBoard"></div>
-
-        <div class="controls">
-            <button class="new-game-btn" id="newGameBtn">
-                New Game
-                <span class="badge" id="newGameBadge">2</span>
-            </button>
-        </div>
-
-        <div class="game-info" id="gameInfo">
-            Game ready. Find the matching sounds!<br>
-            <span id="gameTimer">Time: 0:00 | Attempts: 0</span>
-        </div>
+// Initialize storage with Netlify Blobs
+async function initializeStorage() {
+    try {
+        // Get the blob store
+        gameStore = getStore('audio-memory-games');
         
-        <button class="admin-btn" id="adminBtn">⚙</button>
-    </div>
-
-    <!-- Admin Modal -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Admin Access</h2>
-                <button class="close-btn" id="closeAdminModal">×</button>
-            </div>
-            <div id="adminLogin">
-                <div class="form-group">
-                    <label class="form-label">Enter password:</label>
-                    <input type="password" class="form-input" id="adminPassword" placeholder="Password">
-                </div>
-                <button class="btn" id="adminLoginBtn">Enter</button>
-                <button class="btn btn-secondary" id="cancelAdminBtn">Cancel</button>
-            </div>
-            <div id="adminPanel" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Game Name:</label>
-                    <input type="text" class="form-input" id="gameName" placeholder="Enter game name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Audio Files (select 18):</label>
-                    <input type="file" class="form-input" id="audioFiles" multiple accept="audio/*">
-                </div>
-                <button class="btn" id="uploadGameBtn">Upload Audio Game</button>
-
-                <div class="form-group" style="margin-top: 30px;">
-                    <label class="form-label">Ticker Messages (one per line):</label>
-                    <textarea class="form-textarea" id="tickerMessages" placeholder="Enter funny messages, one per line..."></textarea>
-                </div>
-                <button class="btn" id="uploadTickerBtn">Upload Ticker Messages</button>
-
-                <div class="form-group" style="margin-top: 30px;">
-                    <label class="form-label">Select Game to Delete:</label>
-                    <select class="form-select" id="deleteGameSelect">
-                        <option value="">-- Select a game --</option>
-                    </select>
-                </div>
-                <button class="btn btn-danger" id="deleteGameBtn">Delete Selected Game</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_BASE_URL = '/.netlify/functions';
+        // Try to load existing data
+        const existingData = await gameStore.get('games-data');
         
-        let games = [];
-        let currentGame = null;
-        let gameBoard = [];
-        let selectedCards = [];
-        let matches = 0;
-        let attempts = 0;
-        let gameStartTime = null;
-        let gameTimer = null;
-        let tickerMessages = [];
-        let tickerInterval = null;
-        let currentTickerIndex = 0;
-        let currentAudio = null;
-
-        // Initialize the game
-        async function initGame() {
-            await loadGames();
-            await loadTickerMessages();
-            if (games.length > 0) {
-                selectGame(games[0].id);
-            }
-            startTicker();
-        }
-
-        // Load games from API
-        async function loadGames() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/games`);
-                if (response.ok) {
-                    games = await response.json();
-                    updateGameSelector();
-                    updateDeleteGameOptions();
-                } else {
-                    console.error('Failed to load games');
-                    document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
-                }
-            } catch (error) {
-                console.error('Error loading games:', error);
-                document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
-            }
-        }
-
-        // Load ticker messages
-        async function loadTickerMessages() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/messages`);
-                if (response.ok) {
-                    const data = await response.json();
-                    tickerMessages = data.messages || [];
-                }
-            } catch (error) {
-                console.error('Error loading ticker messages:', error);
-            }
-        }
-
-        // Start ticker rotation
-        function startTicker() {
-            if (tickerInterval) {
-                clearInterval(tickerInterval);
-            }
-
-            let gameStartTime = Date.now();
-            let currentPhase = 'initial'; // 'initial', 'first_message', 'blank', 'messages'
-            let phaseStartTime = gameStartTime;
-            let messageIndex = 0;
-
-            tickerInterval = setInterval(() => {
-                const now = Date.now();
-                const elapsed = now - phaseStartTime;
-
-                if (currentPhase === 'initial') {
-                    // Wait 30 seconds, then show "Match pairs to WIN!"
-                    if (elapsed >= 30000) {
-                        document.getElementById('ticker').textContent = 'Match pairs to WIN!';
-                        currentPhase = 'first_message';
-                        phaseStartTime = now;
-                    }
-                } else if (currentPhase === 'first_message') {
-                    // Show "Match pairs to WIN!" for 10 seconds
-                    if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
-                        phaseStartTime = now;
-                    }
-                } else if (currentPhase === 'blank') {
-                    // Blank for 20 seconds
-                    if (elapsed >= 20000) {
-                        if (tickerMessages.length > 0) {
-                            // Show next custom message
-                            if (messageIndex >= tickerMessages.length) {
-                                messageIndex = 0;
-                            }
-                            document.getElementById('ticker').textContent = tickerMessages[messageIndex];
-                            messageIndex++;
-                            currentPhase = 'messages';
-                            phaseStartTime = now;
-                        } else {
-                            // No custom messages, stay blank
-                            currentPhase = 'initial';
-                            phaseStartTime = now;
-                        }
-                    }
-                } else if (currentPhase === 'messages') {
-                    // Show message for 10 seconds
-                    if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
-                        phaseStartTime = now;
-                    }
-                }
-            }, 1000);
-        }
-
-        // Update game selector
-        function updateGameSelector() {
-            const selector = document.getElementById('gameSelector');
-            selector.innerHTML = '';
+        if (existingData) {
+            const parsed = JSON.parse(existingData);
+            gameIdCounter = parsed.counter || 1;
+            console.log('Loaded existing games from blob storage');
+            return parsed.games || [];
+        } else {
+            // Initialize with demo game
+            const initialGames = [{
+                id: 1,
+                name: "Demo Game",
+                files: generateDemoAudioFiles()
+            }];
+            gameIdCounter = 2;
             
-            games.forEach(game => {
-                const btn = document.createElement('button');
-                btn.className = 'game-btn';
-                btn.textContent = game.name;
-                btn.dataset.game = game.id;
-                btn.addEventListener('click', () => selectGame(game.id));
-                selector.appendChild(btn);
-            });
-
-            // Update new game badge
-            const badge = document.getElementById('newGameBadge');
-            if (badge) {
-                badge.textContent = games.length;
-                badge.style.display = games.length > 1 ? 'flex' : 'none';
-            }
+            // Save initial data to blob storage
+            await saveToBlobs(initialGames);
+            console.log('Initialized new games in blob storage');
+            return initialGames;
         }
+    } catch (error) {
+        console.error('Error initializing blob storage:', error);
+        // Fallback to demo game
+        const fallbackGames = [{
+            id: 1,
+            name: "Demo Game",
+            files: generateDemoAudioFiles()
+        }];
+        gameIdCounter = 2;
+        return fallbackGames;
+    }
+}
 
-        // Select a game
-        function selectGame(gameId) {
-            currentGame = games.find(g => g.id === gameId);
-            if (!currentGame) return;
+// Save games to blob storage
+async function saveToBlobs(games) {
+    try {
+        const dataToSave = {
+            games: games,
+            counter: gameIdCounter,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        await gameStore.set('games-data', JSON.stringify(dataToSave));
+        console.log('Successfully saved games to blob storage');
+        return true;
+    } catch (error) {
+        console.error('Error saving to blob storage:', error);
+        return false;
+    }
+}
 
-            // Update active button
-            document.querySelectorAll('.game-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.game == gameId);
-            });
-
-            // Reset game state
-            resetGame();
-            createGameBoard();
+// Load games from blob storage
+async function loadFromBlobs() {
+    try {
+        const data = await gameStore.get('games-data');
+        if (data) {
+            const parsed = JSON.parse(data);
+            gameIdCounter = parsed.counter || 1;
+            return parsed.games || [];
         }
+        return [];
+    } catch (error) {
+        console.error('Error loading from blob storage:', error);
+        return [];
+    }
+}
 
-        // Create game board - FIXED: Cards are numbered 1-36, audio is randomized
-        function createGameBoard() {
-            if (!currentGame) return;
-
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-
-            // Create audio mapping: each of 18 audio files appears twice
-            const audioMapping = [];
-            for (let i = 0; i < 18; i++) {
-                audioMapping.push(i); // First occurrence
-                audioMapping.push(i); // Second occurrence (pair)
-            }
-            
-            // Shuffle only the audio assignments, not the card numbers
-            for (let i = audioMapping.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [audioMapping[i], audioMapping[j]] = [audioMapping[j], audioMapping[i]];
-            }
-
-            // Create the game board with fixed card numbers 1-36
-            gameBoard = [];
-            for (let cardPosition = 0; cardPosition < 36; cardPosition++) {
-                gameBoard.push({
-                    cardNumber: cardPosition + 1,        // Always 1-36 in order
-                    audioIndex: audioMapping[cardPosition], // Randomized audio
-                    matched: false
-                });
-            }
-
-            // Create card elements
-            gameBoard.forEach((card, position) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.textContent = card.cardNumber; // Display card number (1-36)
-                cardElement.dataset.position = position;
-                cardElement.dataset.audioIndex = card.audioIndex;
-                cardElement.addEventListener('click', () => handleCardClick(position));
-                board.appendChild(cardElement);
-            });
-        }
-
-        // Handle card click
-        function handleCardClick(position) {
-            const card = document.querySelector(`[data-position="${position}"]`);
-            if (!card || card.classList.contains('matched') || card.classList.contains('selected')) {
-                return;
-            }
-
-            if (selectedCards.length < 2) {
-                card.classList.add('selected');
-                selectedCards.push(position);
-                
-                // Play audio based on the audio index, not card number
-                const audioIndex = parseInt(card.dataset.audioIndex);
-                playAudioFile(audioIndex);
-
-                if (selectedCards.length === 2) {
-                    attempts++;
-                    updateStats();
-                    
-                    setTimeout(() => {
-                        checkMatch();
-                    }, 1000);
-                }
-            }
-        }
-
-        // Play audio file
-        function playAudioFile(index) {
-            // Stop any currently playing audio
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
-            
-            // Play the audio file from the current game
-            if (currentGame && currentGame.files && currentGame.files[index]) {
-                const audioPath = currentGame.files[index].path;
-                currentAudio = new Audio(audioPath);
-                currentAudio.play().catch(error => {
-                    console.error('Audio play failed:', error);
-                    document.getElementById('ticker').textContent = 'Audio playback failed. Check browser permissions.';
-                });
-            } else {
-                console.error('No audio file found for index:', index);
-            }
-        }
-
-        // Check for match - FIXED: Check audio index, not card number
-        function checkMatch() {
-            const [pos1, pos2] = selectedCards;
-            const card1 = document.querySelector(`[data-position="${pos1}"]`);
-            const card2 = document.querySelector(`[data-position="${pos2}"]`);
-            
-            const audioIndex1 = parseInt(card1.dataset.audioIndex);
-            const audioIndex2 = parseInt(card2.dataset.audioIndex);
-
-            if (audioIndex1 === audioIndex2) {
-                // Match found
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                gameBoard[pos1].matched = true;
-                gameBoard[pos2].matched = true;
-                matches++;
-                
-                if (matches === 18) {
-                    // Game completed
-                    clearInterval(gameTimer);
-                    const endTime = Date.now();
-                    const totalTime = Math.floor((endTime - gameStartTime) / 1000);
-                    document.getElementById('ticker').textContent = `Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
-                }
-            } else {
-                // No match
-                setTimeout(() => {
-                    card1.classList.remove('selected');
-                    card2.classList.remove('selected');
-                }, 500);
-            }
-
-            selectedCards = [];
-            updateStats();
-        }
-
-        // Reset game - FIXED: Only randomize audio, keep card numbers the same
-        function resetGame() {
-            selectedCards = [];
-            matches = 0;
-            attempts = 0;
-            gameStartTime = Date.now();
-            
-            if (gameTimer) {
-                clearInterval(gameTimer);
-            }
-            
-            gameTimer = setInterval(updateTimer, 1000);
-            updateStats();
-            updateTimer();
-        }
-
-        // Update statistics
-        function updateStats() {
-            document.getElementById('matches').textContent = `${matches}/18`;
-            document.getElementById('attempts').textContent = attempts;
-            
-            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
-            document.getElementById('accuracy').textContent = `${accuracy}%`;
-        }
-
-        // Update timer
-        function updateTimer() {
-            if (!gameStartTime) return;
-            
-            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-            const timer = document.getElementById('gameTimer');
-            if (timer) {
-                timer.textContent = `Time: ${formatTime(elapsed)} | Attempts: ${attempts}`;
-            }
-        }
-
-        // Format time
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Admin functionality
-        document.getElementById('adminBtn').addEventListener('click', () => {
-            document.getElementById('adminModal').classList.add('show');
+// Generate demo audio files with different frequencies
+function generateDemoAudioFiles() {
+    const files = [];
+    for (let i = 0; i < 18; i++) {
+        const frequency = 200 + (i * 50);
+        const audioData = generateSineWave(frequency, 0.3, 44100); // 0.3 seconds duration
+        files.push({
+            filename: `demo_file_${i + 1}.mp3`,
+            original_name: `demo_${i + 1}.mp3`,
+            path: `data:audio/wav;base64,${audioData}`
         });
+    }
+    return files;
+}
 
-        document.getElementById('closeAdminModal').addEventListener('click', closeAdminModal);
-        document.getElementById('cancelAdminBtn').addEventListener('click', closeAdminModal);
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.remove('show');
-            document.getElementById('adminLogin').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
+// Generate sine wave audio data
+function generateSineWave(frequency, duration, sampleRate) {
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = new ArrayBuffer(44 + samples * 2);
+    const view = new DataView(buffer);
+    
+    const writeString = (offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
         }
+    };
+    
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + samples * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, samples * 2, true);
+    
+    for (let i = 0; i < samples; i++) {
+        const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
+        view.setInt16(44 + i * 2, sample * 32767, true);
+    }
+    
+    return Buffer.from(buffer).toString('base64');
+}
 
-        // Admin login
-        document.getElementById('adminLoginBtn').addEventListener('click', () => {
-            const password = document.getElementById('adminPassword').value;
-            if (password === 'MUSIC') {
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-            } else {
-                alert('Incorrect password');
+// MULTIPART PARSER - working solution without external dependencies
+function parseMultipartFormData(body, boundary) {
+    console.log('=== MULTIPART PARSING DEBUG ===');
+    console.log('Boundary:', boundary);
+    console.log('Body type:', typeof body);
+    console.log('Body length:', body ? body.length : 'null/undefined');
+    
+    if (!body) {
+        console.log('ERROR: No body provided');
+        return { fields: {}, files: [] };
+    }
+    
+    // Ensure we're working with a string
+    const bodyStr = typeof body === 'string' ? body : body.toString();
+    console.log('Body string length:', bodyStr.length);
+    console.log('First 500 chars of body:', bodyStr.substring(0, 500));
+    
+    const fields = {};
+    const files = [];
+    
+    // Split by boundary
+    const delimiter = `--${boundary}`;
+    const parts = bodyStr.split(delimiter);
+    
+    console.log('Found parts:', parts.length);
+    
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        console.log(`\n--- Processing part ${i} ---`);
+        console.log('Part length:', part.length);
+        
+        if (part.length < 10) {
+            console.log('Skipping short part');
+            continue;
+        }
+        
+        // Skip the final boundary marker
+        if (part.trim() === '--' || part.trim() === '') {
+            console.log('Skipping boundary marker');
+            continue;
+        }
+        
+        // Find the double newline that separates headers from content
+        const headerEndIndex = part.indexOf('\r\n\r\n');
+        if (headerEndIndex === -1) {
+            console.log('No header separator found, trying \\n\\n');
+            const headerEndIndex2 = part.indexOf('\n\n');
+            if (headerEndIndex2 === -1) {
+                console.log('No header separator found at all, skipping');
+                continue;
             }
-        });
+        }
+        
+        const actualHeaderEnd = headerEndIndex !== -1 ? headerEndIndex : part.indexOf('\n\n');
+        const headers = part.substring(0, actualHeaderEnd);
+        const content = part.substring(actualHeaderEnd + (headerEndIndex !== -1 ? 4 : 2));
+        
+        console.log('Headers:', headers);
+        console.log('Content length:', content.length);
+        console.log('Content preview:', content.substring(0, 100));
+        
+        // Parse the Content-Disposition header
+        const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
+        
+        if (dispositionMatch) {
+            const fieldName = dispositionMatch[1];
+            const fileName = dispositionMatch[2];
+            
+            console.log(`Found field: ${fieldName}`);
+            console.log(`Filename: ${fileName || 'none'}`);
+            
+            if (fileName) {
+                // This is a file
+                console.log('Processing as file');
+                
+                // Convert content to base64 (assuming it's binary data)
+                const contentBuffer = Buffer.from(content, 'binary');
+                const base64Data = contentBuffer.toString('base64');
+                
+                // Determine MIME type
+                let mimeType = 'audio/mpeg';
+                const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
+                if (contentTypeMatch) {
+                    mimeType = contentTypeMatch[1].trim();
+                }
+                
+                files.push({
+                    fieldName: fieldName,
+                    filename: fileName,
+                    mimeType: mimeType,
+                    base64: base64Data,
+                    dataUrl: `data:${mimeType};base64,${base64Data}`,
+                    size: contentBuffer.length
+                });
+                
+                console.log(`File processed: ${fileName}, size: ${contentBuffer.length} bytes`);
+            } else {
+                // This is a regular form field
+                console.log('Processing as form field');
+                
+                // Clean up the content (remove trailing newlines)
+                let fieldValue = content;
+                // Remove trailing \r\n
+                if (fieldValue.endsWith('\r\n')) {
+                    fieldValue = fieldValue.slice(0, -2);
+                }
+                // Remove trailing \n
+                if (fieldValue.endsWith('\n')) {
+                    fieldValue = fieldValue.slice(0, -1);
+                }
+                
+                fields[fieldName] = fieldValue;
+                console.log(`Field processed: ${fieldName} = "${fieldValue}"`);
+            }
+        } else {
+            console.log('No Content-Disposition header found in part');
+        }
+    }
+    
+    console.log('\n=== PARSING COMPLETE ===');
+    console.log('Fields found:', Object.keys(fields));
+    console.log('Field values:', fields);
+    console.log('Files found:', files.length);
+    console.log('=========================\n');
+    
+    return { fields, files };
+}
 
-        // Upload game
-        async function uploadGame() {
-            const gameName = document.getElementById('gameName').value.trim();
-            const audioFiles = document.getElementById('audioFiles').files;
+const handler = async (event, context) => {
+    // Initialize blob storage and load games
+    let games = await initializeStorage();
+    
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS'
+    };
 
-            console.log('Upload attempt:', { gameName, fileCount: audioFiles.length });
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers, body: '' };
+    }
 
+    const path = event.path.replace('/.netlify/functions/games', '');
+    
+    try {
+        if (event.httpMethod === 'GET') {
+            if (path === '' || path === '/') {
+                // Reload from blobs to get latest data
+                games = await loadFromBlobs();
+                if (games.length === 0) {
+                    games = await initializeStorage();
+                }
+                
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify(games)
+                };
+            } else {
+                // Get specific game
+                const gameId = parseInt(path.split('/')[1]);
+                games = await loadFromBlobs();
+                const game = games.find(g => g.id === gameId);
+                if (!game) {
+                    return {
+                        statusCode: 404,
+                        headers,
+                        body: JSON.stringify({ error: 'Game not found' })
+                    };
+                }
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify(game)
+                };
+            }
+        }
+        
+        if (event.httpMethod === 'POST') {
+            console.log('\n=== NETLIFY FUNCTION POST REQUEST ===');
+            console.log('Event keys:', Object.keys(event));
+            console.log('Headers received:', JSON.stringify(event.headers, null, 2));
+            console.log('Body type:', typeof event.body);
+            console.log('Body length:', event.body ? event.body.length : 'null/undefined');
+            console.log('isBase64Encoded:', event.isBase64Encoded);
+            
+            const contentType = event.headers['content-type'] || event.headers['Content-Type'];
+            console.log('Content-Type:', contentType);
+            
+            if (!contentType || !contentType.includes('multipart/form-data')) {
+                console.log('ERROR: Invalid content type');
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'Content-Type must be multipart/form-data',
+                        received: contentType 
+                    })
+                };
+            }
+            
+            // Extract boundary
+            const boundaryMatch = contentType.match(/boundary=([^;]+)/);
+            if (!boundaryMatch) {
+                console.log('ERROR: No boundary found');
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ error: 'No boundary found in Content-Type' })
+                };
+            }
+            
+            const boundary = boundaryMatch[1].replace(/"/g, '');
+            console.log('Extracted boundary:', boundary);
+            
+            // Handle base64 encoded body (common in Netlify Functions)
+            let bodyData = event.body;
+            if (event.isBase64Encoded) {
+                console.log('Body is base64 encoded, decoding...');
+                bodyData = Buffer.from(event.body, 'base64').toString('binary');
+                console.log('Decoded body length:', bodyData.length);
+            }
+            
+            // Parse the multipart data
+            const { fields, files } = parseMultipartFormData(bodyData, boundary);
+            
+            // Validate game name
+            const gameName = fields.name;
+            console.log('Game name extracted:', gameName);
+            
             if (!gameName) {
-                alert('Please enter a game name');
-                return;
+                console.log('ERROR: No game name found');
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'Game name is required',
+                        received_fields: Object.keys(fields),
+                        field_values: fields,
+                        debug_info: {
+                            boundary: boundary,
+                            content_type: contentType,
+                            body_length: bodyData ? bodyData.length : 0,
+                            is_base64: event.isBase64Encoded
+                        }
+                    })
+                };
             }
-
-            if (audioFiles.length !== 18) {
-                alert('Please select exactly 18 audio files');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('name', gameName);
             
-            for (let i = 0; i < audioFiles.length; i++) {
-                formData.append('files', audioFiles[i]);
+            // Validate files
+            const audioFiles = files.filter(f => f.fieldName === 'files');
+            console.log('Audio files found:', audioFiles.length);
+            
+            if (audioFiles.length === 0) {
+                console.log('ERROR: No audio files found');
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'At least one audio file is required',
+                        received_files: files.length,
+                        file_details: files.map(f => ({ name: f.filename, field: f.fieldName, size: f.size }))
+                    })
+                };
             }
-
-            try {
-                console.log('Sending upload request...');
-                const response = await fetch(`${API_BASE_URL}/games`, {
-                    method: 'POST',
-                    body: formData
+            
+            // Load current games from storage
+            games = await loadFromBlobs();
+            
+            // Process audio files
+            const processedFiles = [];
+            for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
+                const file = audioFiles[i];
+                processedFiles.push({
+                    filename: `game_${gameIdCounter}_file_${i + 1}.mp3`,
+                    original_name: file.filename,
+                    path: file.dataUrl
                 });
-
-                console.log('Upload response:', response.status);
-                const result = await response.json();
-                console.log('Upload result:', result);
-
-                if (response.ok) {
-                    alert('Game uploaded successfully!');
-                    document.getElementById('gameName').value = '';
-                    document.getElementById('audioFiles').value = '';
-                    await loadGames();
-                } else {
-                    alert(`Upload failed: ${result.error}`);
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
             }
+            
+            // Ensure we have exactly 18 files
+            while (processedFiles.length < 18) {
+                const sourceIndex = processedFiles.length % audioFiles.length;
+                const sourceFile = audioFiles[sourceIndex];
+                processedFiles.push({
+                    filename: `game_${gameIdCounter}_file_${processedFiles.length + 1}.mp3`,
+                    original_name: sourceFile.filename,
+                    path: sourceFile.dataUrl
+                });
+            }
+            
+            // Create new game
+            const newGame = {
+                id: gameIdCounter++,
+                name: gameName,
+                files: processedFiles.slice(0, 18),
+                created: new Date().toISOString()
+            };
+            
+            games.push(newGame);
+            
+            // Save to blob storage
+            const saveSuccess = await saveToBlobs(games);
+            if (!saveSuccess) {
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ error: 'Failed to save game to storage' })
+                };
+            }
+            
+            console.log(`SUCCESS: Created game "${gameName}" with ${newGame.files.length} files`);
+            console.log('=== END REQUEST ===\n');
+            
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    message: 'Game uploaded successfully',
+                    game_name: gameName,
+                    files_uploaded: audioFiles.length,
+                    total_files: newGame.files.length,
+                    game_id: newGame.id
+                })
+            };
         }
-
-        document.getElementById('uploadGameBtn').addEventListener('click', uploadGame);
-
-        // Upload ticker messages
-        document.getElementById('uploadTickerBtn').addEventListener('click', async () => {
-            const messages = document.getElementById('tickerMessages').value.trim();
+        
+        if (event.httpMethod === 'DELETE') {
+            const gameId = parseInt(path.split('/')[1]);
             
-            if (!messages) {
-                alert('Please enter some ticker messages');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ messages })
-                });
-
-                if (response.ok) {
-                    alert('Ticker messages uploaded successfully!');
-                    document.getElementById('tickerMessages').value = '';
-                    await loadTickerMessages();
-                } else {
-                    const error = await response.json();
-                    alert(`Upload failed: ${error.error}`);
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
-            }
-        });
-
-        // Update delete game options
-        function updateDeleteGameOptions() {
-            const select = document.getElementById('deleteGameSelect');
-            select.innerHTML = '<option value="">-- Select a game --</option>';
+            // Load current games
+            games = await loadFromBlobs();
+            const gameIndex = games.findIndex(g => g.id === gameId);
             
-            games.forEach(game => {
-                const option = document.createElement('option');
-                option.value = game.id;
-                option.textContent = game.name;
-                select.appendChild(option);
-            });
+            if (gameIndex === -1) {
+                return {
+                    statusCode: 404,
+                    headers,
+                    body: JSON.stringify({ error: 'Game not found' })
+                };
+            }
+            
+            const deletedGame = games.splice(gameIndex, 1)[0];
+            
+            // Save updated games to blob storage
+            const saveSuccess = await saveToBlobs(games);
+            if (!saveSuccess) {
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ error: 'Failed to delete game from storage' })
+                };
+            }
+            
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    message: 'Game deleted successfully',
+                    deleted_game: deletedGame.name
+                })
+            };
         }
+        
+        return {
+            statusCode: 405,
+            headers,
+            body: JSON.stringify({ error: 'Method not allowed' })
+        };
+        
+    } catch (error) {
+        console.error('FUNCTION ERROR:', error);
+        console.error('Stack trace:', error.stack);
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+                error: 'Internal server error',
+                details: error.message,
+                stack: error.stack
+            })
+        };
+    }
+};
 
-        // Delete game
-        document.getElementById('deleteGameBtn').addEventListener('click', async () => {
-            const gameId = document.getElementById('deleteGameSelect').value;
-            if (!gameId) {
-                alert('Please select a game to delete');
-                return;
-            }
-
-            const game = games.find(g => g.id == gameId);
-            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert('Game deleted successfully!');
-                    await loadGames();
-                    if (games.length > 0) {
-                        selectGame(games[0].id);
-                    }
-                } else {
-                    const error = await response.json();
-                    alert(`Delete failed: ${error.error}`);
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                alert('Delete failed. Please try again.');
-            }
-        });
-
-        // New game button - FIXED: Just reshuffles audio assignments
-        document.getElementById('newGameBtn').addEventListener('click', () => {
-            if (currentGame) {
-                resetGame();
-                createGameBoard(); // This will create new random audio assignments
-            }
-        });
-
-        // Initialize the game when page loads
-        document.addEventListener('DOMContentLoaded', initGame);
-    </script>
-</body>
-</html>
+module.exports = { handler };
