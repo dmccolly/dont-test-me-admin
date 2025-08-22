@@ -863,4 +863,229 @@
                     clearInterval(gameTimer);
                     const endTime = Date.now();
                     const totalTime = Math.floor((endTime - gameStartTime) / 1000);
-                    document.getElementById('ticker').textContent = `Congratulations!
+                    document.getElementById('ticker').textContent = `Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
+                }
+            } else {
+                // No match
+                setTimeout(() => {
+                    card1.classList.remove('selected');
+                    card2.classList.remove('selected');
+                }, 500);
+            }
+
+            selectedCards = [];
+            updateStats();
+        }
+
+        // Reset game - FIXED: Only randomize audio, keep card numbers the same
+        function resetGame() {
+            selectedCards = [];
+            matches = 0;
+            attempts = 0;
+            gameStartTime = Date.now();
+            
+            if (gameTimer) {
+                clearInterval(gameTimer);
+            }
+            
+            gameTimer = setInterval(updateTimer, 1000);
+            updateStats();
+            updateTimer();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('matches').textContent = `${matches}/18`;
+            document.getElementById('attempts').textContent = attempts;
+            
+            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        // Update timer
+        function updateTimer() {
+            if (!gameStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const timer = document.getElementById('gameTimer');
+            if (timer) {
+                timer.textContent = `Time: ${formatTime(elapsed)} | Attempts: ${attempts}`;
+            }
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Admin functionality
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            document.getElementById('adminModal').classList.add('show');
+        });
+
+        document.getElementById('closeAdminModal').addEventListener('click', closeAdminModal);
+        document.getElementById('cancelAdminBtn').addEventListener('click', closeAdminModal);
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('show');
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Admin login
+        document.getElementById('adminLoginBtn').addEventListener('click', () => {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'MUSIC') {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('Incorrect password');
+            }
+        });
+
+        // Upload game
+        async function uploadGame() {
+            const gameName = document.getElementById('gameName').value.trim();
+            const audioFiles = document.getElementById('audioFiles').files;
+
+            console.log('Upload attempt:', { gameName, fileCount: audioFiles.length });
+
+            if (!gameName) {
+                alert('Please enter a game name');
+                return;
+            }
+
+            if (audioFiles.length !== 18) {
+                alert('Please select exactly 18 audio files');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', gameName);
+            
+            for (let i = 0; i < audioFiles.length; i++) {
+                formData.append('files', audioFiles[i]);
+            }
+
+            try {
+                console.log('Sending upload request...');
+                const response = await fetch(`${API_BASE_URL}/games`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Upload response:', response.status);
+                const result = await response.json();
+                console.log('Upload result:', result);
+
+                if (response.ok) {
+                    alert('Game uploaded successfully!');
+                    document.getElementById('gameName').value = '';
+                    document.getElementById('audioFiles').value = '';
+                    await loadGames();
+                } else {
+                    alert(`Upload failed: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed. Please try again.');
+            }
+        }
+
+        document.getElementById('uploadGameBtn').addEventListener('click', uploadGame);
+
+        // Upload ticker messages
+        document.getElementById('uploadTickerBtn').addEventListener('click', async () => {
+            const messages = document.getElementById('tickerMessages').value.trim();
+            
+            if (!messages) {
+                alert('Please enter some ticker messages');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ messages })
+                });
+
+                if (response.ok) {
+                    alert('Ticker messages uploaded successfully!');
+                    document.getElementById('tickerMessages').value = '';
+                    await loadTickerMessages();
+                } else {
+                    const error = await response.json();
+                    alert(`Upload failed: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed. Please try again.');
+            }
+        });
+
+        // Update delete game options
+        function updateDeleteGameOptions() {
+            const select = document.getElementById('deleteGameSelect');
+            select.innerHTML = '<option value="">-- Select a game --</option>';
+            
+            games.forEach(game => {
+                const option = document.createElement('option');
+                option.value = game.id;
+                option.textContent = game.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Delete game
+        document.getElementById('deleteGameBtn').addEventListener('click', async () => {
+            const gameId = document.getElementById('deleteGameSelect').value;
+            if (!gameId) {
+                alert('Please select a game to delete');
+                return;
+            }
+
+            const game = games.find(g => g.id == gameId);
+            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Game deleted successfully!');
+                    await loadGames();
+                    if (games.length > 0) {
+                        selectGame(games[0].id);
+                    }
+                } else {
+                    const error = await response.json();
+                    alert(`Delete failed: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Delete failed. Please try again.');
+            }
+        });
+
+        // New game button - FIXED: Just reshuffles audio assignments
+        document.getElementById('newGameBtn').addEventListener('click', () => {
+            if (currentGame) {
+                resetGame();
+                createGameBoard(); // This will create new random audio assignments
+            }
+        });
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
