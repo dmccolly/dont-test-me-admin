@@ -1,22 +1,19 @@
-const { getStore } = require('@netlify/blobs');
+const fs = require('fs');
+const path = require('path');
 
-// Initialize blob storage
-let gameStore;
+// Use /tmp directory for persistent storage during function lifecycle
+const STORAGE_FILE = '/tmp/audio-games-data.json';
 let gameIdCounter = 1;
 
-// Initialize storage with Netlify Blobs
-async function initializeStorage() {
+// Initialize storage
+function initializeStorage() {
     try {
-        // Get the blob store
-        gameStore = getStore('audio-memory-games');
-        
-        // Try to load existing data
-        const existingData = await gameStore.get('games-data');
-        
-        if (existingData) {
-            const parsed = JSON.parse(existingData);
+        // Try to load existing data from temp file
+        if (fs.existsSync(STORAGE_FILE)) {
+            const data = fs.readFileSync(STORAGE_FILE, 'utf8');
+            const parsed = JSON.parse(data);
             gameIdCounter = parsed.counter || 1;
-            console.log('Loaded existing games from blob storage');
+            console.log('Loaded existing games from temp storage');
             return parsed.games || [];
         } else {
             // Initialize with demo game
@@ -27,13 +24,13 @@ async function initializeStorage() {
             }];
             gameIdCounter = 2;
             
-            // Save initial data to blob storage
-            await saveToBlobs(initialGames);
-            console.log('Initialized new games in blob storage');
+            // Save initial data
+            saveToStorage(initialGames);
+            console.log('Initialized new games in temp storage');
             return initialGames;
         }
     } catch (error) {
-        console.error('Error initializing blob storage:', error);
+        console.error('Error initializing storage:', error);
         // Fallback to demo game
         const fallbackGames = [{
             id: 1,
@@ -45,8 +42,8 @@ async function initializeStorage() {
     }
 }
 
-// Save games to blob storage
-async function saveToBlobs(games) {
+// Save games to temp storage
+function saveToStorage(games) {
     try {
         const dataToSave = {
             games: games,
@@ -54,27 +51,27 @@ async function saveToBlobs(games) {
             lastUpdated: new Date().toISOString()
         };
         
-        await gameStore.set('games-data', JSON.stringify(dataToSave));
-        console.log('Successfully saved games to blob storage');
+        fs.writeFileSync(STORAGE_FILE, JSON.stringify(dataToSave), 'utf8');
+        console.log('Successfully saved games to temp storage');
         return true;
     } catch (error) {
-        console.error('Error saving to blob storage:', error);
+        console.error('Error saving to temp storage:', error);
         return false;
     }
 }
 
-// Load games from blob storage
-async function loadFromBlobs() {
+// Load games from temp storage
+function loadFromStorage() {
     try {
-        const data = await gameStore.get('games-data');
-        if (data) {
+        if (fs.existsSync(STORAGE_FILE)) {
+            const data = fs.readFileSync(STORAGE_FILE, 'utf8');
             const parsed = JSON.parse(data);
             gameIdCounter = parsed.counter || 1;
             return parsed.games || [];
         }
         return [];
     } catch (error) {
-        console.error('Error loading from blob storage:', error);
+        console.error('Error loading from temp storage:', error);
         return [];
     }
 }
@@ -257,8 +254,8 @@ function parseMultipartFormData(body, boundary) {
 }
 
 const handler = async (event, context) => {
-    // Initialize blob storage and load games
-    let games = await initializeStorage();
+    // Initialize storage and load games
+    let games = initializeStorage();
     
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -275,10 +272,10 @@ const handler = async (event, context) => {
     try {
         if (event.httpMethod === 'GET') {
             if (path === '' || path === '/') {
-                // Reload from blobs to get latest data
-                games = await loadFromBlobs();
+                // Reload from storage to get latest data
+                games = loadFromStorage();
                 if (games.length === 0) {
-                    games = await initializeStorage();
+                    games = initializeStorage();
                 }
                 
                 return {
@@ -289,7 +286,7 @@ const handler = async (event, context) => {
             } else {
                 // Get specific game
                 const gameId = parseInt(path.split('/')[1]);
-                games = await loadFromBlobs();
+                games = loadFromStorage();
                 const game = games.find(g => g.id === gameId);
                 if (!game) {
                     return {
@@ -395,7 +392,7 @@ const handler = async (event, context) => {
             }
             
             // Load current games from storage
-            games = await loadFromBlobs();
+            games = loadFromStorage();
             
             // Process audio files
             const processedFiles = [];
@@ -429,8 +426,8 @@ const handler = async (event, context) => {
             
             games.push(newGame);
             
-            // Save to blob storage
-            const saveSuccess = await saveToBlobs(games);
+            // Save to storage
+            const saveSuccess = saveToStorage(games);
             if (!saveSuccess) {
                 return {
                     statusCode: 500,
@@ -459,7 +456,7 @@ const handler = async (event, context) => {
             const gameId = parseInt(path.split('/')[1]);
             
             // Load current games
-            games = await loadFromBlobs();
+            games = loadFromStorage();
             const gameIndex = games.findIndex(g => g.id === gameId);
             
             if (gameIndex === -1) {
@@ -472,8 +469,8 @@ const handler = async (event, context) => {
             
             const deletedGame = games.splice(gameIndex, 1)[0];
             
-            // Save updated games to blob storage
-            const saveSuccess = await saveToBlobs(games);
+            // Save updated games to storage
+            const saveSuccess = saveToStorage(games);
             if (!saveSuccess) {
                 return {
                     statusCode: 500,
