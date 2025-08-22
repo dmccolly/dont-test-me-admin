@@ -1,9 +1,10 @@
 const { Handler } = require('@netlify/functions');
 
-// Persistent storage
+// Persistent storage using environment variables and JSON encoding
 let games = [];
 let gameIdCounter = 1;
 
+// Initialize from persistent storage
 function initializeStorage() {
     try {
         const storedGames = process.env.GAMES_DATA;
@@ -30,6 +31,7 @@ function initializeStorage() {
     }
 }
 
+// Generate demo audio files with different frequencies
 function generateDemoAudioFiles() {
     const files = [];
     for (let i = 0; i < 18; i++) {
@@ -44,6 +46,7 @@ function generateDemoAudioFiles() {
     return files;
 }
 
+// Generate sine wave audio data
 function generateSineWave(frequency, duration, sampleRate) {
     const samples = Math.floor(sampleRate * duration);
     const buffer = new ArrayBuffer(44 + samples * 2);
@@ -77,7 +80,7 @@ function generateSineWave(frequency, duration, sampleRate) {
     return Buffer.from(buffer).toString('base64');
 }
 
-// ALTERNATIVE MULTIPART PARSER - trying a different approach
+// MULTIPART PARSER - working solution without external dependencies
 function parseMultipartFormData(body, boundary) {
     console.log('=== MULTIPART PARSING DEBUG ===');
     console.log('Boundary:', boundary);
