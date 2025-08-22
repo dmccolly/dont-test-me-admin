@@ -34,7 +34,7 @@ function generateDemoAudioFiles() {
     const files = [];
     for (let i = 0; i < 18; i++) {
         const frequency = 200 + (i * 50);
-        const audioData = generateSineWave(frequency, 0.3, 44100);
+        const audioData = generateSineWave(frequency, 0.3, 44100); // 0.3 seconds duration
         files.push({
             filename: `demo_file_${i + 1}.mp3`,
             original_name: `demo_${i + 1}.mp3`,
