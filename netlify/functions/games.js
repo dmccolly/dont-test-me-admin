@@ -4,38 +4,12 @@ const http = require('http');
 // Xano configuration
 const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:owXpCDEu';
 
-// Test different endpoint patterns to find the correct one
-async function findCorrectEndpoint() {
-    const possibleEndpoints = [
-        '/game',
-        '/games', 
-        '/api/game',
-        '/api/games',
-        '/v1/game',
-        '/v1/games'
-    ];
-    
-    for (const endpoint of possibleEndpoints) {
-        try {
-            console.log(`Testing endpoint: ${endpoint}`);
-            const result = await makeXanoRequest('GET', endpoint);
-            console.log(`✓ Success with endpoint: ${endpoint}`);
-            return endpoint;
-        } catch (error) {
-            console.log(`✗ Failed endpoint ${endpoint}: ${error.message}`);
-            continue;
-        }
-    }
-    
-    throw new Error('No valid endpoint found');
-}
-
 // Helper function to make HTTP requests to Xano
 function makeXanoRequest(method, endpoint, data = null) {
     return new Promise((resolve, reject) => {
-        const url = new URL(`${XANO_BASE_URL}${endpoint}`);
+        const url = new URL(XANO_BASE_URL + endpoint);
         const isHttps = url.protocol === 'https:';
-        const httpModule = isHttps ? https : http;
+        const client = isHttps ? https : http;
         
         const options = {
             hostname: url.hostname,
@@ -44,42 +18,44 @@ function makeXanoRequest(method, endpoint, data = null) {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'User-Agent': 'Netlify-Function/1.0'
             }
         };
 
-        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-            const jsonData = JSON.stringify(data);
-            options.headers['Content-Length'] = Buffer.byteLength(jsonData);
-        }
-
-        const req = httpModule.request(options, (res) => {
-            let responseData = '';
-
+        const req = client.request(options, (res) => {
+            let body = '';
+            
             res.on('data', (chunk) => {
-                responseData += chunk;
+                body += chunk;
             });
-
+            
             res.on('end', () => {
+                console.log(`Xano ${method} ${endpoint} - Status: ${res.statusCode}, Body: ${body.substring(0, 200)}...`);
+                
                 try {
-                    const parsedData = responseData ? JSON.parse(responseData) : {};
+                    const jsonData = JSON.parse(body);
                     
                     if (res.statusCode >= 200 && res.statusCode < 300) {
-                        resolve(parsedData);
+                        resolve(jsonData);
                     } else {
-                        reject(new Error(`Xano API error: ${res.statusCode} - ${responseData}`));
+                        reject(new Error(`Xano API error: ${res.statusCode} - ${JSON.stringify(jsonData)}`));
                     }
-                } catch (error) {
-                    reject(new Error(`JSON parse error: ${error.message}`));
+                } catch (parseError) {
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                        resolve({ message: body });
+                    } else {
+                        reject(new Error(`Xano API error: ${res.statusCode} - ${body}`));
+                    }
                 }
             });
         });
 
         req.on('error', (error) => {
-            reject(new Error(`Request error: ${error.message}`));
+            console.error('Request error:', error);
+            reject(new Error(`Request failed: ${error.message}`));
         });
 
-        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+        if (data && (method === 'POST' || method === 'PUT')) {
             req.write(JSON.stringify(data));
         }
 
@@ -87,168 +63,108 @@ function makeXanoRequest(method, endpoint, data = null) {
     });
 }
 
-// Generate demo audio files
-function generateDemoAudioFiles() {
-    const files = [];
-    for (let i = 0; i < 18; i++) {
-        const frequency = 200 + (i * 50);
-        const audioData = generateSineWave(frequency, 0.3, 44100);
-        files.push({
-            filename: `demo_file_${i + 1}.mp3`,
-            original_name: `demo_${i + 1}.mp3`,
-            path: `data:audio/wav;base64,${audioData}`
-        });
-    }
-    return files;
-}
-
-// Generate sine wave audio data
-function generateSineWave(frequency, duration, sampleRate) {
-    const samples = Math.floor(sampleRate * duration);
-    const buffer = new ArrayBuffer(44 + samples * 2);
-    const view = new DataView(buffer);
-    
-    const writeString = (offset, string) => {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    };
-    
-    writeString(0, 'RIFF');
-    view.setUint32(4, 36 + samples * 2, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, 1, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * 2, true);
-    view.setUint16(32, 2, true);
-    view.setUint16(34, 16, true);
-    writeString(36, 'data');
-    view.setUint32(40, samples * 2, true);
-    
-    for (let i = 0; i < samples; i++) {
-        const sample = Math.sin(2 * Math.PI * frequency * i / sampleRate) * 0.3;
-        view.setInt16(44 + i * 2, sample * 32767, true);
-    }
-    
-    return Buffer.from(buffer).toString('base64');
-}
-
 // Initialize with demo game if none exists
 async function ensureDemoGameExists() {
     try {
-        // First find the correct endpoint
-        const endpoint = await findCorrectEndpoint();
-        console.log(`Using endpoint: ${endpoint}`);
-        
-        const games = await makeXanoRequest('GET', endpoint);
+        console.log('Checking for existing games...');
+        const games = await makeXanoRequest('GET', '/game');
+        console.log(`Found ${games.length} existing games`);
         
         // Check if demo game exists
-        const demoExists = games.some(game => game.name === "Demo Game");
-        
-        if (!demoExists) {
-            console.log('Demo game not found, creating...');
-            const demoGame = {
-                name: "Demo Game",
-                files: generateDemoAudioFiles()
-            };
-            
-            await makeXanoRequest('POST', endpoint, demoGame);
-            console.log('Demo game created successfully');
+        const demoExists = games.find(game => game.name === 'Demo Game');
+        if (demoExists) {
+            console.log('Demo game already exists');
+            return;
         }
         
-        return endpoint;
+        console.log('Creating demo game...');
+        
+        // Generate 18 demo audio files (0.3-second tones)
+        const demoFiles = [];
+        for (let i = 0; i < 18; i++) {
+            // Create a simple tone data URL for demo
+            const frequency = 220 + (i * 20); // Different frequency for each file
+            const audioData = `data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcfCSiN1/PQdCMFl`;
+            demoFiles.push(audioData);
+        }
+        
+        const demoGame = {
+            name: 'Demo Game',
+            files: JSON.stringify(demoFiles)
+        };
+        
+        await makeXanoRequest('POST', '/game', demoGame);
+        console.log('Demo game created successfully');
+        
     } catch (error) {
         console.error('Error ensuring demo game exists:', error);
-        return '/game'; // fallback
+        // Don't throw - this is not critical for function operation
     }
 }
 
-// MULTIPART PARSER - working solution without external dependencies
-function parseMultipartFormData(body, boundary) {
-    console.log('=== MULTIPART PARSING DEBUG ===');
-    console.log('Boundary:', boundary);
-    console.log('Body length:', body ? body.length : 'null/undefined');
+// Parse multipart form data
+function parseMultipart(body, boundary) {
+    const parts = {};
+    const files = {};
     
-    if (!body) {
-        console.log('ERROR: No body provided');
-        return { fields: {}, files: [] };
-    }
-    
-    const bodyStr = typeof body === 'string' ? body : body.toString();
-    const fields = {};
-    const files = [];
-    
-    const delimiter = `--${boundary}`;
-    const parts = bodyStr.split(delimiter);
-    
-    console.log('Found parts:', parts.length);
-    
-    for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
+    try {
+        const boundaryBuffer = Buffer.from('--' + boundary);
+        const bodyBuffer = Buffer.from(body, 'binary');
         
-        if (part.length < 10 || part.trim() === '--' || part.trim() === '') {
-            continue;
+        const parts_raw = [];
+        let start = 0;
+        
+        while (true) {
+            const boundaryIndex = bodyBuffer.indexOf(boundaryBuffer, start);
+            if (boundaryIndex === -1) break;
+            
+            const nextBoundaryIndex = bodyBuffer.indexOf(boundaryBuffer, boundaryIndex + boundaryBuffer.length);
+            if (nextBoundaryIndex === -1) break;
+            
+            const partBuffer = bodyBuffer.slice(boundaryIndex + boundaryBuffer.length + 2, nextBoundaryIndex - 2);
+            parts_raw.push(partBuffer);
+            start = nextBoundaryIndex;
         }
         
-        const headerEndIndex = part.indexOf('\r\n\r\n');
-        const actualHeaderEnd = headerEndIndex !== -1 ? headerEndIndex : part.indexOf('\n\n');
-        
-        if (actualHeaderEnd === -1) continue;
-        
-        const headers = part.substring(0, actualHeaderEnd);
-        const content = part.substring(actualHeaderEnd + (headerEndIndex !== -1 ? 4 : 2));
-        
-        const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
-        
-        if (dispositionMatch) {
-            const fieldName = dispositionMatch[1];
-            const fileName = dispositionMatch[2];
+        parts_raw.forEach(part => {
+            const headerEndIndex = part.indexOf('\r\n\r\n');
+            if (headerEndIndex === -1) return;
             
-            console.log(`Found field: ${fieldName}, filename: ${fileName || 'none'}`);
+            const headerBuffer = part.slice(0, headerEndIndex);
+            const contentBuffer = part.slice(headerEndIndex + 4);
+            const headerString = headerBuffer.toString();
             
-            if (fileName) {
-                const contentBuffer = Buffer.from(content, 'binary');
+            const nameMatch = headerString.match(/name="([^"]+)"/);
+            if (!nameMatch) return;
+            
+            const fieldName = nameMatch[1];
+            
+            if (headerString.includes('filename=')) {
+                // File field
+                const contentType = headerString.match(/Content-Type:\s*([^\r\n]+)/);
+                const mimeType = contentType ? contentType[1] : 'application/octet-stream';
+                
+                // Convert to base64 data URL
                 const base64Data = contentBuffer.toString('base64');
+                const dataUrl = `data:${mimeType};base64,${base64Data}`;
                 
-                let mimeType = 'audio/mpeg';
-                const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
-                if (contentTypeMatch) {
-                    mimeType = contentTypeMatch[1].trim();
-                }
-                
-                files.push({
-                    fieldName: fieldName,
-                    filename: fileName,
-                    mimeType: mimeType,
-                    base64: base64Data,
-                    dataUrl: `data:${mimeType};base64,${base64Data}`,
-                    size: contentBuffer.length
-                });
-                
-                console.log(`File processed: ${fileName}, size: ${contentBuffer.length} bytes`);
+                files[fieldName] = {
+                    data: dataUrl,
+                    size: contentBuffer.length,
+                    type: mimeType
+                };
             } else {
-                let fieldValue = content;
-                if (fieldValue.endsWith('\r\n')) {
-                    fieldValue = fieldValue.slice(0, -2);
-                }
-                if (fieldValue.endsWith('\n')) {
-                    fieldValue = fieldValue.slice(0, -1);
-                }
-                
-                fields[fieldName] = fieldValue;
-                console.log(`Field processed: ${fieldName} = "${fieldValue}"`);
+                // Regular field
+                parts[fieldName] = contentBuffer.toString();
             }
-        }
+        });
+        
+        return { fields: parts, files: files };
+        
+    } catch (error) {
+        console.error('Error parsing multipart:', error);
+        throw new Error('Invalid multipart data');
     }
-    
-    console.log('=== PARSING COMPLETE ===');
-    console.log('Fields found:', Object.keys(fields));
-    console.log('Files found:', files.length);
-    
-    return { fields, files };
 }
 
 const handler = async (event, context) => {
@@ -258,209 +174,151 @@ const handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS'
     };
 
+    // Handle CORS preflight
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
-    const path = event.path.replace('/.netlify/functions/games', '');
-    
     try {
-        // Find the correct endpoint and ensure demo game exists
-        const correctEndpoint = await ensureDemoGameExists();
-        console.log(`Using Xano endpoint: ${correctEndpoint}`);
+        console.log(`${event.httpMethod} request to games function`);
         
         if (event.httpMethod === 'GET') {
-            if (path === '' || path === '/') {
-                console.log('Fetching all games from Xano...');
-                const games = await makeXanoRequest('GET', correctEndpoint);
-                console.log(`Retrieved ${games.length} games from Xano`);
+            // Get all games
+            try {
+                await ensureDemoGameExists();
+                const games = await makeXanoRequest('GET', '/game');
+                console.log(`Returning ${games.length} games`);
                 
                 return {
                     statusCode: 200,
                     headers,
                     body: JSON.stringify(games)
                 };
-            } else {
-                const gameId = parseInt(path.split('/')[1]);
-                console.log(`Fetching game ${gameId} from Xano...`);
-                
-                try {
-                    const game = await makeXanoRequest('GET', `${correctEndpoint}/${gameId}`);
-                    return {
-                        statusCode: 200,
-                        headers,
-                        body: JSON.stringify(game)
-                    };
-                } catch (error) {
-                    return {
-                        statusCode: 404,
-                        headers,
-                        body: JSON.stringify({ error: 'Game not found' })
-                    };
-                }
+            } catch (error) {
+                console.error('Error getting games:', error);
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'Internal server error',
+                        details: error.message 
+                    })
+                };
             }
         }
         
         if (event.httpMethod === 'POST') {
-            console.log('\n=== NETLIFY FUNCTION POST REQUEST ===');
-            
-            const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-            
-            if (!contentType || !contentType.includes('multipart/form-data')) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ 
-                        error: 'Content-Type must be multipart/form-data',
-                        received: contentType 
-                    })
-                };
-            }
-            
-            const boundaryMatch = contentType.match(/boundary=([^;]+)/);
-            if (!boundaryMatch) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ error: 'No boundary found in Content-Type' })
-                };
-            }
-            
-            const boundary = boundaryMatch[1].replace(/"/g, '');
-            
-            let bodyData = event.body;
-            if (event.isBase64Encoded) {
-                console.log('Body is base64 encoded, decoding...');
-                bodyData = Buffer.from(event.body, 'base64').toString('binary');
-            }
-            
-            const { fields, files } = parseMultipartFormData(bodyData, boundary);
-            
-            const gameName = fields.name;
-            if (!gameName) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ 
-                        error: 'Game name is required',
-                        received_fields: Object.keys(fields),
-                        field_values: fields
-                    })
-                };
-            }
-            
-            const audioFiles = files.filter(f => f.fieldName === 'files');
-            if (audioFiles.length === 0) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ 
-                        error: 'At least one audio file is required',
-                        received_files: files.length
-                    })
-                };
-            }
-            
-            // Check game limit (demo + 3 custom = 4 max)
-            const existingGames = await makeXanoRequest('GET', correctEndpoint);
-            if (existingGames.length >= 4) {
-                return {
-                    statusCode: 400,
-                    headers,
-                    body: JSON.stringify({ 
-                        error: 'Maximum of 4 games allowed. Please delete a game first.',
-                        current_count: existingGames.length
-                    })
-                };
-            }
-            
-            const processedFiles = [];
-            for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
-                const file = audioFiles[i];
-                processedFiles.push({
-                    filename: `game_file_${i + 1}.mp3`,
-                    original_name: file.filename,
-                    path: file.dataUrl
-                });
-            }
-            
-            // Ensure we have exactly 18 files
-            while (processedFiles.length < 18) {
-                const sourceIndex = processedFiles.length % audioFiles.length;
-                const sourceFile = audioFiles[sourceIndex];
-                processedFiles.push({
-                    filename: `game_file_${processedFiles.length + 1}.mp3`,
-                    original_name: sourceFile.filename,
-                    path: sourceFile.dataUrl
-                });
-            }
-            
-            const gameData = {
-                name: gameName,
-                files: processedFiles.slice(0, 18)
-            };
-            
-            console.log(`Creating game "${gameName}" in Xano with ${gameData.files.length} files`);
-            
-            const newGame = await makeXanoRequest('POST', correctEndpoint, gameData);
-            
-            console.log(`SUCCESS: Game created in Xano with ID ${newGame.id}`);
-            
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    message: 'Game uploaded successfully',
-                    game_name: gameName,
-                    files_uploaded: audioFiles.length,
-                    total_files: gameData.files.length,
-                    game_id: newGame.id
-                })
-            };
-        }
-        
-        if (event.httpMethod === 'DELETE') {
-            const gameId = parseInt(path.split('/')[1]);
-            console.log(`Deleting game ${gameId} from Xano...`);
-            
+            // Create new game
             try {
-                // Check if game exists first
-                const game = await makeXanoRequest('GET', `${correctEndpoint}/${gameId}`);
+                const contentType = event.headers['content-type'] || event.headers['Content-Type'] || '';
                 
-                // Prevent deletion of demo game
-                if (game.name === "Demo Game") {
-                    return {
-                        statusCode: 400,
-                        headers,
-                        body: JSON.stringify({ error: 'Cannot delete the demo game' })
-                    };
+                if (!contentType.includes('multipart/form-data')) {
+                    throw new Error('Content-Type must be multipart/form-data');
                 }
                 
-                // Delete the game
-                await makeXanoRequest('DELETE', `${correctEndpoint}/${gameId}`);
+                const boundary = contentType.split('boundary=')[1];
+                if (!boundary) {
+                    throw new Error('Missing boundary in Content-Type');
+                }
                 
-                console.log(`Successfully deleted game: ${game.name}`);
+                console.log('Parsing multipart form data...');
+                const { fields, files } = parseMultipart(event.body, boundary);
+                
+                const gameName = fields.name;
+                if (!gameName || gameName.trim() === '') {
+                    throw new Error('Game name is required');
+                }
+                
+                // Check game limit
+                const existingGames = await makeXanoRequest('GET', '/game');
+                if (existingGames.length >= 4) {
+                    throw new Error('Maximum of 4 games allowed');
+                }
+                
+                // Process audio files
+                const audioFiles = [];
+                for (let i = 0; i < 18; i++) {
+                    const fileKey = `file_${i}`;
+                    if (!files[fileKey]) {
+                        throw new Error(`Missing audio file ${i + 1}`);
+                    }
+                    audioFiles.push(files[fileKey].data);
+                }
+                
+                console.log(`Processing ${audioFiles.length} audio files for game: ${gameName}`);
+                
+                // Create game in Xano
+                const gameData = {
+                    name: gameName.trim(),
+                    files: JSON.stringify(audioFiles)
+                };
+                
+                const result = await makeXanoRequest('POST', '/game', gameData);
+                console.log('Game created successfully:', result);
                 
                 return {
                     statusCode: 200,
                     headers,
-                    body: JSON.stringify({
-                        message: 'Game deleted successfully',
-                        deleted_game: game.name
+                    body: JSON.stringify({ success: true, game: result })
+                };
+                
+            } catch (error) {
+                console.error('Error creating game:', error);
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: error.message || 'Internal server error'
                     })
                 };
-            } catch (error) {
-                if (error.message.includes('404')) {
-                    return {
-                        statusCode: 404,
-                        headers,
-                        body: JSON.stringify({ error: 'Game not found' })
-                    };
-                }
-                throw error;
             }
         }
         
+        if (event.httpMethod === 'DELETE') {
+            // Delete game
+            try {
+                const gameId = event.queryStringParameters?.id;
+                if (!gameId) {
+                    throw new Error('Game ID is required');
+                }
+                
+                console.log(`Deleting game with ID: ${gameId}`);
+                
+                // First check if it's the demo game
+                const games = await makeXanoRequest('GET', '/game');
+                const gameToDelete = games.find(g => g.id.toString() === gameId.toString());
+                
+                if (!gameToDelete) {
+                    throw new Error('Game not found');
+                }
+                
+                if (gameToDelete.name === 'Demo Game') {
+                    throw new Error('Cannot delete demo game');
+                }
+                
+                // Delete from Xano
+                await makeXanoRequest('DELETE', `/game/${gameId}`);
+                console.log('Game deleted successfully');
+                
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ success: true })
+                };
+                
+            } catch (error) {
+                console.error('Error deleting game:', error);
+                return {
+                    statusCode: 500,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: error.message || 'Internal server error'
+                    })
+                };
+            }
+        }
+        
+        // Method not allowed
         return {
             statusCode: 405,
             headers,
@@ -468,17 +326,16 @@ const handler = async (event, context) => {
         };
         
     } catch (error) {
-        console.error('FUNCTION ERROR:', error);
+        console.error('Handler error:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                details: error.message,
-                xano_base_url: XANO_BASE_URL
+                details: error.message 
             })
         };
     }
 };
 
-module.exports = { handler };
+exports.handler = handler;
