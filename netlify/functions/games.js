@@ -1,34 +1,50 @@
 const fs = require('fs');
 const path = require('path');
 
-// Use /tmp directory for persistent storage during function lifecycle
-const STORAGE_FILE = '/tmp/audio-games-data.json';
-let gameIdCounter = 1;
+// Use a more persistent approach - try multiple storage locations
+const STORAGE_LOCATIONS = [
+    '/tmp/audio-games-data.json',
+    '/var/task/games-data.json',  // Alternative location
+    process.env.LAMBDA_TASK_ROOT ? path.join(process.env.LAMBDA_TASK_ROOT, 'games-data.json') : null
+].filter(Boolean);
 
-// Initialize storage
+let gameIdCounter = 1;
+let gamesCache = null; // In-memory cache
+
+// Initialize storage with multiple fallback locations
 function initializeStorage() {
     try {
-        // Try to load existing data from temp file
-        if (fs.existsSync(STORAGE_FILE)) {
-            const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-            const parsed = JSON.parse(data);
-            gameIdCounter = parsed.counter || 1;
-            console.log('Loaded existing games from temp storage');
-            return parsed.games || [];
-        } else {
-            // Initialize with demo game
-            const initialGames = [{
-                id: 1,
-                name: "Demo Game",
-                files: generateDemoAudioFiles()
-            }];
-            gameIdCounter = 2;
-            
-            // Save initial data
-            saveToStorage(initialGames);
-            console.log('Initialized new games in temp storage');
-            return initialGames;
+        // First try to load from any existing storage location
+        for (const location of STORAGE_LOCATIONS) {
+            try {
+                if (fs.existsSync(location)) {
+                    const data = fs.readFileSync(location, 'utf8');
+                    const parsed = JSON.parse(data);
+                    gameIdCounter = parsed.counter || 1;
+                    gamesCache = parsed.games || [];
+                    console.log(`Loaded existing games from ${location}:`, gamesCache.length, 'games');
+                    return gamesCache;
+                }
+            } catch (err) {
+                console.log(`Could not load from ${location}:`, err.message);
+                continue;
+            }
         }
+        
+        // No existing data found, initialize with demo game
+        console.log('No existing storage found, initializing with demo game');
+        const initialGames = [{
+            id: 1,
+            name: "Demo Game",
+            files: generateDemoAudioFiles()
+        }];
+        gameIdCounter = 2;
+        gamesCache = initialGames;
+        
+        // Save initial data
+        saveToStorage(initialGames);
+        return initialGames;
+        
     } catch (error) {
         console.error('Error initializing storage:', error);
         // Fallback to demo game
@@ -38,41 +54,91 @@ function initializeStorage() {
             files: generateDemoAudioFiles()
         }];
         gameIdCounter = 2;
+        gamesCache = fallbackGames;
         return fallbackGames;
     }
 }
 
-// Save games to temp storage
+// Save games with multiple location attempts and caching
 function saveToStorage(games) {
     try {
         const dataToSave = {
             games: games,
             counter: gameIdCounter,
-            lastUpdated: new Date().toISOString()
+            lastUpdated: new Date().toISOString(),
+            version: '1.0'
         };
         
-        fs.writeFileSync(STORAGE_FILE, JSON.stringify(dataToSave), 'utf8');
-        console.log('Successfully saved games to temp storage');
-        return true;
+        const jsonData = JSON.stringify(dataToSave, null, 2);
+        let savedSuccessfully = false;
+        
+        // Try to save to multiple locations
+        for (const location of STORAGE_LOCATIONS) {
+            try {
+                // Ensure directory exists
+                const dir = path.dirname(location);
+                if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir, { recursive: true });
+                }
+                
+                fs.writeFileSync(location, jsonData, 'utf8');
+                console.log(`Successfully saved games to ${location}`);
+                savedSuccessfully = true;
+                break; // Success, no need to try other locations
+            } catch (err) {
+                console.log(`Could not save to ${location}:`, err.message);
+                continue;
+            }
+        }
+        
+        // Update cache regardless of file save success
+        gamesCache = games;
+        
+        if (!savedSuccessfully) {
+            console.warn('Could not save to any storage location, using memory cache only');
+        }
+        
+        return savedSuccessfully;
     } catch (error) {
-        console.error('Error saving to temp storage:', error);
+        console.error('Error saving to storage:', error);
+        // Still update cache
+        gamesCache = games;
         return false;
     }
 }
 
-// Load games from temp storage
+// Load games with cache fallback
 function loadFromStorage() {
     try {
-        if (fs.existsSync(STORAGE_FILE)) {
-            const data = fs.readFileSync(STORAGE_FILE, 'utf8');
-            const parsed = JSON.parse(data);
-            gameIdCounter = parsed.counter || 1;
-            return parsed.games || [];
+        // Try to load from file first
+        for (const location of STORAGE_LOCATIONS) {
+            try {
+                if (fs.existsSync(location)) {
+                    const data = fs.readFileSync(location, 'utf8');
+                    const parsed = JSON.parse(data);
+                    gameIdCounter = parsed.counter || gameIdCounter;
+                    gamesCache = parsed.games || [];
+                    return gamesCache;
+                }
+            } catch (err) {
+                console.log(`Could not load from ${location}:`, err.message);
+                continue;
+            }
         }
-        return [];
+        
+        // Fallback to cache if files not available
+        if (gamesCache) {
+            console.log('Using cached games data');
+            return gamesCache;
+        }
+        
+        // No data available, reinitialize
+        console.log('No data available, reinitializing');
+        return initializeStorage();
+        
     } catch (error) {
-        console.error('Error loading from temp storage:', error);
-        return [];
+        console.error('Error loading from storage:', error);
+        return gamesCache || [];
     }
 }
 
@@ -137,74 +203,38 @@ function parseMultipartFormData(body, boundary) {
         return { fields: {}, files: [] };
     }
     
-    // Ensure we're working with a string
     const bodyStr = typeof body === 'string' ? body : body.toString();
-    console.log('Body string length:', bodyStr.length);
-    console.log('First 500 chars of body:', bodyStr.substring(0, 500));
-    
     const fields = {};
     const files = [];
     
-    // Split by boundary
     const delimiter = `--${boundary}`;
     const parts = bodyStr.split(delimiter);
     
-    console.log('Found parts:', parts.length);
-    
     for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
-        console.log(`\n--- Processing part ${i} ---`);
-        console.log('Part length:', part.length);
         
-        if (part.length < 10) {
-            console.log('Skipping short part');
+        if (part.length < 10 || part.trim() === '--' || part.trim() === '') {
             continue;
         }
         
-        // Skip the final boundary marker
-        if (part.trim() === '--' || part.trim() === '') {
-            console.log('Skipping boundary marker');
-            continue;
-        }
-        
-        // Find the double newline that separates headers from content
         const headerEndIndex = part.indexOf('\r\n\r\n');
-        if (headerEndIndex === -1) {
-            console.log('No header separator found, trying \\n\\n');
-            const headerEndIndex2 = part.indexOf('\n\n');
-            if (headerEndIndex2 === -1) {
-                console.log('No header separator found at all, skipping');
-                continue;
-            }
-        }
-        
         const actualHeaderEnd = headerEndIndex !== -1 ? headerEndIndex : part.indexOf('\n\n');
+        
+        if (actualHeaderEnd === -1) continue;
+        
         const headers = part.substring(0, actualHeaderEnd);
         const content = part.substring(actualHeaderEnd + (headerEndIndex !== -1 ? 4 : 2));
         
-        console.log('Headers:', headers);
-        console.log('Content length:', content.length);
-        console.log('Content preview:', content.substring(0, 100));
-        
-        // Parse the Content-Disposition header
         const dispositionMatch = headers.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
         
         if (dispositionMatch) {
             const fieldName = dispositionMatch[1];
             const fileName = dispositionMatch[2];
             
-            console.log(`Found field: ${fieldName}`);
-            console.log(`Filename: ${fileName || 'none'}`);
-            
             if (fileName) {
-                // This is a file
-                console.log('Processing as file');
-                
-                // Convert content to base64 (assuming it's binary data)
                 const contentBuffer = Buffer.from(content, 'binary');
                 const base64Data = contentBuffer.toString('base64');
                 
-                // Determine MIME type
                 let mimeType = 'audio/mpeg';
                 const contentTypeMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
                 if (contentTypeMatch) {
@@ -219,36 +249,22 @@ function parseMultipartFormData(body, boundary) {
                     dataUrl: `data:${mimeType};base64,${base64Data}`,
                     size: contentBuffer.length
                 });
-                
-                console.log(`File processed: ${fileName}, size: ${contentBuffer.length} bytes`);
             } else {
-                // This is a regular form field
-                console.log('Processing as form field');
-                
-                // Clean up the content (remove trailing newlines)
                 let fieldValue = content;
-                // Remove trailing \r\n
                 if (fieldValue.endsWith('\r\n')) {
                     fieldValue = fieldValue.slice(0, -2);
                 }
-                // Remove trailing \n
                 if (fieldValue.endsWith('\n')) {
                     fieldValue = fieldValue.slice(0, -1);
                 }
                 
                 fields[fieldName] = fieldValue;
-                console.log(`Field processed: ${fieldName} = "${fieldValue}"`);
             }
-        } else {
-            console.log('No Content-Disposition header found in part');
         }
     }
     
-    console.log('\n=== PARSING COMPLETE ===');
     console.log('Fields found:', Object.keys(fields));
-    console.log('Field values:', fields);
     console.log('Files found:', files.length);
-    console.log('=========================\n');
     
     return { fields, files };
 }
@@ -272,19 +288,13 @@ const handler = async (event, context) => {
     try {
         if (event.httpMethod === 'GET') {
             if (path === '' || path === '/') {
-                // Reload from storage to get latest data
                 games = loadFromStorage();
-                if (games.length === 0) {
-                    games = initializeStorage();
-                }
-                
                 return {
                     statusCode: 200,
                     headers,
                     body: JSON.stringify(games)
                 };
             } else {
-                // Get specific game
                 const gameId = parseInt(path.split('/')[1]);
                 games = loadFromStorage();
                 const game = games.find(g => g.id === gameId);
@@ -304,18 +314,9 @@ const handler = async (event, context) => {
         }
         
         if (event.httpMethod === 'POST') {
-            console.log('\n=== NETLIFY FUNCTION POST REQUEST ===');
-            console.log('Event keys:', Object.keys(event));
-            console.log('Headers received:', JSON.stringify(event.headers, null, 2));
-            console.log('Body type:', typeof event.body);
-            console.log('Body length:', event.body ? event.body.length : 'null/undefined');
-            console.log('isBase64Encoded:', event.isBase64Encoded);
-            
             const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-            console.log('Content-Type:', contentType);
             
             if (!contentType || !contentType.includes('multipart/form-data')) {
-                console.log('ERROR: Invalid content type');
                 return {
                     statusCode: 400,
                     headers,
@@ -326,10 +327,8 @@ const handler = async (event, context) => {
                 };
             }
             
-            // Extract boundary
             const boundaryMatch = contentType.match(/boundary=([^;]+)/);
             if (!boundaryMatch) {
-                console.log('ERROR: No boundary found');
                 return {
                     statusCode: 400,
                     headers,
@@ -338,63 +337,41 @@ const handler = async (event, context) => {
             }
             
             const boundary = boundaryMatch[1].replace(/"/g, '');
-            console.log('Extracted boundary:', boundary);
             
-            // Handle base64 encoded body (common in Netlify Functions)
             let bodyData = event.body;
             if (event.isBase64Encoded) {
-                console.log('Body is base64 encoded, decoding...');
                 bodyData = Buffer.from(event.body, 'base64').toString('binary');
-                console.log('Decoded body length:', bodyData.length);
             }
             
-            // Parse the multipart data
             const { fields, files } = parseMultipartFormData(bodyData, boundary);
             
-            // Validate game name
             const gameName = fields.name;
-            console.log('Game name extracted:', gameName);
-            
             if (!gameName) {
-                console.log('ERROR: No game name found');
                 return {
                     statusCode: 400,
                     headers,
                     body: JSON.stringify({ 
                         error: 'Game name is required',
                         received_fields: Object.keys(fields),
-                        field_values: fields,
-                        debug_info: {
-                            boundary: boundary,
-                            content_type: contentType,
-                            body_length: bodyData ? bodyData.length : 0,
-                            is_base64: event.isBase64Encoded
-                        }
+                        field_values: fields
                     })
                 };
             }
             
-            // Validate files
             const audioFiles = files.filter(f => f.fieldName === 'files');
-            console.log('Audio files found:', audioFiles.length);
-            
             if (audioFiles.length === 0) {
-                console.log('ERROR: No audio files found');
                 return {
                     statusCode: 400,
                     headers,
                     body: JSON.stringify({ 
                         error: 'At least one audio file is required',
-                        received_files: files.length,
-                        file_details: files.map(f => ({ name: f.filename, field: f.fieldName, size: f.size }))
+                        received_files: files.length
                     })
                 };
             }
             
-            // Load current games from storage
             games = loadFromStorage();
             
-            // Process audio files
             const processedFiles = [];
             for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
                 const file = audioFiles[i];
@@ -405,7 +382,6 @@ const handler = async (event, context) => {
                 });
             }
             
-            // Ensure we have exactly 18 files
             while (processedFiles.length < 18) {
                 const sourceIndex = processedFiles.length % audioFiles.length;
                 const sourceFile = audioFiles[sourceIndex];
@@ -416,7 +392,6 @@ const handler = async (event, context) => {
                 });
             }
             
-            // Create new game
             const newGame = {
                 id: gameIdCounter++,
                 name: gameName,
@@ -426,18 +401,9 @@ const handler = async (event, context) => {
             
             games.push(newGame);
             
-            // Save to storage
             const saveSuccess = saveToStorage(games);
-            if (!saveSuccess) {
-                return {
-                    statusCode: 500,
-                    headers,
-                    body: JSON.stringify({ error: 'Failed to save game to storage' })
-                };
-            }
             
             console.log(`SUCCESS: Created game "${gameName}" with ${newGame.files.length} files`);
-            console.log('=== END REQUEST ===\n');
             
             return {
                 statusCode: 200,
@@ -447,7 +413,8 @@ const handler = async (event, context) => {
                     game_name: gameName,
                     files_uploaded: audioFiles.length,
                     total_files: newGame.files.length,
-                    game_id: newGame.id
+                    game_id: newGame.id,
+                    saved_to_disk: saveSuccess
                 })
             };
         }
@@ -455,7 +422,6 @@ const handler = async (event, context) => {
         if (event.httpMethod === 'DELETE') {
             const gameId = parseInt(path.split('/')[1]);
             
-            // Load current games
             games = loadFromStorage();
             const gameIndex = games.findIndex(g => g.id === gameId);
             
@@ -469,22 +435,17 @@ const handler = async (event, context) => {
             
             const deletedGame = games.splice(gameIndex, 1)[0];
             
-            // Save updated games to storage
             const saveSuccess = saveToStorage(games);
-            if (!saveSuccess) {
-                return {
-                    statusCode: 500,
-                    headers,
-                    body: JSON.stringify({ error: 'Failed to delete game from storage' })
-                };
-            }
+            
+            console.log(`Successfully deleted game: ${deletedGame.name}`);
             
             return {
                 statusCode: 200,
                 headers,
                 body: JSON.stringify({
                     message: 'Game deleted successfully',
-                    deleted_game: deletedGame.name
+                    deleted_game: deletedGame.name,
+                    saved_to_disk: saveSuccess
                 })
             };
         }
@@ -497,14 +458,12 @@ const handler = async (event, context) => {
         
     } catch (error) {
         console.error('FUNCTION ERROR:', error);
-        console.error('Stack trace:', error.stack);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                details: error.message,
-                stack: error.stack
+                details: error.message
             })
         };
     }
