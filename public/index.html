@@ -253,40 +253,35 @@
         }
 
         .card.first-selected {
-            background: linear-gradient(145deg, rgba(255, 193, 7, 0.6), rgba(255, 152, 0, 0.6)) !important;
-            border-color: rgba(255, 193, 7, 0.9) !important;
-            transform: translateY(-8px) scale(1.05) !important;
+            background: #ffd700 !important;
+            border: 3px solid #ffed4e !important;
+            transform: translateY(-10px) scale(1.1) !important;
             box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.5),
-                0 0 30px rgba(255, 193, 7, 0.6),
-                inset 0 2px 0 rgba(255, 255, 255, 0.4) !important;
-            animation: pulse-first 1.2s ease-in-out infinite alternate !important;
-            z-index: 10;
+                0 0 30px #ffd700,
+                0 20px 40px rgba(0, 0, 0, 0.5) !important;
+            animation: glow-pulse 1s ease-in-out infinite alternate !important;
+            z-index: 100 !important;
         }
 
-        @keyframes pulse-first {
-            0% { 
+        @keyframes glow-pulse {
+            from { 
                 box-shadow: 
-                    0 20px 40px rgba(0, 0, 0, 0.5),
-                    0 0 25px rgba(255, 193, 7, 0.5),
-                    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+                    0 0 20px #ffd700,
+                    0 20px 40px rgba(0, 0, 0, 0.5);
             }
-            100% { 
+            to { 
                 box-shadow: 
-                    0 20px 40px rgba(0, 0, 0, 0.5),
-                    0 0 40px rgba(255, 193, 7, 0.8),
-                    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+                    0 0 40px #ffd700,
+                    0 20px 40px rgba(0, 0, 0, 0.5);
             }
         }
 
         .card.second-selected {
-            background: linear-gradient(145deg, rgba(33, 150, 243, 0.5), rgba(21, 101, 192, 0.5)) !important;
-            border-color: rgba(33, 150, 243, 0.8) !important;
-            transform: translateY(-4px) scale(1.02) !important;
-            box-shadow: 
-                0 15px 30px rgba(0, 0, 0, 0.4),
-                0 0 20px rgba(33, 150, 243, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+            background: #2196F3 !important;
+            border: 2px solid #64b5f6 !important;
+            transform: translateY(-5px) scale(1.05) !important;
+            box-shadow: 0 0 15px #2196F3, 0 15px 30px rgba(0, 0, 0, 0.4) !important;
+            z-index: 50 !important;
         }
 
         .card.playing {
@@ -926,28 +921,49 @@
             });
         }
 
-        // Handle card click with improved visual feedback
+        // Handle card click with improved visual feedback and debugging
         function handleCardClick(position) {
             const card = document.querySelector(`[data-position="${position}"]`);
-            if (!card || card.classList.contains('matched') || card.classList.contains('first-selected') || card.classList.contains('second-selected')) {
+            
+            console.log(`Card clicked: Position ${position}, Card number ${card.textContent}, Audio index ${card.dataset.audioIndex}`);
+            console.log(`Current selected cards:`, selectedCards);
+            console.log(`Card classes:`, card.className);
+            
+            // Prevent clicking the same card twice or already matched cards
+            if (!card || card.classList.contains('matched')) {
+                console.log('Card blocked - matched or invalid');
+                return;
+            }
+            
+            // Prevent clicking the same card that's already selected
+            if (selectedCards.includes(position)) {
+                console.log('Card blocked - already selected this position');
                 return;
             }
 
             if (selectedCards.length === 0) {
-                // First card selection - highlight it prominently
+                // First card selection - add prominent highlight
+                console.log('Adding first-selected class');
+                clearAllCardStates(); // Clear any previous states
                 card.classList.add('first-selected');
                 selectedCards.push(position);
                 
                 const audioIndex = parseInt(card.dataset.audioIndex);
                 playAudioFile(audioIndex, card);
                 
+                console.log(`First card selected: Position ${position}, Audio ${audioIndex}`);
+                
             } else if (selectedCards.length === 1) {
-                // Second card selection - different highlight
+                // Second card selection
+                console.log('Adding second-selected class');
                 card.classList.add('second-selected');
                 selectedCards.push(position);
                 
                 const audioIndex = parseInt(card.dataset.audioIndex);
                 playAudioFile(audioIndex, card);
+                
+                console.log(`Second card selected: Position ${position}, Audio ${audioIndex}`);
+                console.log('Selected cards array:', selectedCards);
                 
                 attempts++;
                 updateStats();
@@ -955,6 +971,12 @@
                 setTimeout(() => {
                     checkMatch();
                 }, 1000);
+            } else {
+                console.log('Too many cards selected, resetting');
+                // Reset if somehow we have too many selected
+                clearAllCardStates();
+                selectedCards = [];
+                handleCardClick(position); // Retry this click as first selection
             }
         }
 
@@ -1028,23 +1050,53 @@
             });
         }
 
-        // Check for match with improved visual feedback
+        // Check for match with detailed debugging
         function checkMatch() {
+            console.log('\n=== CHECKING MATCH ===');
+            console.log('Selected cards:', selectedCards);
+            
+            if (selectedCards.length !== 2) {
+                console.log('ERROR: Wrong number of selected cards:', selectedCards.length);
+                selectedCards = [];
+                clearAllCardStates();
+                return;
+            }
+            
             const [pos1, pos2] = selectedCards;
             const card1 = document.querySelector(`[data-position="${pos1}"]`);
             const card2 = document.querySelector(`[data-position="${pos2}"]`);
+            
+            if (!card1 || !card2) {
+                console.log('ERROR: Could not find cards');
+                selectedCards = [];
+                clearAllCardStates();
+                return;
+            }
             
             // Stop current audio immediately when checking match
             stopCurrentAudio();
             
             const audioIndex1 = parseInt(card1.dataset.audioIndex);
             const audioIndex2 = parseInt(card2.dataset.audioIndex);
+            const cardNum1 = card1.textContent;
+            const cardNum2 = card2.textContent;
 
-            console.log(`Checking match: Card ${card1.textContent} (audio ${audioIndex1}) vs Card ${card2.textContent} (audio ${audioIndex2})`);
+            console.log(`Card 1: Position ${pos1}, Number ${cardNum1}, Audio ${audioIndex1}`);
+            console.log(`Card 2: Position ${pos2}, Number ${cardNum2}, Audio ${audioIndex2}`);
+            console.log(`Audio indices match: ${audioIndex1 === audioIndex2}`);
+            console.log(`Same position check: ${pos1 === pos2}`);
+
+            // Ensure we're not matching a card with itself
+            if (pos1 === pos2) {
+                console.log('ERROR: Same card selected twice!');
+                selectedCards = [];
+                clearAllCardStates();
+                return;
+            }
 
             if (audioIndex1 === audioIndex2) {
-                // Match found - immediate visual feedback
-                console.log('MATCH FOUND!');
+                // Match found
+                console.log('✅ MATCH FOUND!');
                 card1.classList.remove('first-selected', 'second-selected', 'playing');
                 card2.classList.remove('first-selected', 'second-selected', 'playing');
                 card1.classList.add('matched');
@@ -1053,8 +1105,9 @@
                 gameBoard[pos2].matched = true;
                 matches++;
                 
+                console.log(`Match #${matches} completed`);
+                
                 if (matches === 18) {
-                    // Game completed
                     clearInterval(gameTimer);
                     stopCurrentAudio();
                     const endTime = Date.now();
@@ -1062,8 +1115,8 @@
                     document.getElementById('ticker').textContent = `Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
                 }
             } else {
-                // No match - clear all selection states
-                console.log('No match - clearing selection states');
+                // No match
+                console.log('❌ No match - clearing selection states');
                 setTimeout(() => {
                     card1.classList.remove('first-selected', 'second-selected', 'playing');
                     card2.classList.remove('first-selected', 'second-selected', 'playing');
@@ -1072,6 +1125,7 @@
 
             selectedCards = [];
             updateStats();
+            console.log('=== MATCH CHECK COMPLETE ===\n');
         }
 
         // Reset game - FIXED: Only randomize audio, keep card numbers the same
