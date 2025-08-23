@@ -260,14 +260,18 @@
         .card.first-selected:nth-child(6n+4),
         .card.first-selected:nth-child(6n+5),
         .card.first-selected:nth-child(6n+6) {
-            background: linear-gradient(145deg, #e6c200, #ccac00) !important;
-            border: 2px solid #d4b300 !important;
+            background: linear-gradient(145deg, 
+                rgba(230, 194, 0, 0.8), 
+                rgba(204, 172, 0, 0.7)) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 2px solid rgba(212, 179, 0, 0.9) !important;
             color: #000 !important;
             transform: translateY(-4px) scale(1.05) !important;
             box-shadow: 
-                0 0 12px rgba(230, 194, 0, 0.6),
-                0 0 24px rgba(230, 194, 0, 0.3),
-                0 8px 16px rgba(0, 0, 0, 0.4) !important;
+                0 0 12px rgba(230, 194, 0, 0.4),
+                0 0 24px rgba(230, 194, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
             animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
             z-index: 1000 !important;
             position: relative !important;
@@ -290,16 +294,18 @@
         @keyframes first-card-glow {
             0% { 
                 box-shadow: 
-                    0 0 8px rgba(230, 194, 0, 0.6),
-                    0 0 16px rgba(230, 194, 0, 0.3),
-                    0 8px 16px rgba(0, 0, 0, 0.4);
+                    0 0 8px rgba(230, 194, 0, 0.4),
+                    0 0 16px rgba(230, 194, 0, 0.2),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
                 transform: translateY(-4px) scale(1.05);
             }
             100% { 
                 box-shadow: 
-                    0 0 16px rgba(230, 194, 0, 0.8),
-                    0 0 32px rgba(230, 194, 0, 0.4),
-                    0 8px 16px rgba(0, 0, 0, 0.4);
+                    0 0 16px rgba(230, 194, 0, 0.6),
+                    0 0 32px rgba(230, 194, 0, 0.3),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
                 transform: translateY(-6px) scale(1.06);
             }
         }
@@ -1038,17 +1044,21 @@
                 console.log('Adding first-selected class');
                 clearAllCardStates(); // Clear any previous states
                 
-                // NUCLEAR APPROACH: Force add first-selected class and inline styles
+                // NUCLEAR APPROACH: Force add first-selected class and inline styles with glassmorphism
                 card.classList.add('first-selected');
                 card.setAttribute('style', `
-                    background: linear-gradient(145deg, #e6c200, #ccac00) !important;
-                    border: 2px solid #d4b300 !important;
+                    background: linear-gradient(145deg, 
+                        rgba(230, 194, 0, 0.8), 
+                        rgba(204, 172, 0, 0.7)) !important;
+                    backdrop-filter: blur(10px) !important;
+                    border: 2px solid rgba(212, 179, 0, 0.9) !important;
                     color: #000 !important;
                     transform: translateY(-4px) scale(1.05) !important;
                     box-shadow: 
-                        0 0 12px rgba(230, 194, 0, 0.6),
-                        0 0 24px rgba(230, 194, 0, 0.3),
-                        0 8px 16px rgba(0, 0, 0, 0.4) !important;
+                        0 0 12px rgba(230, 194, 0, 0.4),
+                        0 0 24px rgba(230, 194, 0, 0.2),
+                        0 8px 16px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
                     animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
                     z-index: 1000 !important;
                     position: relative !important;
@@ -1103,10 +1113,27 @@
             }
         }
 
-        // Play audio file with improved reliability and visual feedback
+        // Play audio file with improved reliability and complete playback
         function playAudioFile(index, cardElement) {
-            // Stop any currently playing audio
-            stopCurrentAudio();
+            console.log(`Playing audio ${index}, current audio:`, currentAudio ? 'exists' : 'none');
+            
+            // Don't stop current audio abruptly - let it finish if it's the same audio
+            if (currentAudio && currentAudio === preloadedAudio[index] && !currentAudio.paused) {
+                console.log(`Audio ${index} already playing, letting it continue`);
+                return;
+            }
+            
+            // Stop any different audio that's playing
+            if (currentAudio && currentAudio !== preloadedAudio[index]) {
+                console.log('Stopping different audio');
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            
+            // Clear all visual playing states first
+            document.querySelectorAll('.card.playing').forEach(card => {
+                card.classList.remove('playing');
+            });
             
             // Add visual playing state to the clicked card
             if (cardElement) {
@@ -1117,73 +1144,93 @@
             if (preloadedAudio[index]) {
                 currentAudio = preloadedAudio[index];
                 
-                // Ensure audio is ready to play
-                if (currentAudio.readyState >= 2) { // HAVE_CURRENT_DATA
-                    currentAudio.currentTime = 0;
-                    
-                    // Clear any existing timeout for this audio
-                    if (audioTimeouts[index]) {
-                        clearTimeout(audioTimeouts[index]);
-                    }
-                    
-                    // Add one-time event listener for when audio ends
-                    const handleAudioEnd = () => {
-                        clearCardPlayingState(index);
-                        currentAudio.removeEventListener('ended', handleAudioEnd);
-                    };
-                    currentAudio.addEventListener('ended', handleAudioEnd);
-                    
-                    // Set timeout to clear visual state - longer timeout for reliability
-                    audioTimeouts[index] = setTimeout(() => {
-                        clearCardPlayingState(index);
-                    }, 4000); // Increased to 4 seconds
-                    
-                    // Play with better error handling
-                    const playPromise = currentAudio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            console.log(`Audio ${index} playing successfully`);
-                        }).catch(error => {
-                            console.error(`Audio ${index} play failed:`, error);
+                // Clear any existing timeout for this audio
+                if (audioTimeouts[index]) {
+                    clearTimeout(audioTimeouts[index]);
+                    delete audioTimeouts[index];
+                }
+                
+                // For reliability, always reset to beginning and ensure ready state
+                currentAudio.currentTime = 0;
+                
+                // Wait a moment for the audio to be ready if needed
+                const attemptPlay = () => {
+                    if (currentAudio.readyState >= 1) { // HAVE_METADATA or better
+                        console.log(`Audio ${index} ready state: ${currentAudio.readyState}, attempting play`);
+                        
+                        // Add one-time event listener for when audio ends
+                        const handleAudioEnd = () => {
+                            console.log(`Audio ${index} ended naturally`);
                             clearCardPlayingState(index);
-                            
-                            // Try to reload and play again on failure
-                            setTimeout(() => {
+                            currentAudio.removeEventListener('ended', handleAudioEnd);
+                            if (audioTimeouts[index]) {
+                                clearTimeout(audioTimeouts[index]);
+                                delete audioTimeouts[index];
+                            }
+                        };
+                        currentAudio.addEventListener('ended', handleAudioEnd);
+                        
+                        // Set a longer timeout for visual state clearing (don't interrupt audio)
+                        audioTimeouts[index] = setTimeout(() => {
+                            console.log(`Audio ${index} timeout - clearing visual state`);
+                            clearCardPlayingState(index);
+                            delete audioTimeouts[index];
+                        }, 8000); // Much longer timeout - 8 seconds
+                        
+                        // Play with promise handling
+                        const playPromise = currentAudio.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log(`Audio ${index} started playing successfully`);
+                            }).catch(error => {
+                                console.error(`Audio ${index} play failed:`, error);
+                                
+                                // Try reloading the audio and playing again
+                                console.log(`Attempting to reload audio ${index}`);
                                 try {
                                     currentAudio.load();
                                     setTimeout(() => {
-                                        currentAudio.play().catch(e => 
-                                            console.error(`Audio ${index} retry failed:`, e)
-                                        );
-                                    }, 100);
-                                } catch (retryError) {
-                                    console.error(`Audio ${index} reload failed:`, retryError);
+                                        currentAudio.currentTime = 0;
+                                        currentAudio.play().then(() => {
+                                            console.log(`Audio ${index} retry successful`);
+                                        }).catch(retryError => {
+                                            console.error(`Audio ${index} retry failed:`, retryError);
+                                            clearCardPlayingState(index);
+                                        });
+                                    }, 200);
+                                } catch (reloadError) {
+                                    console.error(`Audio ${index} reload failed:`, reloadError);
+                                    clearCardPlayingState(index);
                                 }
-                            }, 50);
-                        });
-                    }
-                } else {
-                    // Audio not ready, wait a bit and try again
-                    console.log(`Audio ${index} not ready, waiting...`);
-                    setTimeout(() => {
-                        if (currentAudio.readyState >= 2) {
-                            currentAudio.currentTime = 0;
-                            currentAudio.play().catch(error => {
-                                console.error(`Audio ${index} delayed play failed:`, error);
-                                clearCardPlayingState(index);
                             });
-                        } else {
-                            console.error(`Audio ${index} still not ready after delay`);
-                            clearCardPlayingState(index);
                         }
-                    }, 200);
-                }
+                    } else {
+                        // Audio not ready, wait a bit
+                        console.log(`Audio ${index} not ready (state: ${currentAudio.readyState}), waiting...`);
+                        setTimeout(() => {
+                            if (currentAudio.readyState >= 1) {
+                                attemptPlay();
+                            } else {
+                                console.error(`Audio ${index} still not ready after wait`);
+                                clearCardPlayingState(index);
+                            }
+                        }, 300);
+                    }
+                };
+                
+                // Start the play attempt
+                attemptPlay();
+                
             } else {
                 // Fallback: create new audio object
                 console.warn(`Audio ${index} not preloaded, creating new instance`);
                 if (currentGame && currentGame.files && currentGame.files[index]) {
                     currentAudio = new Audio(currentGame.files[index].path);
                     currentAudio.volume = 0.7;
+                    
+                    currentAudio.addEventListener('ended', () => {
+                        clearCardPlayingState(index);
+                    });
                     
                     const playPromise = currentAudio.play();
                     if (playPromise !== undefined) {
