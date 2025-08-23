@@ -1033,16 +1033,33 @@
                 return;
             }
 
-            // Prevent clicking during match processing or when already have 2 cards
+            // If we're processing a match OR have 2 cards, this is a new selection - reset everything
             if (isProcessingMatch || selectedCards.length >= 2) {
-                console.log('Card blocked - processing match or already have 2 cards selected');
-                return;
+                console.log('Starting fresh selection - clearing current state');
+                
+                // Stop current audio
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                    currentAudio = null;
+                }
+                
+                // Clear all event listeners and timeouts
+                Object.values(audioTimeouts).forEach(timeout => clearTimeout(timeout));
+                audioTimeouts = {};
+                
+                // Reset game state
+                clearAllCardStates();
+                selectedCards = [];
+                isProcessingMatch = false;
+                
+                // Now proceed with this click as a first selection
+                console.log('State reset, proceeding as first card selection');
             }
 
             if (selectedCards.length === 0) {
                 // First card selection
                 console.log('First card selection');
-                clearAllCardStates(); // Clear any previous states
                 
                 card.classList.add('first-selected');
                 card.setAttribute('style', `
@@ -1087,7 +1104,7 @@
             } else if (selectedCards.length === 1) {
                 // Second card selection - enter processing state
                 console.log('Second card selection - entering processing state');
-                isProcessingMatch = true; // Block further clicks
+                isProcessingMatch = true; // Block match-checking logic, but allow resets
                 card.classList.add('second-selected');
                 
                 selectedCards.push(position);
