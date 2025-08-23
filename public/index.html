@@ -12,1188 +12,1571 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #111 0%, #222 50%, #111 100%);
-            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
-            color: #eee;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
         }
 
-        body::before {
+        .container {
+            background: rgba(40, 44, 52, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 25px;
+            width: 400px;
+            position: relative;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #b0b3b8;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .ticker {
+            min-height: 40px;
+            max-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+            font-size: 0.8rem;
+            font-weight: normal;
+            text-align: center;
+            line-height: 1.2;
+            padding: 5px;
+            overflow: hidden;
+        }
+
+        .game-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .game-btn {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            min-width: 70px;
+            max-width: 90px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-btn.active {
+            background: linear-gradient(145deg, #45a049, #4CAF50);
+            transform: translateY(-1px);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .stat {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            color: #b0b3b8;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.05)
+            );
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .card::before {
             content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:nth-child(6n+1) { 
+            border-color: rgba(0, 191, 255, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(0, 191, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+2) { 
+            border-color: rgba(255, 20, 147, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 20, 147, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+3) { 
+            border-color: rgba(138, 43, 226, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(138, 43, 226, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+4) { 
+            border-color: rgba(255, 140, 0, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 140, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+5) { 
+            border-color: rgba(50, 205, 50, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(50, 205, 50, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:nth-child(6n+6) { 
+            border-color: rgba(255, 69, 0, 0.4);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(255, 69, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .card.matched {
+            background: linear-gradient(145deg, rgba(76, 175, 80, 0.3), rgba(69, 160, 73, 0.3));
+            border-color: rgba(76, 175, 80, 0.6);
+            color: #4CAF50;
+        }
+
+        .card.matched::after {
+            content: '✓';
+            position: absolute;
+            font-size: 1.5rem;
+            color: #4CAF50;
+        }
+
+        /* Override all card styles when first-selected */
+        .card.first-selected,
+        .card.first-selected:nth-child(6n+1),
+        .card.first-selected:nth-child(6n+2),
+        .card.first-selected:nth-child(6n+3),
+        .card.first-selected:nth-child(6n+4),
+        .card.first-selected:nth-child(6n+5),
+        .card.first-selected:nth-child(6n+6) {
+            background: linear-gradient(145deg, 
+                rgba(230, 194, 0, 0.8), 
+                rgba(204, 172, 0, 0.7)) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 2px solid rgba(212, 179, 0, 0.9) !important;
+            color: #000 !important;
+            transform: translateY(-4px) scale(1.05) !important;
+            box-shadow: 
+                0 0 12px rgba(230, 194, 0, 0.4),
+                0 0 24px rgba(230, 194, 0, 0.2),
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+            animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
+            z-index: 1000 !important;
+            position: relative !important;
+        }
+
+        .card.first-selected::before {
+            display: none !important;
+        }
+
+        .card.first-selected::after {
+            content: '👆' !important;
+            position: absolute !important;
+            top: -18px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            font-size: 1rem !important;
+            z-index: 1001 !important;
+        }
+
+        @keyframes first-card-glow {
+            0% { 
+                box-shadow: 
+                    0 0 8px rgba(230, 194, 0, 0.4),
+                    0 0 16px rgba(230, 194, 0, 0.2),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                transform: translateY(-4px) scale(1.05);
+            }
+            100% { 
+                box-shadow: 
+                    0 0 16px rgba(230, 194, 0, 0.6),
+                    0 0 32px rgba(230, 194, 0, 0.3),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                transform: translateY(-6px) scale(1.06);
+            }
+        }
+
+        /* Override all card styles when second-selected */
+        .card.second-selected,
+        .card.second-selected:nth-child(6n+1),
+        .card.second-selected:nth-child(6n+2),
+        .card.second-selected:nth-child(6n+3),
+        .card.second-selected:nth-child(6n+4),
+        .card.second-selected:nth-child(6n+5),
+        .card.second-selected:nth-child(6n+6) {
+            background: linear-gradient(145deg, #2196F3, #1976D2) !important;
+            border: 2px solid #64b5f6 !important;
+            color: #fff !important;
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 
+                0 0 8px #2196F3,
+                0 0 16px rgba(33, 150, 243, 0.3),
+                0 6px 12px rgba(0, 0, 0, 0.3) !important;
+            z-index: 500 !important;
+            position: relative !important;
+        }
+
+        .card.second-selected::before {
+            display: none !important;
+        }
+
+        .card.playing {
+            background: linear-gradient(145deg, rgba(33, 150, 243, 0.4), rgba(21, 101, 192, 0.4));
+            border-color: rgba(33, 150, 243, 0.8);
+            transform: translateY(-2px) scale(1.01);
+            animation: pulse 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { box-shadow: 0 0 20px rgba(33, 150, 243, 0.3); }
+            to { box-shadow: 0 0 30px rgba(33, 150, 243, 0.6); }
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .new-game-btn {
+            background: linear-gradient(145deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .new-game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .new-game-btn .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-info {
+            text-align: center;
+            color: #b0b3b8;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 6px 8px;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(60, 60, 70, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(70, 70, 80, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(60, 70, 80, 0.15) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
         }
 
-        .container {
-            width: 400px;
-            background: rgba(25, 25, 30, 0.9);
-            color: #eee;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(40, 44, 52, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
             position: relative;
-            z-index: 1;
         }
 
-        h1, h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, #ffffff 0%, #c4c4c4 50%, #a8a8a8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
-        }
-
-        h2 {
-            font-size: 1rem;
-            color: #999;
-            margin-bottom: 20px;
-            font-weight: 400;
-        }
-
-        .game-stats {
+        .modal-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 8px 12px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .status-ticker {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #ffcc00;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
-        }
-
-        .game-selector {
-            margin-bottom: 20px;
-        }
-
-        .game-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .game-item {
-            background: linear-gradient(145deg, #222, #1a1a1a);
-            padding: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .game-item:hover {
-            background: linear-gradient(145deg, #2a2a2a, #222);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .game-item.selected {
-            background: linear-gradient(145deg, #272616, #1f1e12);
-            color: #ffcc00;
-            border: 1px solid rgba(255, 204, 0, 0.2);
-            box-shadow: 
-                0 0 15px rgba(255, 204, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
-
-        #create-game-btn {
-            background: linear-gradient(145deg, #333, #222);
-            color: #eee;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        #create-game-btn:hover {
-            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-        }
-
-        #game-board {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            aspect-ratio: 1;
-            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
             align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #b0b3b8;
+            font-size: 1.5rem;
             cursor: pointer;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
         }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.25);
-            background: linear-gradient(145deg, #454545, #333);
-        }
-
-        .card-number {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.8rem;
-            font-weight: bold;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-        }
-
-        .selection-indicator {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1rem;
-            animation: bounce 1s infinite;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-        }
-
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateX(-50%) translateY(0);
-            }
-            50% {
-                transform: translateX(-50%) translateY(-5px);
-            }
-        }
-
-        @keyframes firstCardPulse {
-            0% {
-                box-shadow: 
-                    0 0 12px rgba(255, 215, 0, 0.4), 
-                    0 0 24px rgba(255, 215, 0, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            }
-            100% {
-                box-shadow: 
-                    0 0 8px rgba(255, 215, 0, 0.2), 
-                    0 0 16px rgba(255, 215, 0, 0.1),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            }
-        }
-
-        .first-selected {
-            background: linear-gradient(145deg, rgba(230, 194, 0, 0.8), rgba(200, 170, 0, 0.8)) !important;
-            backdrop-filter: blur(10px) !important;
-            transform: scale(1.05) translateY(-4px) !important;
-            border: 1px solid rgba(212, 179, 0, 0.9) !important;
-            box-shadow: 
-                0 0 12px rgba(255, 215, 0, 0.4), 
-                0 0 24px rgba(255, 215, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-            animation: firstCardPulse 1.5s infinite alternate !important;
-            z-index: 10 !important;
-            border-radius: 8px !important;
-        }
-
-        .second-selected {
-            background: linear-gradient(145deg, rgba(30, 144, 255, 0.8), rgba(0, 120, 215, 0.8)) !important;
-            transform: scale(1.03) translateY(-3px) !important;
-            border: 1px solid rgba(0, 100, 200, 0.9) !important;
-            box-shadow: 
-                0 0 10px rgba(30, 144, 255, 0.3), 
-                0 0 20px rgba(30, 144, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-            z-index: 5 !important;
-            border-radius: 8px !important;
-        }
-
-        .matched {
-            background: linear-gradient(145deg, rgba(40, 167, 69, 0.8), rgba(30, 140, 50, 0.8)) !important;
-            transform: scale(1) !important;
-            cursor: default !important;
-            border: 1px solid rgba(25, 135, 55, 0.9) !important;
-            box-shadow: 
-                0 0 8px rgba(40, 167, 69, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-
-        .matched::after {
-            content: "✓";
-            position: absolute;
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
-        #upload-form {
-            display: none;
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        label {
+        .form-label {
             display: block;
-            margin-bottom: 5px;
-            color: #ccc;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
-        input, button {
+        .form-input, .form-textarea, .form-select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: linear-gradient(145deg, #222, #1a1a1a);
-            color: #eee;
-            box-shadow: 
-                inset 0 1px 3px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
         }
 
-        button {
-            background: linear-gradient(145deg, #333, #222);
-            color: #eee;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
         }
 
-        button:hover {
-            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .file-input-container {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-input-label {
-            background: linear-gradient(145deg, #222, #1a1a1a);
-            color: #eee;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            display: block;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 
-                0 2px 4px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-
-        .file-input-label:hover {
-            background: linear-gradient(145deg, #2a2a2a, #222);
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(-1px);
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
         }
 
         .file-input {
-            position: absolute;
-            font-size: 100px;
-            right: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        #file-list {
-            margin-top: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
             border-radius: 8px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .file-item {
-            padding: 3px;
-            font-size: 0.8rem;
-            color: #ccc;
-        }
-
-        .admin-panel {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 0.8rem;
-            color: #666;
+            padding: 20px;
+            text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
 
-        .admin-panel:hover {
-            color: #999;
+        .file-input:hover {
+            border-color: #2196F3;
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, #f44336, #d32f2f);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #6c757d, #5a6268);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                padding: 20px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+            
+            .game-board {
+                gap: 6px;
+            }
+            
+            .card {
+                font-size: 0.8rem;
+            }
+            
+            .stats {
+                gap: 10px;
+            }
+            
+            .stat {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 1.3rem;
+            }
+            
+            .game-board {
+                gap: 4px;
+            }
+            
+            .card {
+                font-size: 0.7rem;
+            }
+            
+            .game-selector {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>DON'T TEST ME</h1>
-        <h2>Audio Memory Game</h2>
-        
-        <div class="game-stats">
-            <div>Game: <span id="game-name">-</span></div>
-            <div>Time: <span id="timer">00:00</span></div>
+        <div class="header">
+            <h1 class="title">DON'T TEST ME</h1>
+            <p class="subtitle">Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong></p>
+            <div id="ticker" class="ticker"></div>
         </div>
-        
-        <div class="game-stats">
-            <div>Matches: <span id="matches">0</span></div>
-            <div>Attempts: <span id="attempts">0</span></div>
-            <div>Accuracy: <span id="accuracy">0%</span></div>
+
+        <div class="game-selector" id="gameSelector">
+            <button class="game-btn active" data-game="1">Demo Game</button>
         </div>
-        
-        <div class="status-ticker" id="status">Select a game to start</div>
-        
-        <div class="game-selector">
-            <div class="game-list" id="game-list">
-                <!-- Game items will be added here -->
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">MATCHES</div>
+                <div class="stat-value" id="matches">0/18</div>
             </div>
-            <button id="create-game-btn">Create New Game</button>
-        </div>
-        
-        <div id="game-board" style="display: none;">
-            <!-- Cards will be added here -->
-        </div>
-        
-        <div id="upload-form">
-            <div class="form-group">
-                <label for="game-name-input">Game Name:</label>
-                <input type="text" id="game-name-input" placeholder="Enter game name">
+            <div class="stat">
+                <div class="stat-label">ATTEMPTS</div>
+                <div class="stat-value" id="attempts">0</div>
             </div>
-            
-            <div class="form-group">
-                <label>Audio Files (select up to 18 files):</label>
-                <div class="file-input-container">
-                    <label class="file-input-label">Choose Files</label>
-                    <input type="file" id="audio-files" multiple accept=".mp3,.wav,.ogg" class="file-input">
+            <div class="stat">
+                <div class="stat-label">ACCURACY</div>
+                <div class="stat-value" id="accuracy">100%</div>
+            </div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="controls">
+            <button class="new-game-btn" id="newGameBtn">
+                New Game
+                <span class="badge" id="newGameBadge">4</span>
+            </button>
+        </div>
+
+        <div class="game-info" id="gameInfo">
+            Game ready. Find the matching sounds!<br>
+            <span id="gameTimer">Time: 0:00 | Attempts: 0</span>
+        </div>
+        
+        <button class="admin-btn" id="adminBtn">⚙</button>
+    </div>
+
+    <!-- Admin Modal -->
+    <div class="modal" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Admin Access</h2>
+                <button class="close-btn" id="closeAdminModal">×</button>
+            </div>
+            <div id="adminLogin">
+                <div class="form-group">
+                    <label class="form-label">Enter password:</label>
+                    <input type="password" class="form-input" id="adminPassword" placeholder="Password">
                 </div>
-                <div id="file-list"></div>
+                <button class="btn" id="adminLoginBtn">Enter</button>
+                <button class="btn btn-secondary" id="cancelAdminBtn">Cancel</button>
             </div>
-            
-            <div class="form-group">
-                <button id="save-game-btn">Save Game</button>
-            </div>
-            
-            <div class="form-group">
-                <button id="cancel-btn">Cancel</button>
+            <div id="adminPanel" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Game Name:</label>
+                    <input type="text" class="form-input" id="gameName" placeholder="Enter game name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Audio Files (select 18):</label>
+                    <input type="file" class="form-input" id="audioFiles" multiple accept="audio/*">
+                </div>
+                <button class="btn" id="uploadGameBtn">Upload Audio Game</button>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label class="form-label">Ticker Messages (one per line):</label>
+                    <textarea class="form-textarea" id="tickerMessages" placeholder="Enter funny messages, one per line..."></textarea>
+                </div>
+                <button class="btn" id="uploadTickerBtn">Upload Ticker Messages</button>
+
+                <div class="form-group" style="margin-top: 30px;">
+                    <label class="form-label">Select Game to Delete:</label>
+                    <select class="form-select" id="deleteGameSelect">
+                        <option value="">-- Select a game --</option>
+                    </select>
+                </div>
+                <button class="btn btn-danger" id="deleteGameBtn">Delete Selected Game</button>
             </div>
         </div>
-        
-        <div class="admin-panel" id="admin-panel">Admin</div>
     </div>
 
     <script>
+        const API_BASE_URL = '/.netlify/functions';
+        
         let games = [];
+        let currentGame = null;
         let gameBoard = [];
         let selectedCards = [];
         let matches = 0;
         let attempts = 0;
+        let gameStartTime = null;
+        let gameTimer = null;
+        let tickerMessages = [];
+        let tickerInterval = null;
+        let currentTickerIndex = 0;
         let currentAudio = null;
-        let timerInterval = null;
-        let timerSeconds = 0;
-        let isProcessingMatch = false;
+        let preloadedAudio = {}; // Store preloaded audio objects
+        let audioTimeouts = {}; // Track audio timeout timers
+        let isProcessingMatch = false; // Track when we're in the middle of processing a match
 
-        // Load games when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadGames();
-            setupEventListeners();
-        });
+        // Initialize the game
+        async function initGame() {
+            await loadGames();
+            await loadTickerMessages();
+            if (games.length > 0) {
+                selectGame(games[0].id);
+            }
+            startTicker();
+        }
 
-        // Set up event listeners
-        function setupEventListeners() {
-            document.getElementById('create-game-btn').addEventListener('click', showUploadForm);
-            document.getElementById('save-game-btn').addEventListener('click', saveGame);
-            document.getElementById('cancel-btn').addEventListener('click', hideUploadForm);
-            document.getElementById('admin-panel').addEventListener('click', toggleAdminPanel);
-            
-            // Audio file input change event
-            document.getElementById('audio-files').addEventListener('change', function(e) {
-                const fileList = document.getElementById('file-list');
-                fileList.innerHTML = '';
-                
-                if (this.files.length > 18) {
-                    alert('Please select a maximum of 18 audio files.');
-                    this.value = '';
-                    return;
+        // Load games from API
+        async function loadGames() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/games`);
+                if (response.ok) {
+                    games = await response.json();
+                    updateGameSelector();
+                    updateDeleteGameOptions();
+                } else {
+                    console.error('Failed to load games');
+                    document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
                 }
-                
-                for (let i = 0; i < this.files.length; i++) {
-                    const file = this.files[i];
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    fileItem.textContent = file.name;
-                    fileList.appendChild(fileItem);
+            } catch (error) {
+                console.error('Error loading games:', error);
+                document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
+            }
+        }
+
+        // Load ticker messages
+        async function loadTickerMessages() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages`);
+                if (response.ok) {
+                    const data = await response.json();
+                    tickerMessages = data.messages || [];
+                }
+            } catch (error) {
+                console.error('Error loading ticker messages:', error);
+            }
+        }
+
+        // Preload audio files for faster playback with better reliability
+        function preloadAudio() {
+            if (!currentGame || !currentGame.files) return;
+            
+            // Clear existing preloaded audio
+            Object.values(preloadedAudio).forEach(audio => {
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.src = '';
+                    audio.load();
                 }
             });
-        }
-
-        // Toggle admin panel visibility
-        function toggleAdminPanel() {
-            const isAdmin = confirm('Enter admin mode?');
-            if (isAdmin) {
-                const gameList = document.getElementById('game-list');
-                const gameItems = gameList.querySelectorAll('.game-item');
-                
-                gameItems.forEach(item => {
-                    if (item.dataset.gameId !== 'demo') {
-                        const deleteBtn = document.createElement('span');
-                        deleteBtn.textContent = ' ×';
-                        deleteBtn.style.color = 'red';
-                        deleteBtn.style.cursor = 'pointer';
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            deleteGame(item.dataset.gameId);
-                        });
-                        item.appendChild(deleteBtn);
-                    }
-                });
-            }
-        }
-
-        // Load games from the server
-        function loadGames() {
-            document.getElementById('status').textContent = 'Loading games...';
+            preloadedAudio = {};
             
-            fetch('/.netlify/functions/games')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Loaded games:', data);
-                    games = data;
-                    renderGameList();
-                    document.getElementById('status').textContent = 'Select a game to start';
-                })
-                .catch(error => {
-                    console.error('Error loading games:', error);
-                    document.getElementById('status').textContent = 'Error loading games';
-                });
-        }
-
-        // Render the game list
-        function renderGameList() {
-            const gameList = document.getElementById('game-list');
-            gameList.innerHTML = '';
-            
-            games.forEach(game => {
-                const gameItem = document.createElement('div');
-                gameItem.className = 'game-item';
-                gameItem.textContent = game.name;
-                gameItem.dataset.gameId = game.id;
-                
-                gameItem.addEventListener('click', function() {
-                    selectGame(game.id);
-                });
-                
-                gameList.appendChild(gameItem);
-            });
-
-            // Check if we need to disable the create button
-            const createBtn = document.getElementById('create-game-btn');
-            // Count non-demo games
-            const customGames = games.filter(game => game.id !== 'demo').length;
-            
-            if (customGames >= 3) {
-                createBtn.disabled = true;
-                createBtn.textContent = 'Max Games Reached (3)';
-                createBtn.style.backgroundColor = '#666';
-            } else {
-                createBtn.disabled = false;
-                createBtn.textContent = 'Create New Game';
-                createBtn.style.backgroundColor = '';
-            }
-        }
-
-        // Show the upload form
-        function showUploadForm() {
-            document.getElementById('game-board').style.display = 'none';
-            document.getElementById('upload-form').style.display = 'block';
-            document.getElementById('game-name-input').value = '';
-            document.getElementById('audio-files').value = '';
-            document.getElementById('file-list').innerHTML = '';
-        }
-
-        // Hide the upload form
-        function hideUploadForm() {
-            document.getElementById('upload-form').style.display = 'none';
-        }
-
-        // Save a new game
-        function saveGame() {
-            const gameName = document.getElementById('game-name-input').value.trim();
-            const audioFiles = document.getElementById('audio-files').files;
-            
-            if (!gameName) {
-                alert('Please enter a game name.');
-                return;
-            }
-            
-            if (audioFiles.length === 0) {
-                alert('Please select at least one audio file.');
-                return;
-            }
-            
-            if (audioFiles.length > 18) {
-                alert('Please select a maximum of 18 audio files.');
-                return;
-            }
-            
-            document.getElementById('status').textContent = 'Uploading game...';
-            
-            // Create FormData object
-            const formData = new FormData();
-            formData.append('name', gameName);
-            
-            for (let i = 0; i < audioFiles.length; i++) {
-                formData.append('audio', audioFiles[i]);
-            }
-            
-            // Upload the game
-            fetch('/.netlify/functions/games', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Game saved:', data);
-                hideUploadForm();
-                loadGames();
-                document.getElementById('status').textContent = 'Game saved successfully';
-            })
-            .catch(error => {
-                console.error('Error saving game:', error);
-                document.getElementById('status').textContent = 'Error saving game';
-            });
-        }
-
-        // Delete a game
-        function deleteGame(gameId) {
-            if (gameId === 'demo') {
-                alert('You cannot delete the demo game.');
-                return;
-            }
-            
-            if (confirm('Are you sure you want to delete this game?')) {
-                document.getElementById('status').textContent = 'Deleting game...';
-                
-                fetch(`/.netlify/functions/games?id=${gameId}`, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Game deleted:', data);
-                    loadGames();
-                    document.getElementById('status').textContent = 'Game deleted successfully';
-                })
-                .catch(error => {
-                    console.error('Error deleting game:', error);
-                    document.getElementById('status').textContent = 'Error deleting game';
-                });
-            }
-        }
-
-        // Select a game to play - FIXED LOADING ISSUE
-        function selectGame(gameId) {
-            console.log("Selecting game with ID:", gameId);
-            const selectedGame = games.find(game => game.id === gameId);
-            
-            if (!selectedGame) {
-                console.error("Game not found");
-                return;
-            }
-            
-            console.log("Found game:", selectedGame);
-            
-            // Update UI
-            document.getElementById('game-name').textContent = selectedGame.name;
-            document.getElementById('status').textContent = 'Loading game...';
-            
-            // Show the game board and hide upload form
-            document.getElementById('game-board').style.display = 'grid';
-            document.getElementById('upload-form').style.display = 'none';
-            
-            // Clear the game board
-            const gameBoardElement = document.getElementById('game-board');
-            gameBoardElement.innerHTML = '';
-            
-            // Reset game state
-            clearSelections();
-            matches = 0;
-            attempts = 0;
-            updateStats();
-            
-            // Create an array of audio files (duplicated for pairs)
-            const audioFiles = [];
-            for (let i = 0; i < selectedGame.audioFiles.length; i++) {
-                audioFiles.push({
-                    url: selectedGame.audioFiles[i],
-                    index: i
-                });
-                audioFiles.push({
-                    url: selectedGame.audioFiles[i],
-                    index: i
-                });
-            }
-            
-            // Shuffle the array
-            for (let i = audioFiles.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [audioFiles[i], audioFiles[j]] = [audioFiles[j], audioFiles[i]];
-            }
-            
-            // Keep track of successfully loaded audio files
-            let loadedCount = 0;
-            const totalFiles = audioFiles.length;
-            
-            // Create game board array
-            gameBoard = [];
-            
-            // Log start of preloading
-            console.log("Starting to preload audio files:", audioFiles.length);
-            
-            // Load timeout for whole game
-            const globalTimeout = setTimeout(() => {
-                if (loadedCount < totalFiles) {
-                    console.warn(`Global timeout reached. Proceeding with ${loadedCount}/${totalFiles} files loaded.`);
-                    finishGameSetup();
-                }
-            }, 8000); // 8 second global timeout
-            
-            // Preload all audio files
-            for (let i = 0; i < audioFiles.length; i++) {
-                const audio = new Audio();
-                
-                // Multiple load events for better browser compatibility
-                const loadEvents = ['canplay', 'canplaythrough', 'loadeddata'];
-                
-                // Load success handler
-                const handleAudioLoaded = function() {
-                    // Only count once per file
-                    if (gameBoard[i] && gameBoard[i].loaded) return;
-                    
-                    console.log(`Audio ${i} loaded successfully`);
-                    loadedCount++;
-                    
-                    // Mark as loaded in gameBoard
-                    if (gameBoard[i]) {
-                        gameBoard[i].loaded = true;
-                    }
-                    
-                    // Remove all event listeners
-                    loadEvents.forEach(event => {
-                        audio.removeEventListener(event, handleAudioLoaded);
-                    });
-                    audio.removeEventListener('error', handleAudioError);
-                    
-                    // Update status
-                    document.getElementById('status').textContent = `Loading: ${loadedCount}/${totalFiles} files`;
-                    
-                    // Check if all files are loaded
-                    if (loadedCount === totalFiles) {
-                        clearTimeout(globalTimeout);
-                        console.log("All audio files loaded successfully");
-                        finishGameSetup();
-                    }
-                };
-                
-                // Error handler
-                const handleAudioError = function(e) {
-                    // Only count once per file
-                    if (gameBoard[i] && gameBoard[i].loaded) return;
-                    
-                    console.error(`Error loading audio ${i}:`, e);
-                    loadedCount++;
-                    
-                    // Mark as loaded with error
-                    if (gameBoard[i]) {
-                        gameBoard[i].loaded = true;
-                        gameBoard[i].error = true;
-                    }
-                    
-                    // Remove all event listeners
-                    loadEvents.forEach(event => {
-                        audio.removeEventListener(event, handleAudioLoaded);
-                    });
-                    audio.removeEventListener('error', handleAudioError);
-                    
-                    // Update status
-                    document.getElementById('status').textContent = `Loading: ${loadedCount}/${totalFiles} files (error on ${i})`;
-                    
-                    // Check if all files have been processed
-                    if (loadedCount === totalFiles) {
-                        clearTimeout(globalTimeout);
-                        console.log("All audio files processed (some with errors)");
-                        finishGameSetup();
-                    }
-                };
-                
-                // Add event listeners for multiple load events
-                loadEvents.forEach(event => {
-                    audio.addEventListener(event, handleAudioLoaded);
-                });
-                audio.addEventListener('error', handleAudioError);
-                
-                // Set CrossOrigin for better compatibility
-                audio.crossOrigin = "anonymous";
-                
-                // Set the source and start loading
-                audio.src = audioFiles[i].url;
-                
-                // Force loading to start
-                audio.load();
-                
-                // Add to game board
-                gameBoard.push({
-                    audio: audio,
-                    matched: false,
-                    index: audioFiles[i].index,
-                    loaded: false
-                });
-                
-                // Individual timeout for this file
-                setTimeout(function() {
-                    if (gameBoard[i] && !gameBoard[i].loaded) {
-                        console.warn(`Timeout loading audio ${i}, marking as loaded anyway`);
-                        gameBoard[i].loaded = true;
-                        gameBoard[i].error = true;
-                        loadedCount++;
+            // Preload all audio files for the current game with better error handling
+            const loadPromises = currentGame.files.map((file, index) => {
+                return new Promise((resolve) => {
+                    if (file.path) {
+                        const audio = new Audio();
                         
-                        if (loadedCount === totalFiles) {
-                            clearTimeout(globalTimeout);
-                            console.log("All audio files processed (some timed out)");
-                            finishGameSetup();
+                        // Set audio properties for better reliability
+                        audio.preload = 'auto';
+                        audio.volume = 0.7;
+                        audio.crossOrigin = 'anonymous';
+                        
+                        let loaded = false;
+                        
+                        // Multiple event listeners to catch different loading states
+                        const markAsLoaded = () => {
+                            if (!loaded) {
+                                loaded = true;
+                                console.log(`Audio ${index} loaded successfully`);
+                                preloadedAudio[index] = audio;
+                                resolve();
+                            }
+                        };
+                        
+                        audio.addEventListener('canplay', markAsLoaded);
+                        audio.addEventListener('canplaythrough', markAsLoaded);
+                        audio.addEventListener('loadeddata', markAsLoaded);
+                        
+                        audio.addEventListener('error', (e) => {
+                            console.error(`Error preloading audio ${index}:`, e);
+                            // Still resolve to not block the game
+                            if (!loaded) {
+                                loaded = true;
+                                resolve();
+                            }
+                        });
+                        
+                        // Timeout fallback - don't wait forever
+                        setTimeout(() => {
+                            if (!loaded) {
+                                console.warn(`Audio ${index} loading timeout, using anyway`);
+                                preloadedAudio[index] = audio;
+                                markAsLoaded();
+                            }
+                        }, 3000);
+                        
+                        // Add ended event listener
+                        audio.addEventListener('ended', () => {
+                            clearCardPlayingState(index);
+                        });
+                        
+                        // Set source and load
+                        audio.src = file.path;
+                        audio.load();
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+            
+            // Wait for all audio to load or timeout
+            Promise.all(loadPromises).then(() => {
+                console.log(`Preloaded ${Object.keys(preloadedAudio).length} audio files`);
+            });
+        }
+
+        // Clear visual playing state for cards with specific audio index
+        function clearCardPlayingState(audioIndex) {
+            document.querySelectorAll(`.card[data-audio-index="${audioIndex}"]`).forEach(card => {
+                card.classList.remove('playing');
+            });
+        }
+
+        // Clear all visual states except matched
+        function clearAllCardStates() {
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    card.classList.remove('selected', 'playing', 'first-selected', 'second-selected');
+                    
+                    // Remove any target indicators
+                    const indicators = card.querySelectorAll('.target-indicator');
+                    indicators.forEach(indicator => indicator.remove());
+                    
+                    // Clear inline styles completely
+                    card.removeAttribute('style');
+                }
+            });
+        }
+
+        // Start ticker rotation
+        function startTicker() {
+            if (tickerInterval) {
+                clearInterval(tickerInterval);
+            }
+
+            let gameStartTime = Date.now();
+            let currentPhase = 'initial';
+            let phaseStartTime = gameStartTime;
+            let messageIndex = 0;
+
+            tickerInterval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = now - phaseStartTime;
+
+                if (currentPhase === 'initial') {
+                    if (elapsed >= 30000) {
+                        document.getElementById('ticker').textContent = 'Match pairs to WIN!';
+                        currentPhase = 'first_message';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'first_message') {
+                    if (elapsed >= 10000) {
+                        document.getElementById('ticker').textContent = '';
+                        currentPhase = 'blank';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'blank') {
+                    if (elapsed >= 20000) {
+                        if (tickerMessages.length > 0) {
+                            if (messageIndex >= tickerMessages.length) {
+                                messageIndex = 0;
+                            }
+                            document.getElementById('ticker').textContent = tickerMessages[messageIndex];
+                            messageIndex++;
+                            currentPhase = 'messages';
+                            phaseStartTime = now;
+                        } else {
+                            currentPhase = 'initial';
+                            phaseStartTime = now;
                         }
                     }
-                }, 3000); // 3 second timeout per file
-            }
-            
-            // Function to finish setup after audio loading
-            function finishGameSetup() {
-                // Only run once
-                if (document.getElementById('status').textContent === 'Ready to play!') {
-                    return;
+                } else if (currentPhase === 'messages') {
+                    if (elapsed >= 10000) {
+                        document.getElementById('ticker').textContent = '';
+                        currentPhase = 'blank';
+                        phaseStartTime = now;
+                    }
                 }
-                
-                console.log("Finishing game setup");
-                
-                // Create the visual game board
-                createGameBoard();
-                
-                // Update status
-                document.getElementById('status').textContent = 'Ready to play!';
-                
-                // Start timer
-                startTimer();
-            }
-        }
-
-        // Create the visual game board
-        function createGameBoard() {
-            console.log("Creating game board");
-            const gameBoardElement = document.getElementById('game-board');
-            gameBoardElement.innerHTML = '';
-            
-            for (let i = 0; i < gameBoard.length; i++) {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.position = i;
-                card.innerHTML = `<span class="card-number">${i + 1}</span>`;
-                
-                card.addEventListener('click', function() {
-                    handleCardClick(i);
-                });
-                
-                gameBoardElement.appendChild(card);
-            }
-        }
-
-        // Handle card click
-        function handleCardClick(position) {
-            console.log(`Card clicked: ${position}`);
-            
-            // Get the card element
-            const card = document.querySelector(`.card[data-position="${position}"]`);
-            
-            // Don't allow clicking on already matched cards
-            if (gameBoard[position].matched) {
-                console.log("Card already matched");
-                return;
-            }
-            
-            // Don't allow clicking on already selected cards
-            if (selectedCards.includes(position)) {
-                console.log("Card already selected");
-                return;
-            }
-            
-            // If we're processing a match or already have 2 cards selected, block further clicks
-            if (isProcessingMatch || selectedCards.length >= 2) {
-                console.log("Processing match or already have 2 cards selected");
-                return;
-            }
-            
-            // If we have a current audio playing, stop it
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
-            
-            // Play the audio
-            const audio = gameBoard[position].audio;
-            
-            // Clear any previous indicator
-            document.querySelectorAll('.selection-indicator').forEach(el => el.remove());
-            
-            // Set the current audio
-            currentAudio = audio;
-            
-            // Make sure the audio is ready to play
-            if (audio.readyState < 2) {
-                console.log("Audio not ready, reloading");
-                audio.load();
-            }
-            
-            // Try to play the audio
-            audio.currentTime = 0;
-            audio.play().catch(e => console.error("Error playing audio:", e));
-            
-            // Add the card to selected cards
-            selectedCards.push(position);
-            
-            // Add visual feedback
-            if (selectedCards.length === 1) {
-                // First card selection
-                selectFirstCard(card, position);
-            } else if (selectedCards.length === 2) {
-                // Second card selection
-                selectSecondCard(card, position);
-            }
-        }
-        
-        // Select the first card
-        function selectFirstCard(card, position) {
-            console.log("First card selected:", position);
-            
-            // Add the first-selected class and styles
-            card.classList.add('first-selected');
-            
-            // Add a target indicator
-            const indicator = document.createElement('div');
-            indicator.className = 'selection-indicator';
-            indicator.textContent = '👆';
-            card.appendChild(indicator);
-            
-            // Force the styles with setAttribute to override any CSS conflicts
-            card.setAttribute('style', `
-                background: linear-gradient(145deg, rgba(230, 194, 0, 0.8), rgba(200, 170, 0, 0.8)) !important;
-                backdrop-filter: blur(10px) !important;
-                transform: scale(1.05) translateY(-4px) !important;
-                border: 1px solid rgba(212, 179, 0, 0.9) !important;
-                box-shadow: 
-                    0 0 12px rgba(255, 215, 0, 0.4), 
-                    0 0 24px rgba(255, 215, 0, 0.2),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-                animation: firstCardPulse 1.5s infinite alternate !important;
-                z-index: 10 !important;
-                border-radius: 8px !important;
-            `);
-        }
-        
-        // Select the second card
-        function selectSecondCard(card, position) {
-            console.log("Second card selected:", position);
-            
-            // Add the second-selected class
-            card.classList.add('second-selected');
-            
-            // Force the styles with setAttribute to override any CSS conflicts
-            card.setAttribute('style', `
-                background: linear-gradient(145deg, rgba(30, 144, 255, 0.8), rgba(0, 120, 215, 0.8)) !important;
-                transform: scale(1.03) translateY(-3px) !important;
-                border: 1px solid rgba(0, 100, 200, 0.9) !important;
-                box-shadow: 
-                    0 0 10px rgba(30, 144, 255, 0.3), 
-                    0 0 20px rgba(30, 144, 255, 0.1),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-                z-index: 5 !important;
-                border-radius: 8px !important;
-            `);
-            
-            // Set processing flag
-            isProcessingMatch = true;
-            
-            // Check for match after a short delay to ensure second card is visible
-            setTimeout(() => {
-                checkMatchImmediate();
-            }, 100);
-        }
-        
-        // Check for a match immediately
-        function checkMatchImmediate() {
-            if (selectedCards.length !== 2) return;
-            
-            const pos1 = selectedCards[0];
-            const pos2 = selectedCards[1];
-            
-            // Check if the cards match
-            if (gameBoard[pos1].index === gameBoard[pos2].index) {
-                // Cards match
-                handleMatch(pos1, pos2);
-            } else {
-                // Cards don't match
-                handleMismatch();
-            }
-        }
-        
-        // Handle matched cards
-        function handleMatch(pos1, pos2) {
-            console.log("Match found!");
-            
-            // Update game state
-            gameBoard[pos1].matched = true;
-            gameBoard[pos2].matched = true;
-            
-            // Increment matches
-            matches++;
-            
-            // Increment attempts
-            attempts++;
-            
-            // Update stats
-            updateStats();
-            
-            // Add matched class to both cards
-            const card1 = document.querySelector(`.card[data-position="${pos1}"]`);
-            const card2 = document.querySelector(`.card[data-position="${pos2}"]`);
-            
-            card1.classList.remove('first-selected');
-            card2.classList.remove('second-selected');
-            
-            card1.classList.add('matched');
-            card2.classList.add('matched');
-            
-            // Force the matched styles
-            const matchedStyle = `
-                background: linear-gradient(145deg, rgba(40, 167, 69, 0.8), rgba(30, 140, 50, 0.8)) !important;
-                transform: scale(1) !important;
-                cursor: default !important;
-                border: 1px solid rgba(25, 135, 55, 0.9) !important;
-                box-shadow: 
-                    0 0 8px rgba(40, 167, 69, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-                color: rgba(255, 255, 255, 0.9) !important;
-            `;
-            
-            card1.setAttribute('style', matchedStyle);
-            card2.setAttribute('style', matchedStyle);
-            
-            // Remove any indicator
-            const indicator = card1.querySelector('.selection-indicator');
-            if (indicator) indicator.remove();
-            
-            // Clear selected cards
-            selectedCards = [];
-            
-            // Check if the game is over
-            if (matches === gameBoard.length / 2) {
-                gameOver();
-            }
-            
-            // Reset processing flag
-            isProcessingMatch = false;
-        }
-        
-        // Handle mismatched cards
-        function handleMismatch() {
-            console.log("No match");
-            
-            // Increment attempts
-            attempts++;
-            
-            // Update stats
-            updateStats();
-            
-            // Show both cards for a moment, then turn them back
-            setTimeout(() => {
-                resetSelection();
             }, 1000);
         }
-        
-        // Reset the current selection
-        function resetSelection() {
-            console.log("Resetting selection");
+
+        // Update game selector - Support up to 4 total games (demo + 3 custom)
+        function updateGameSelector() {
+            const selector = document.getElementById('gameSelector');
+            selector.innerHTML = '';
             
-            // Remove visual feedback
-            selectedCards.forEach(pos => {
-                const card = document.querySelector(`.card[data-position="${pos}"]`);
-                card.classList.remove('first-selected', 'second-selected');
-                card.removeAttribute('style');
+            // Limit to 4 games maximum (demo + 3 custom)
+            const displayGames = games.slice(0, 4);
+            
+            displayGames.forEach(game => {
+                const btn = document.createElement('button');
+                btn.className = 'game-btn';
+                btn.textContent = game.name;
+                btn.dataset.game = game.id;
+                btn.addEventListener('click', () => selectGame(game.id));
+                selector.appendChild(btn);
+            });
+
+            // Update new game badge - show total available slots
+            const badge = document.getElementById('newGameBadge');
+            if (badge) {
+                badge.textContent = games.length;
+                badge.style.display = games.length > 1 ? 'flex' : 'none';
+            }
+        }
+
+        // Select a game
+        function selectGame(gameId) {
+            // Clear any current states first
+            stopCurrentAudio();
+            clearAllCardStates();
+            
+            currentGame = games.find(g => g.id === gameId);
+            if (!currentGame) return;
+
+            // Update active button
+            document.querySelectorAll('.game-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.game == gameId);
+            });
+
+            // Show loading message briefly
+            document.getElementById('ticker').textContent = 'Loading game...';
+
+            // Small delay to ensure clean state, then preload and setup
+            setTimeout(() => {
+                preloadAudio();
+                resetGame();
+                createGameBoard();
                 
-                // Remove any indicator
-                const indicator = card.querySelector('.selection-indicator');
-                if (indicator) indicator.remove();
+                // Clear loading message
+                setTimeout(() => {
+                    if (document.getElementById('ticker').textContent === 'Loading game...') {
+                        document.getElementById('ticker').textContent = '';
+                    }
+                }, 500);
+            }, 100);
+        }
+
+        // Create game board - FIXED: Better debugging for audio mapping
+        function createGameBoard() {
+            if (!currentGame) return;
+
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+
+            // Create audio mapping: each of 18 audio files appears twice
+            const audioMapping = [];
+            for (let i = 0; i < 18; i++) {
+                audioMapping.push(i);
+                audioMapping.push(i);
+            }
+            
+            // Shuffle only the audio assignments
+            for (let i = audioMapping.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [audioMapping[i], audioMapping[j]] = [audioMapping[j], audioMapping[i]];
+            }
+
+            // Create the game board with fixed card numbers 1-36
+            gameBoard = [];
+            for (let cardPosition = 0; cardPosition < 36; cardPosition++) {
+                gameBoard.push({
+                    cardNumber: cardPosition + 1,
+                    audioIndex: audioMapping[cardPosition],
+                    matched: false
+                });
+            }
+
+            // Debug: Log the audio mapping
+            console.log('Audio mapping created:');
+            for (let i = 0; i < 18; i++) {
+                const positions = gameBoard
+                    .map((card, pos) => card.audioIndex === i ? pos + 1 : null)
+                    .filter(pos => pos !== null);
+                console.log(`Audio ${i}: appears in positions ${positions.join(', ')}`);
+            }
+
+            // Create card elements
+            gameBoard.forEach((card, position) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.textContent = card.cardNumber;
+                cardElement.dataset.position = position;
+                cardElement.dataset.audioIndex = card.audioIndex;
+                cardElement.addEventListener('click', () => handleCardClick(position));
+                board.appendChild(cardElement);
+            });
+        }
+
+        // Handle card click - COMPLETELY REWRITTEN FOR RELIABILITY
+        function handleCardClick(position) {
+            const card = document.querySelector(`[data-position="${position}"]`);
+            
+            console.log(`Card clicked: Position ${position}, Card number ${card?.textContent}, Audio index ${card?.dataset.audioIndex}`);
+            
+            // Skip if card is invalid, matched, or already selected
+            if (!card || 
+                card.classList.contains('matched') || 
+                selectedCards.includes(position)) {
+                console.log('Card invalid, matched, or already selected - ignoring click');
+                return;
+            }
+            
+            // If we're processing a match OR already have 2 cards selected, reset and start fresh
+            if (isProcessingMatch || selectedCards.length >= 2) {
+                console.log('Processing match or have 2 cards - resetting for new selection');
+                resetCardSelections();
+            }
+            
+            // Get the audio index for this card
+            const audioIndex = parseInt(card.dataset.audioIndex);
+            
+            // If this is the first card selection
+            if (selectedCards.length === 0) {
+                console.log('First card selection');
+                
+                // Play the audio for this card
+                playCardAudio(audioIndex);
+                
+                // Mark as first selected
+                selectedCards.push(position);
+                applyFirstCardStyles(card);
+                
+            } 
+            // If this is the second card selection
+            else if (selectedCards.length === 1) {
+                console.log('Second card selection');
+                
+                // Mark as processing match to prevent multiple clicks
+                isProcessingMatch = true;
+                
+                // Play the audio for this card
+                playCardAudio(audioIndex);
+                
+                // Add to selected cards
+                selectedCards.push(position);
+                applySecondCardStyles(card);
+                
+                // Increment attempts counter
+                attempts++;
+                updateStats();
+                
+                // Check for match IMMEDIATELY (don't wait for audio)
+                setTimeout(() => {
+                    checkMatch();
+                }, 100); // Tiny delay just for visual feedback
+            }
+        }
+        
+        // Apply first card selection styles
+        function applyFirstCardStyles(card) {
+            // Add class
+            card.classList.add('first-selected');
+            
+            // Add target indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'target-indicator';
+            indicator.innerHTML = '👆';
+            indicator.style.cssText = `
+                position: absolute;
+                top: -18px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 1rem;
+                z-index: 1001;
+            `;
+            card.appendChild(indicator);
+            
+            // Apply gold styles directly - force override any existing styles
+            card.setAttribute('style', `
+                background: linear-gradient(145deg, 
+                    rgba(230, 194, 0, 0.8), 
+                    rgba(204, 172, 0, 0.7)) !important;
+                backdrop-filter: blur(10px) !important;
+                border: 2px solid rgba(212, 179, 0, 0.9) !important;
+                color: #000 !important;
+                transform: translateY(-4px) scale(1.05) !important;
+                box-shadow: 
+                    0 0 12px rgba(230, 194, 0, 0.4),
+                    0 0 24px rgba(230, 194, 0, 0.2),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+                animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
+                z-index: 1000 !important;
+                position: relative !important;
+            `);
+        }
+        
+        // Apply second card selection styles
+        function applySecondCardStyles(card) {
+            // Add class
+            card.classList.add('second-selected');
+            
+            // Apply blue styles directly - force override any existing styles
+            card.setAttribute('style', `
+                background: linear-gradient(145deg, #2196F3, #1976D2) !important;
+                border: 2px solid #64b5f6 !important;
+                color: #fff !important;
+                transform: translateY(-3px) scale(1.03) !important;
+                box-shadow: 
+                    0 0 8px #2196F3,
+                    0 0 16px rgba(33, 150, 243, 0.3),
+                    0 6px 12px rgba(0, 0, 0, 0.3) !important;
+                z-index: 500 !important;
+                position: relative !important;
+            `);
+        }
+        
+        // Apply matched card styles
+        function applyMatchedStyles(card) {
+            // Remove all selection classes
+            card.classList.remove('first-selected', 'second-selected', 'playing');
+            
+            // Add matched class
+            card.classList.add('matched');
+            
+            // Remove target indicator if present
+            const indicator = card.querySelector('.target-indicator');
+            if (indicator) indicator.remove();
+            
+            // Set matched style with green color
+            card.setAttribute('style', `
+                background: linear-gradient(145deg, rgba(76, 175, 80, 0.3), rgba(69, 160, 73, 0.3)) !important;
+                border-color: rgba(76, 175, 80, 0.6) !important;
+                color: #4CAF50 !important;
+                transform: scale(1) !important;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+                cursor: default !important;
+            `);
+        }
+
+        // Reset card selections (clear without affecting matched cards)
+        function resetCardSelections() {
+            console.log('Resetting card selections');
+            
+            // Stop any playing audio
+            stopCurrentAudio();
+            
+            // Clear card visual states except matched
+            selectedCards.forEach(pos => {
+                const card = document.querySelector(`[data-position="${pos}"]`);
+                if (card && !card.classList.contains('matched')) {
+                    // Remove selection classes
+                    card.classList.remove('first-selected', 'second-selected', 'playing');
+                    
+                    // Remove any indicators
+                    const indicator = card.querySelector('.target-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    // Remove inline styles completely
+                    card.removeAttribute('style');
+                }
             });
             
-            // Clear selected cards
+            // Clear selection arrays and flags
             selectedCards = [];
-            
-            // Reset processing flag
             isProcessingMatch = false;
         }
 
-        // Clear all selections
-        function clearSelections() {
-            console.log("Clearing all selections");
+        // Play audio for a card with improved reliability
+        function playCardAudio(audioIndex) {
+            console.log(`Playing audio for index ${audioIndex}`);
             
-            // Stop current audio
+            // Always stop current audio
+            stopCurrentAudio();
+            
+            // Use preloaded audio if available
+            if (preloadedAudio[audioIndex]) {
+                const audio = preloadedAudio[audioIndex];
+                currentAudio = audio;
+                
+                // Reset to beginning
+                audio.currentTime = 0;
+                
+                // Play with error handling
+                const playPromise = audio.play().catch(error => {
+                    console.error(`Error playing audio ${audioIndex}:`, error);
+                });
+                
+                // Add visual playing state to all cards with this audio
+                document.querySelectorAll(`.card[data-audio-index="${audioIndex}"]`).forEach(card => {
+                    card.classList.add('playing');
+                });
+                
+                // Set timeout to clear playing state if ended event doesn't fire
+                audioTimeouts[audioIndex] = setTimeout(() => {
+                    clearCardPlayingState(audioIndex);
+                }, 10000); // 10 second safety
+            } else {
+                console.error(`Audio ${audioIndex} not available`);
+            }
+        }
+
+        // Stop any currently playing audio
+        function stopCurrentAudio() {
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
                 currentAudio = null;
             }
             
-            // Clear selected cards
-            selectedCards = [];
-            
-            // Reset processing flag
-            isProcessingMatch = false;
-            
-            // Clear any timeouts
-            document.querySelectorAll('.card').forEach(card => {
-                card.classList.remove('first-selected', 'second-selected', 'matched');
-                card.removeAttribute('style');
-                
-                // Remove any indicator
-                const indicator = card.querySelector('.selection-indicator');
-                if (indicator) indicator.remove();
+            // Clear all audio timeouts
+            Object.keys(audioTimeouts).forEach(key => {
+                clearTimeout(audioTimeouts[key]);
+                delete audioTimeouts[key];
             });
             
-            // Clear the timer
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            timerSeconds = 0;
-            updateTimer();
+            // Clear all playing visual states
+            document.querySelectorAll('.card.playing').forEach(card => {
+                card.classList.remove('playing');
+            });
         }
 
-        // Update stats display
-        function updateStats() {
-            document.getElementById('matches').textContent = matches;
-            document.getElementById('attempts').textContent = attempts;
+        // Check if selected cards match - COMPLETELY REWRITTEN FOR RELIABILITY
+        function checkMatch() {
+            console.log('Checking for match...');
             
-            // Calculate accuracy
-            const accuracy = attempts > 0 ? Math.round((matches / attempts) * 100) : 0;
-            document.getElementById('accuracy').textContent = `${accuracy}%`;
-        }
-
-        // Start the timer
-        function startTimer() {
-            timerSeconds = 0;
-            updateTimer();
-            
-            if (timerInterval) {
-                clearInterval(timerInterval);
+            // Validate we have exactly 2 cards selected
+            if (selectedCards.length !== 2) {
+                console.error('Invalid number of selected cards:', selectedCards.length);
+                resetCardSelections();
+                return;
             }
             
-            timerInterval = setInterval(function() {
-                timerSeconds++;
-                updateTimer();
-            }, 1000);
-        }
-
-        // Update the timer display
-        function updateTimer() {
-            const minutes = Math.floor(timerSeconds / 60);
-            const seconds = timerSeconds % 60;
-            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            // Get the positions and cards
+            const pos1 = selectedCards[0];
+            const pos2 = selectedCards[1];
+            const card1 = document.querySelector(`[data-position="${pos1}"]`);
+            const card2 = document.querySelector(`[data-position="${pos2}"]`);
+            
+            // Validate cards exist
+            if (!card1 || !card2) {
+                console.error('Selected cards not found in DOM');
+                resetCardSelections();
+                return;
+            }
+            
+            // Get audio indices
+            const audioIndex1 = parseInt(card1.dataset.audioIndex);
+            const audioIndex2 = parseInt(card2.dataset.audioIndex);
+            
+            console.log(`Comparing: Card 1 (${pos1}) Audio ${audioIndex1}, Card 2 (${pos2}) Audio ${audioIndex2}`);
+            
+            // Check if we have a match
+            if (audioIndex1 === audioIndex2) {
+                console.log('MATCH FOUND!');
+                
+                // Update game state
+                gameBoard[pos1].matched = true;
+                gameBoard[pos2].matched = true;
+                matches++;
+                
+                // Apply matched styles to both cards IMMEDIATELY
+                applyMatchedStyles(card1);
+                applyMatchedStyles(card2);
+                
+                // Let audio continue playing if desired
+                
+                // Check for win condition
+                if (matches === 18) {
+                    gameOver();
+                }
+                
+                // Reset selection state
+                selectedCards = [];
+                isProcessingMatch = false;
+                
+            } else {
+                console.log('No match');
+                
+                // Show both cards for a moment before hiding
+                setTimeout(() => {
+                    resetCardSelections();
+                }, 1000);
+            }
+            
+            // Update stats
+            updateStats();
         }
 
         // Game over
         function gameOver() {
-            // Stop the timer
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+            console.log('Game over!');
             
-            // Calculate accuracy
-            const accuracy = Math.round((matches / attempts) * 100);
+            // Stop timer
+            clearInterval(gameTimer);
             
-            // Calculate time
-            const minutes = Math.floor(timerSeconds / 60);
-            const seconds = timerSeconds % 60;
-            const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            // Stop audio
+            stopCurrentAudio();
             
-            // Show game over message
-            document.getElementById('status').textContent = `Game Over! Time: ${timeString}, Accuracy: ${accuracy}%`;
+            // Calculate stats
+            const endTime = Date.now();
+            const totalTime = Math.floor((endTime - gameStartTime) / 1000);
+            const formattedTime = formatTime(totalTime);
+            
+            // Show win message
+            document.getElementById('ticker').textContent = 
+                `Congratulations! Completed in ${formattedTime} with ${attempts} attempts!`;
         }
+
+        // Reset game - FIXED: Only randomize audio, keep card numbers the same
+        function resetGame() {
+            // Stop audio
+            stopCurrentAudio();
+            
+            // Clear card states
+            clearAllCardStates();
+            
+            // Reset game state
+            selectedCards = [];
+            matches = 0;
+            attempts = 0;
+            isProcessingMatch = false;
+            
+            // Reset timer
+            gameStartTime = Date.now();
+            if (gameTimer) {
+                clearInterval(gameTimer);
+            }
+            gameTimer = setInterval(updateTimer, 1000);
+            
+            // Update UI
+            updateStats();
+            updateTimer();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('matches').textContent = `${matches}/18`;
+            document.getElementById('attempts').textContent = attempts;
+            
+            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        // Update timer
+        function updateTimer() {
+            if (!gameStartTime) return;
+            
+            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+            const timer = document.getElementById('gameTimer');
+            if (timer) {
+                timer.textContent = `Time: ${formatTime(elapsed)} | Attempts: ${attempts}`;
+            }
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Admin functionality
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            document.getElementById('adminModal').classList.add('show');
+        });
+
+        document.getElementById('closeAdminModal').addEventListener('click', closeAdminModal);
+        document.getElementById('cancelAdminBtn').addEventListener('click', closeAdminModal);
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('show');
+            document.getElementById('adminLogin').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Admin login
+        document.getElementById('adminLoginBtn').addEventListener('click', () => {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'MUSIC') {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+            } else {
+                alert('Incorrect password');
+            }
+        });
+
+        // Upload game - Check for maximum games limit
+        async function uploadGame() {
+            const gameName = document.getElementById('gameName').value.trim();
+            const audioFiles = document.getElementById('audioFiles').files;
+
+            console.log('Upload attempt:', { gameName, fileCount: audioFiles.length });
+
+            if (!gameName) {
+                alert('Please enter a game name');
+                return;
+            }
+
+            if (audioFiles.length !== 18) {
+                alert('Please select exactly 18 audio files');
+                return;
+            }
+
+            // Check game limit (demo + 3 custom = 4 max)
+            if (games.length >= 4) {
+                alert('Maximum of 4 games allowed (including demo game). Please delete a game first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('name', gameName);
+            
+            for (let i = 0; i < audioFiles.length; i++) {
+                formData.append('files', audioFiles[i]);
+            }
+
+            try {
+                console.log('Sending upload request...');
+                const response = await fetch(`${API_BASE_URL}/games`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Upload response:', response.status);
+                const result = await response.json();
+                console.log('Upload result:', result);
+
+                if (response.ok) {
+                    alert('Game uploaded successfully!');
+                    document.getElementById('gameName').value = '';
+                    document.getElementById('audioFiles').value = '';
+                    await loadGames();
+                } else {
+                    alert(`Upload failed: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed. Please try again.');
+            }
+        }
+
+        document.getElementById('uploadGameBtn').addEventListener('click', uploadGame);
+
+        // Upload ticker messages
+        document.getElementById('uploadTickerBtn').addEventListener('click', async () => {
+            const messages = document.getElementById('tickerMessages').value.trim();
+            
+            if (!messages) {
+                alert('Please enter some ticker messages');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ messages })
+                });
+
+                if (response.ok) {
+                    alert('Ticker messages uploaded successfully!');
+                    document.getElementById('tickerMessages').value = '';
+                    await loadTickerMessages();
+                } else {
+                    const error = await response.json();
+                    alert(`Upload failed: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Upload failed. Please try again.');
+            }
+        });
+
+        // Update delete game options - Exclude demo game from deletion
+        function updateDeleteGameOptions() {
+            const select = document.getElementById('deleteGameSelect');
+            select.innerHTML = '<option value="">-- Select a game --</option>';
+            
+            // Only show non-demo games for deletion
+            games.forEach(game => {
+                if (game.name !== "Demo Game") {
+                    const option = document.createElement('option');
+                    option.value = game.id;
+                    option.textContent = game.name;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        // Delete game - Fixed implementation
+        document.getElementById('deleteGameBtn').addEventListener('click', async () => {
+            const gameId = document.getElementById('deleteGameSelect').value;
+            if (!gameId) {
+                alert('Please select a game to delete');
+                return;
+            }
+
+            const game = games.find(g => g.id == gameId);
+            if (!game) {
+                alert('Game not found');
+                return;
+            }
+
+            if (game.name === "Demo Game") {
+                alert('Cannot delete the demo game');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
+                return;
+            }
+
+            try {
+                console.log('Deleting game:', gameId);
+                const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
+                    method: 'DELETE'
+                });
+
+                console.log('Delete response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Delete result:', result);
+                    alert('Game deleted successfully!');
+                    
+                    // Reload games and select demo game if current game was deleted
+                    await loadGames();
+                    if (currentGame && currentGame.id == gameId) {
+                        selectGame(games[0].id); // Select first available game (should be demo)
+                    }
+                } else {
+                    const error = await response.json();
+                    console.error('Delete error:', error);
+                    alert(`Delete failed: ${error.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Delete failed. Please try again.');
+            }
+        });
+
+        // New game button - FIXED: Just reshuffles audio assignments and preloads
+        document.getElementById('newGameBtn').addEventListener('click', () => {
+            if (currentGame) {
+                resetGame();
+                createGameBoard();
+                preloadAudio(); // Ensure audio is preloaded for new game layout
+            }
+        });
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
 </html>
