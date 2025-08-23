@@ -4,6 +4,32 @@ const http = require('http');
 // Xano configuration
 const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:pYeQctVX';
 
+// Test different endpoint patterns to find the correct one
+async function findCorrectEndpoint() {
+    const possibleEndpoints = [
+        '/game',
+        '/games', 
+        '/api/game',
+        '/api/games',
+        '/v1/game',
+        '/v1/games'
+    ];
+    
+    for (const endpoint of possibleEndpoints) {
+        try {
+            console.log(`Testing endpoint: ${endpoint}`);
+            const result = await makeXanoRequest('GET', endpoint);
+            console.log(`✓ Success with endpoint: ${endpoint}`);
+            return endpoint;
+        } catch (error) {
+            console.log(`✗ Failed endpoint ${endpoint}: ${error.message}`);
+            continue;
+        }
+    }
+    
+    throw new Error('No valid endpoint found');
+}
+
 // Helper function to make HTTP requests to Xano
 function makeXanoRequest(method, endpoint, data = null) {
     return new Promise((resolve, reject) => {
@@ -113,7 +139,11 @@ function generateSineWave(frequency, duration, sampleRate) {
 // Initialize with demo game if none exists
 async function ensureDemoGameExists() {
     try {
-        const games = await makeXanoRequest('GET', '/game');
+        // First find the correct endpoint
+        const endpoint = await findCorrectEndpoint();
+        console.log(`Using endpoint: ${endpoint}`);
+        
+        const games = await makeXanoRequest('GET', endpoint);
         
         // Check if demo game exists
         const demoExists = games.some(game => game.name === "Demo Game");
@@ -125,14 +155,14 @@ async function ensureDemoGameExists() {
                 files: generateDemoAudioFiles()
             };
             
-            await makeXanoRequest('POST', '/game', demoGame);
+            await makeXanoRequest('POST', endpoint, demoGame);
             console.log('Demo game created successfully');
         }
         
-        return true;
+        return endpoint;
     } catch (error) {
         console.error('Error ensuring demo game exists:', error);
-        return false;
+        return '/game'; // fallback
     }
 }
 
@@ -235,13 +265,14 @@ const handler = async (event, context) => {
     const path = event.path.replace('/.netlify/functions/games', '');
     
     try {
-        // Ensure demo game exists on first request
-        await ensureDemoGameExists();
+        // Find the correct endpoint and ensure demo game exists
+        const correctEndpoint = await ensureDemoGameExists();
+        console.log(`Using Xano endpoint: ${correctEndpoint}`);
         
         if (event.httpMethod === 'GET') {
             if (path === '' || path === '/') {
                 console.log('Fetching all games from Xano...');
-                const games = await makeXanoRequest('GET', '/game');
+                const games = await makeXanoRequest('GET', correctEndpoint);
                 console.log(`Retrieved ${games.length} games from Xano`);
                 
                 return {
@@ -254,7 +285,7 @@ const handler = async (event, context) => {
                 console.log(`Fetching game ${gameId} from Xano...`);
                 
                 try {
-                    const game = await makeXanoRequest('GET', `/game/${gameId}`);
+                    const game = await makeXanoRequest('GET', `${correctEndpoint}/${gameId}`);
                     return {
                         statusCode: 200,
                         headers,
@@ -331,7 +362,7 @@ const handler = async (event, context) => {
             }
             
             // Check game limit (demo + 3 custom = 4 max)
-            const existingGames = await makeXanoRequest('GET', '/game');
+            const existingGames = await makeXanoRequest('GET', correctEndpoint);
             if (existingGames.length >= 4) {
                 return {
                     statusCode: 400,
@@ -371,7 +402,7 @@ const handler = async (event, context) => {
             
             console.log(`Creating game "${gameName}" in Xano with ${gameData.files.length} files`);
             
-            const newGame = await makeXanoRequest('POST', '/game', gameData);
+            const newGame = await makeXanoRequest('POST', correctEndpoint, gameData);
             
             console.log(`SUCCESS: Game created in Xano with ID ${newGame.id}`);
             
@@ -394,7 +425,7 @@ const handler = async (event, context) => {
             
             try {
                 // Check if game exists first
-                const game = await makeXanoRequest('GET', `/game/${gameId}`);
+                const game = await makeXanoRequest('GET', `${correctEndpoint}/${gameId}`);
                 
                 // Prevent deletion of demo game
                 if (game.name === "Demo Game") {
@@ -406,7 +437,7 @@ const handler = async (event, context) => {
                 }
                 
                 // Delete the game
-                await makeXanoRequest('DELETE', `/game/${gameId}`);
+                await makeXanoRequest('DELETE', `${correctEndpoint}/${gameId}`);
                 
                 console.log(`Successfully deleted game: ${game.name}`);
                 
@@ -443,7 +474,8 @@ const handler = async (event, context) => {
             headers,
             body: JSON.stringify({ 
                 error: 'Internal server error',
-                details: error.message
+                details: error.message,
+                xano_base_url: XANO_BASE_URL
             })
         };
     }
