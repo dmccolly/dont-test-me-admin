@@ -1290,14 +1290,8 @@
                 return;
             }
             
-            // Stop current audio immediately when checking match
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-            
-            // Clear all timeouts
+            // DON'T stop current audio - it should have finished naturally by now
+            // Only clear timeouts
             Object.values(audioTimeouts).forEach(timeout => clearTimeout(timeout));
             audioTimeouts = {};
             
