@@ -1,4 +1,50 @@
-<!DOCTYPE html>
+// Select a game - complete implementation with debugging
+        function selectGame(gameId) {
+            console.log(`🎮 Selecting game: ${gameId}`);
+            console.log('Available games:', games);
+            
+            // Reset everything first
+            resetSelection();
+            
+            currentGame = games.find(g => g.id === gameId);
+            if (!currentGame) {
+                console.error('❌ Game not found:', gameId);
+                document.getElementById('ticker').textContent = 'Error: Game not found';
+                return;
+            }
+            
+            console.log('✅ Found game:', currentGame);
+
+            // Update active button
+            document.querySelectorAll('.game-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.game == gameId);
+            });
+
+            // Show loading message
+            document.getElementById('ticker').textContent = 'Loading game...';
+
+            // Small delay to ensure clean state, then initialize
+            setTimeout(() => {
+                console.log('🔄 Starting game initialization...');
+                try {
+                    preloadAudio();
+                    resetGame();
+                    createGameBoard();
+                    
+                    // Clear loading message after everything is set up
+                    setTimeout(() => {
+                        if (document.getElementById('ticker').textContent === 'Loading game...') {
+                            document.getElementById('ticker').textContent = '';
+                            console.log('✅ Game loaded successfully');
+                        }
+                    }, 1000); // Give audio time to preload
+                    
+                } catch (error) {
+                    console.error('❌ Game initialization failed:', error);
+                    document.getElementById('ticker').textContent = 'Error loading game';
+                }
+            }, 100);
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -755,15 +801,16 @@
             }
         }
 
-        // Preload audio files for faster playback with better reliability and debugging
+        // Preload audio files with enhanced debugging
         function preloadAudio() {
+            console.log('🎵 Starting audio preload...');
+            
             if (!currentGame || !currentGame.files) {
-                console.error('❌ Cannot preload audio: No current game or files');
+                console.error('❌ No current game or files to preload');
                 return;
             }
             
-            console.log(`🎵 Starting audio preload for game: ${currentGame.name}`);
-            console.log(`Files to preload: ${currentGame.files.length}`);
+            console.log('Current game files:', currentGame.files);
             
             // Clear existing preloaded audio
             Object.values(preloadedAudio).forEach(audio => {
@@ -776,64 +823,81 @@
             });
             preloadedAudio = {};
             
-            // Preload all audio files for the current game with better error handling
-            const loadPromises = currentGame.files.map((file, index) => {
+            // Parse the files - they should be JSON string
+            let audioFiles;
+            try {
+                if (typeof currentGame.files === 'string') {
+                    audioFiles = JSON.parse(currentGame.files);
+                } else {
+                    audioFiles = currentGame.files;
+                }
+                console.log('📁 Parsed audio files:', audioFiles.length, 'files');
+            } catch (error) {
+                console.error('❌ Error parsing audio files:', error);
+                document.getElementById('ticker').textContent = 'Error: Invalid game files';
+                return;
+            }
+            
+            // Preload all audio files with better error handling
+            const loadPromises = audioFiles.map((audioData, index) => {
                 return new Promise((resolve) => {
-                    console.log(`🔄 Preloading audio ${index}: ${file.path ? 'has path' : 'no path'}`);
+                    console.log(`🔄 Loading audio ${index}...`);
                     
-                    if (file.path) {
-                        const audio = new Audio();
-                        
-                        // Set audio properties for better reliability
-                        audio.preload = 'auto';
-                        audio.volume = 0.7;
-                        audio.crossOrigin = 'anonymous';
-                        
-                        let loaded = false;
-                        
-                        // Multiple event listeners to catch different loading states
-                        const markAsLoaded = () => {
-                            if (!loaded) {
-                                loaded = true;
-                                console.log(`✅ Audio ${index} loaded successfully`);
-                                preloadedAudio[index] = audio;
-                                resolve();
-                            }
-                        };
-                        
-                        audio.addEventListener('canplay', markAsLoaded);
-                        audio.addEventListener('canplaythrough', markAsLoaded);
-                        audio.addEventListener('loadeddata', markAsLoaded);
-                        
-                        audio.addEventListener('error', (e) => {
-                            console.error(`❌ Error preloading audio ${index}:`, e);
-                            // Still resolve to not block the game
-                            if (!loaded) {
-                                loaded = true;
-                                resolve();
-                            }
-                        });
-                        
-                        // Timeout fallback - don't wait forever
-                        setTimeout(() => {
-                            if (!loaded) {
-                                console.warn(`⚠️ Audio ${index} loading timeout, using anyway`);
-                                preloadedAudio[index] = audio;
-                                markAsLoaded();
-                            }
-                        }, 3000);
-                        
-                        // Add ended event listener
-                        audio.addEventListener('ended', () => {
-                            clearCardPlayingState(index);
-                        });
-                        
-                        // Set source and load
-                        audio.src = file.path;
+                    const audio = new Audio();
+                    
+                    // Set audio properties for better reliability
+                    audio.preload = 'auto';
+                    audio.volume = 0.7;
+                    audio.crossOrigin = 'anonymous';
+                    
+                    let loaded = false;
+                    
+                    // Multiple event listeners to catch different loading states
+                    const markAsLoaded = () => {
+                        if (!loaded) {
+                            loaded = true;
+                            console.log(`✅ Audio ${index} loaded successfully`);
+                            preloadedAudio[index] = audio;
+                            resolve();
+                        }
+                    };
+                    
+                    audio.addEventListener('canplay', markAsLoaded);
+                    audio.addEventListener('canplaythrough', markAsLoaded);
+                    audio.addEventListener('loadeddata', markAsLoaded);
+                    
+                    audio.addEventListener('error', (e) => {
+                        console.error(`❌ Error preloading audio ${index}:`, e);
+                        if (!loaded) {
+                            loaded = true;
+                            // Still resolve to not block the game, but log the error
+                            console.warn(`⚠️ Audio ${index} failed to load, but continuing`);
+                            resolve();
+                        }
+                    });
+                    
+                    // Timeout fallback - don't wait forever
+                    setTimeout(() => {
+                        if (!loaded) {
+                            console.warn(`⏰ Audio ${index} loading timeout, using anyway`);
+                            preloadedAudio[index] = audio;
+                            markAsLoaded();
+                        }
+                    }, 3000);
+                    
+                    // Add ended event listener
+                    audio.addEventListener('ended', () => {
+                        clearCardPlayingState(index);
+                    });
+                    
+                    // Set source and load - this might be where it fails
+                    try {
+                        audio.src = audioData;
                         audio.load();
-                    } else {
-                        console.warn(`⚠️ Audio ${index} has no path, skipping`);
-                        resolve();
+                        console.log(`🔗 Set source for audio ${index}`);
+                    } catch (srcError) {
+                        console.error(`❌ Error setting audio ${index} source:`, srcError);
+                        resolve(); // Don't block other audio files
                     }
                 });
             });
@@ -841,14 +905,17 @@
             // Wait for all audio to load or timeout
             Promise.all(loadPromises).then(() => {
                 const loadedCount = Object.keys(preloadedAudio).length;
-                console.log(`🎵 Audio preloading complete: ${loadedCount}/${currentGame.files.length} files loaded`);
+                console.log(`🎵 Preloaded ${loadedCount}/${audioFiles.length} audio files`);
                 
                 if (loadedCount === 0) {
                     console.error('❌ No audio files loaded successfully');
-                    document.getElementById('ticker').textContent = 'Audio loading failed. Please refresh the page.';
-                } else {
-                    console.log('✅ Audio preloading successful');
+                    document.getElementById('ticker').textContent = 'Error: No audio files loaded';
+                } else if (loadedCount < audioFiles.length) {
+                    console.warn(`⚠️ Only ${loadedCount}/${audioFiles.length} audio files loaded`);
                 }
+            }).catch(error => {
+                console.error('❌ Audio preloading failed:', error);
+                document.getElementById('ticker').textContent = 'Error loading audio';
             });
         }
 
@@ -955,18 +1022,12 @@
 
         // Select a game
         function selectGame(gameId) {
-            console.log(`🎮 Selecting game ID: ${gameId}`);
-            
             // Clear any current states first
-            resetSelection();
+            stopCurrentAudio();
+            clearAllCardStates();
             
             currentGame = games.find(g => g.id === gameId);
-            if (!currentGame) {
-                console.error('❌ Game not found:', gameId);
-                return;
-            }
-
-            console.log('✅ Game found:', currentGame.name);
+            if (!currentGame) return;
 
             // Update active button
             document.querySelectorAll('.game-btn').forEach(btn => {
@@ -978,35 +1039,23 @@
 
             // Small delay to ensure clean state, then preload and setup
             setTimeout(() => {
-                console.log('🔄 Starting game initialization...');
-                try {
-                    preloadAudio();
-                    resetGame();
-                    createGameBoard();
-                    
-                    // Clear loading message
-                    setTimeout(() => {
-                        if (document.getElementById('ticker').textContent === 'Loading game...') {
-                            document.getElementById('ticker').textContent = '';
-                        }
-                        console.log('✅ Game initialization complete');
-                    }, 1000); // Longer delay to ensure preloading
-                } catch (error) {
-                    console.error('❌ Game initialization failed:', error);
-                    document.getElementById('ticker').textContent = 'Game loading failed. Please try again.';
-                }
-            }, 200);
+                preloadAudio();
+                resetGame();
+                createGameBoard();
+                
+                // Clear loading message
+                setTimeout(() => {
+                    if (document.getElementById('ticker').textContent === 'Loading game...') {
+                        document.getElementById('ticker').textContent = '';
+                    }
+                }, 500);
+            }, 100);
         }
 
         // Create game board - FIXED: Better debugging for audio mapping
         function createGameBoard() {
-            if (!currentGame) {
-                console.error('❌ Cannot create game board: No current game');
-                return;
-            }
+            if (!currentGame) return;
 
-            console.log(`🎲 Creating game board for: ${currentGame.name}`);
-            
             const board = document.getElementById('gameBoard');
             board.innerHTML = '';
 
@@ -1034,12 +1083,12 @@
             }
 
             // Debug: Log the audio mapping
-            console.log('🎵 Audio mapping created:');
+            console.log('Audio mapping created:');
             for (let i = 0; i < 18; i++) {
                 const positions = gameBoard
                     .map((card, pos) => card.audioIndex === i ? pos + 1 : null)
                     .filter(pos => pos !== null);
-                console.log(`Audio ${i}: positions ${positions.join(', ')}`);
+                console.log(`Audio ${i}: appears in positions ${positions.join(', ')}`);
             }
 
             // Create card elements
@@ -1052,8 +1101,6 @@
                 cardElement.addEventListener('click', () => handleCardClick(position));
                 board.appendChild(cardElement);
             });
-            
-            console.log('✅ Game board created with 36 cards');
         }
 
         // Handle card click - clean, predictable user experience
