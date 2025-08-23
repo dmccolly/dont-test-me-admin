@@ -12,22 +12,26 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
+            color: white;
         }
 
         .container {
             width: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 25px;
             margin: 0 auto;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.8);
         }
 
         .header {
@@ -36,21 +40,24 @@
         }
 
         .header h1 {
-            color: white;
+            color: #ffffff;
             font-size: 1.8rem;
             margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+            font-weight: 700;
         }
 
         .header p {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.9rem;
+            font-weight: 300;
         }
 
         /* Ticker Message */
         .ticker {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
             padding: 8px 15px;
             margin-bottom: 15px;
             text-align: center;
@@ -59,6 +66,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .ticker-text {
@@ -67,40 +75,43 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-weight: 500;
+            font-weight: 400;
         }
 
         /* Admin Panel */
         .admin-panel {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .admin-panel h3 {
-            color: white;
+            color: #ffffff;
             margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .admin-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             padding: 8px 12px;
             border-radius: 8px;
             margin-bottom: 10px;
             font-size: 0.9rem;
+            backdrop-filter: blur(10px);
         }
 
         .admin-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .admin-btn {
-            background: rgba(156, 39, 176, 0.6);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             border: none;
             color: white;
             padding: 8px 15px;
@@ -109,10 +120,13 @@
             font-size: 0.9rem;
             margin-right: 5px;
             margin-bottom: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
         .admin-btn:hover {
-            background: rgba(156, 39, 176, 0.8);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            transform: translateY(-1px);
         }
 
         /* Game Selection */
@@ -128,8 +142,9 @@
         }
 
         .game-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             padding: 8px 12px;
             border-radius: 8px;
@@ -143,66 +158,70 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .game-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .game-btn.selected {
-            background: rgba(76, 175, 80, 0.6);
-            border-color: #4CAF50;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-color: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .delete-btn {
-            background: rgba(244, 67, 54, 0.6);
-            border: 1px solid #f44336;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
             color: white;
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.7rem;
             cursor: pointer;
             margin-left: 5px;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
         }
 
         .delete-btn:hover {
-            background: rgba(244, 67, 54, 0.8);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
         }
 
         /* Upload Section */
         .upload-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .upload-section h3 {
-            color: white;
+            color: #ffffff;
             font-size: 1rem;
             margin-bottom: 10px;
             text-align: center;
-        }
-
-        .file-input-group {
-            margin-bottom: 10px;
+            font-weight: 600;
         }
 
         .game-name-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
             padding: 8px 12px;
             border-radius: 8px;
             font-size: 0.9rem;
             margin-bottom: 10px;
+            backdrop-filter: blur(10px);
         }
 
         .game-name-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .file-input-container {
@@ -216,18 +235,20 @@
 
         .file-input-label {
             display: block;
-            background: rgba(33, 150, 243, 0.6);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: white;
             padding: 8px 15px;
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
             font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
 
         .file-input-label:hover {
-            background: rgba(33, 150, 243, 0.8);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
         }
 
         .file-status {
@@ -238,34 +259,40 @@
 
         .upload-btn {
             width: 100%;
-            background: rgba(76, 175, 80, 0.6);
+            background: linear-gradient(135deg, #10b981, #059669);
             border: none;
             color: white;
             padding: 10px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .upload-btn:hover:not(:disabled) {
-            background: rgba(76, 175, 80, 0.8);
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
         }
 
         .upload-btn:disabled {
-            background: rgba(158, 158, 158, 0.5);
+            background: rgba(107, 114, 128, 0.5);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         /* Stats */
         .stats {
             display: flex;
             justify-content: space-around;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
             padding: 8px;
             margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .stat {
@@ -275,13 +302,14 @@
 
         .stat-label {
             font-size: 0.7rem;
-            opacity: 0.8;
+            opacity: 0.7;
             margin-bottom: 2px;
+            font-weight: 400;
         }
 
         .stat-value {
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 700;
         }
 
         /* Game Board */
@@ -300,37 +328,59 @@
             justify-content: center;
             cursor: pointer;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 700;
             color: white;
             transition: all 0.3s ease;
             position: relative;
-            border: 2px solid transparent;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        /* Card Colors - These are your original beautiful gradients */
-        .card:nth-child(6n+1) { background: linear-gradient(135deg, #4dabf7, #339af0); }
-        .card:nth-child(6n+2) { background: linear-gradient(135deg, #ff8cc8, #ff6b9d); }
-        .card:nth-child(6n+3) { background: linear-gradient(135deg, #69db7c, #51cf66); }
-        .card:nth-child(6n+4) { background: linear-gradient(135deg, #ffd43b, #fab005); }
-        .card:nth-child(6n+5) { background: linear-gradient(135deg, #ff7979, #fd79a8); }
-        .card:nth-child(6n+6) { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+        /* Card Colors - Sleek dark gradients with subtle color accents */
+        .card:nth-child(6n+1) { background: linear-gradient(135deg, #1f2937, #374151); }
+        .card:nth-child(6n+2) { background: linear-gradient(135deg, #1e293b, #334155); }
+        .card:nth-child(6n+3) { background: linear-gradient(135deg, #18181b, #27272a); }
+        .card:nth-child(6n+4) { background: linear-gradient(135deg, #1f2937, #111827); }
+        .card:nth-child(6n+5) { background: linear-gradient(135deg, #0f172a, #1e293b); }
+        .card:nth-child(6n+6) { background: linear-gradient(135deg, #312e81, #1e1b4b); }
 
         .card.playing {
-            background: linear-gradient(135deg, #2196F3, #1976D2) !important;
-            animation: playingPulse 0.6s ease-in-out;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            animation: playingPulse 0.8s ease-in-out;
             transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
         }
 
         .card.matched {
-            background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+            background: linear-gradient(135deg, #10b981, #059669) !important;
             transform: scale(1.1);
             animation: matchSuccess 0.6s ease-in-out;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
         }
 
         .card.matched::after {
@@ -339,6 +389,7 @@
             font-size: 1.2rem;
             color: white;
             font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         /* Messages */
@@ -348,24 +399,25 @@
             border-radius: 8px;
             margin: 10px 0;
             font-size: 0.9rem;
+            backdrop-filter: blur(10px);
         }
 
         .message.error {
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid #f44336;
-            color: #ffcdd2;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
         }
 
         .message.success {
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid #4CAF50;
-            color: #c8e6c9;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #86efac;
         }
 
         .message.info {
-            background: rgba(33, 150, 243, 0.2);
-            border: 1px solid #2196F3;
-            color: #bbdefb;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
         }
 
         .hidden {
@@ -374,20 +426,20 @@
 
         .loading {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.7);
             font-style: italic;
         }
 
         /* Animations */
         @keyframes firstCardPulse {
             0% {
-                box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 
-                           0 0 40px rgba(255, 215, 0, 0.4);
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 
+                           0 0 60px rgba(255, 215, 0, 0.4);
                 transform: scale(1.2);
             }
             100% {
-                box-shadow: 0 0 30px rgba(255, 215, 0, 1), 
-                           0 0 60px rgba(255, 215, 0, 0.6);
+                box-shadow: 0 0 40px rgba(255, 215, 0, 1), 
+                           0 0 80px rgba(255, 215, 0, 0.6);
                 transform: scale(1.25);
             }
         }
@@ -398,13 +450,19 @@
         }
 
         @keyframes playingPulse {
-            0%, 100% { transform: scale(1.05); }
-            50% { transform: scale(1.1); }
+            0%, 100% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+            }
+            50% { 
+                transform: scale(1.08);
+                box-shadow: 0 0 30px rgba(37, 99, 235, 0.7);
+            }
         }
 
         @keyframes matchSuccess {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1.1); }
         }
 
@@ -647,9 +705,9 @@
             if (files.length === 0) {
                 status.innerHTML = '';
             } else if (files.length !== 18) {
-                status.innerHTML = `<span style="color: #ffcdd2;">Need exactly 18 files (${files.length} selected)</span>`;
+                status.innerHTML = `<span style="color: #fca5a5;">Need exactly 18 files (${files.length} selected)</span>`;
             } else {
-                status.innerHTML = `<span style="color: #c8e6c9;">✓ 18 files selected</span>`;
+                status.innerHTML = `<span style="color: #86efac;">✓ 18 files selected</span>`;
             }
             
             validateUploadForm();
@@ -842,22 +900,22 @@
             // Add to selected cards
             selectedCards.push(position);
             
-            // Visual feedback - THIS IS THE KEY FIX
+            // Visual feedback - NUCLEAR APPROACH FOR FIRST CARD GOLD GLOW
             if (selectedCards.length === 1) {
-                console.log('First card selected - applying GOLD visual changes');
+                console.log('🎯 FIRST CARD SELECTED - APPLYING GOLD VISUAL OVERRIDE');
                 
                 // Store original styles
                 const originalStyle = card.getAttribute('style') || '';
                 card.dataset.originalStyle = originalStyle;
                 
-                // Nuclear option - completely override everything with setAttribute
+                // NUCLEAR OPTION: Complete style override with setAttribute
                 card.setAttribute('style', `
                     background: linear-gradient(45deg, #ffd700, #ffed4e) !important;
                     border: 4px solid #ffa000 !important;
                     transform: scale(1.2) !important;
                     box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 
                                0 0 50px rgba(255, 215, 0, 0.6),
-                               inset 0 0 20px rgba(255, 255, 255, 0.3) !important;
+                               0 0 80px rgba(255, 215, 0, 0.3) !important;
                     color: #000 !important;
                     z-index: 1000 !important;
                     position: relative !important;
@@ -869,19 +927,20 @@
                 indicator.innerHTML = '🎯';
                 indicator.style.cssText = `
                     position: absolute;
-                    top: -10px;
-                    right: -10px;
-                    font-size: 18px;
+                    top: -12px;
+                    right: -12px;
+                    font-size: 20px;
                     animation: bounce 0.5s infinite alternate;
                     z-index: 1001;
+                    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
                 `;
                 indicator.className = 'selection-indicator';
                 card.appendChild(indicator);
                 
-                console.log('GOLD visual changes applied to first card');
+                console.log('✅ GOLD GLOW APPLIED TO FIRST CARD - SHOULD BE UNMISTAKABLE NOW!');
                 
             } else if (selectedCards.length === 2) {
-                console.log('Second card selected');
+                console.log('Second card selected - applying BLUE highlight');
                 
                 // Store original styles
                 const originalStyle = card.getAttribute('style') || '';
@@ -889,10 +948,10 @@
                 
                 // Style second card - BLUE
                 card.setAttribute('style', `
-                    background: linear-gradient(45deg, #2196F3, #1976D2) !important;
-                    border: 3px solid #1565C0 !important;
+                    background: linear-gradient(45deg, #2563eb, #1d4ed8) !important;
+                    border: 3px solid #1d4ed8 !important;
                     transform: scale(1.1) !important;
-                    box-shadow: 0 0 20px rgba(33, 150, 243, 0.7) !important;
+                    box-shadow: 0 0 25px rgba(37, 99, 235, 0.7) !important;
                     color: white !important;
                     z-index: 999 !important;
                 `);
@@ -931,10 +990,10 @@
                 [card1, card2].forEach(card => {
                     card.classList.add('matched');
                     card.setAttribute('style', `
-                        background: linear-gradient(45deg, #4CAF50, #45a049) !important;
-                        border: 3px solid #388E3C !important;
+                        background: linear-gradient(45deg, #10b981, #059669) !important;
+                        border: 3px solid #059669 !important;
                         transform: scale(1.1) !important;
-                        box-shadow: 0 0 20px rgba(76, 175, 80, 0.7) !important;
+                        box-shadow: 0 0 25px rgba(16, 185, 129, 0.7) !important;
                         color: white !important;
                         z-index: 998 !important;
                         pointer-events: none !important;
