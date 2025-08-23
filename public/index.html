@@ -27,14 +27,15 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 30px;
+            padding: 25px;
             width: 400px;
             position: relative;
+            margin: auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .title {
@@ -53,25 +54,25 @@
         }
 
         .ticker {
-            min-height: 75px;
-            max-height: 75px;
+            min-height: 40px;
+            max-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffd700;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: normal;
             text-align: center;
-            line-height: 1.3;
-            padding: 10px;
+            line-height: 1.2;
+            padding: 5px;
             overflow: hidden;
         }
 
         .game-selector {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 6px;
+            margin-bottom: 15px;
             justify-content: center;
         }
 
@@ -104,28 +105,28 @@
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .stat {
             text-align: center;
             background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 12px;
+            padding: 8px;
+            border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: #b0b3b8;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-value {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: bold;
             color: white;
         }
@@ -133,8 +134,8 @@
         .game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 6px;
+            margin-bottom: 15px;
         }
 
         .card {
@@ -267,7 +268,7 @@
 
         .controls {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .new-game-btn {
@@ -809,6 +810,10 @@
 
         // Select a game
         function selectGame(gameId) {
+            // Clear any current states first
+            stopCurrentAudio();
+            clearAllCardStates();
+            
             currentGame = games.find(g => g.id === gameId);
             if (!currentGame) return;
 
@@ -817,12 +822,22 @@
                 btn.classList.toggle('active', btn.dataset.game == gameId);
             });
 
-            // Preload audio for this game
-            preloadAudio();
+            // Show loading message briefly
+            document.getElementById('ticker').textContent = 'Loading game...';
 
-            // Reset game state
-            resetGame();
-            createGameBoard();
+            // Small delay to ensure clean state, then preload and setup
+            setTimeout(() => {
+                preloadAudio();
+                resetGame();
+                createGameBoard();
+                
+                // Clear loading message
+                setTimeout(() => {
+                    if (document.getElementById('ticker').textContent === 'Loading game...') {
+                        document.getElementById('ticker').textContent = '';
+                    }
+                }, 500);
+            }, 100);
         }
 
         // Create game board - FIXED: Cards are numbered 1-36, audio is randomized
