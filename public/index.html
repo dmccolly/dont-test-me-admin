@@ -1072,10 +1072,16 @@
                 attempts++;
                 updateStats();
                 
-                // Check for match IMMEDIATELY (don't wait for audio)
+                // Check for match IMMEDIATELY for visual feedback
                 setTimeout(() => {
                     checkMatch();
-                }, 100); // Tiny delay just for visual feedback
+                    
+                    // After checking the match, mark as not processing
+                    // This allows new clicks to be processed
+                    isProcessingMatch = false;
+                }, 100);
+                
+                // Let audio continue playing until user clicks again or it finishes naturally
             }
         }
         
@@ -1165,6 +1171,26 @@
         function resetCardSelections() {
             console.log('Resetting card selections');
             
+            // Clear any match check timeout
+            if (audioTimeouts['match_check']) {
+                clearTimeout(audioTimeouts['match_check']);
+                delete audioTimeouts['match_check'];
+            }
+            
+            // Remove any audio ended event listeners from current audio
+            if (currentAudio) {
+                const oldAudio = currentAudio;
+                const newAudio = new Audio();
+                newAudio.src = oldAudio.src;
+                
+                // Stop the old audio
+                oldAudio.pause();
+                oldAudio.currentTime = 0;
+                
+                // Clear all event listeners by replacing with new audio object
+                currentAudio = null;
+            }
+            
             // Stop any playing audio
             stopCurrentAudio();
             
@@ -1209,10 +1235,13 @@
                     console.error(`Error playing audio ${audioIndex}:`, error);
                 });
                 
-                // Add visual playing state to all cards with this audio
-                document.querySelectorAll(`.card[data-audio-index="${audioIndex}"]`).forEach(card => {
-                    card.classList.add('playing');
-                });
+                // ONLY add playing state to the clicked card, NOT its match
+                // This prevents the matching card from being revealed with a blue tint
+                const clickedCardPosition = selectedCards[selectedCards.length - 1];
+                const clickedCard = document.querySelector(`[data-position="${clickedCardPosition}"]`);
+                if (clickedCard) {
+                    clickedCard.classList.add('playing');
+                }
                 
                 // Set timeout to clear playing state if ended event doesn't fire
                 audioTimeouts[audioIndex] = setTimeout(() => {
@@ -1286,23 +1315,31 @@
                 applyMatchedStyles(card1);
                 applyMatchedStyles(card2);
                 
-                // Let audio continue playing if desired
+                // NOTE: We don't stop the audio here - let it play until user clicks another card
+                // or it finishes naturally
                 
                 // Check for win condition
                 if (matches === 18) {
                     gameOver();
                 }
                 
-                // Reset selection state
+                // Clear selected cards array but keep audio playing
                 selectedCards = [];
-                isProcessingMatch = false;
                 
             } else {
                 console.log('No match');
                 
                 // Show both cards for a moment before hiding
+                // Don't reset card selections yet - let them stay visible
+                // Audio continues to play
+                
+                // Set a timer to clear the mismatch state if user doesn't click
                 setTimeout(() => {
-                    resetCardSelections();
+                    // Only reset if these cards are still the current selection
+                    // (user might have clicked another card already)
+                    if (selectedCards.includes(pos1) && selectedCards.includes(pos2)) {
+                        resetCardSelections();
+                    }
                 }, 1000);
             }
             
