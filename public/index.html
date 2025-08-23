@@ -1019,145 +1019,180 @@
             });
         }
 
-        // Handle card click - Simple, focused solution
+        // Handle card click - Final robust solution
         function handleCardClick(position) {
             const card = document.querySelector(`[data-position="${position}"]`);
-            
-            console.log(`Card clicked: Position ${position}, Card number ${card?.textContent}, Audio index ${card?.dataset.audioIndex}`);
             
             // Skip if card is invalid, matched, or already selected
             if (!card || 
                 card.classList.contains('matched') || 
                 selectedCards.includes(position)) {
-                console.log('Card invalid, matched, or already selected - ignoring click');
                 return;
             }
             
             // Get the audio index for this card
             const audioIndex = parseInt(card.dataset.audioIndex);
             
-            // If we already have 2 cards selected or are processing a match,
-            // this is a new selection - start fresh
-            if (selectedCards.length >= 2 || isProcessingMatch) {
-                console.log('New selection - resetting state');
-                resetCardSelections();
+            // If we're processing a match or have 2 cards, this is a new selection
+            if (isProcessingMatch || selectedCards.length >= 2) {
+                // Nuclear cleanup
+                nuclearReset();
+                
+                // This becomes the first card of a new selection
+                firstCardSelect(card, position, audioIndex);
+                return;
             }
             
-            // If this is the first card selection
+            // First card selection
             if (selectedCards.length === 0) {
-                console.log('First card selection');
-                
-                // Play the audio
-                playAudio(audioIndex);
-                
-                // Mark as first selected
-                selectedCards.push(position);
-                
-                // Apply styles
-                card.classList.add('first-selected');
-                const indicator = document.createElement('div');
-                indicator.className = 'target-indicator';
-                indicator.innerHTML = '👆';
-                indicator.style.cssText = `
-                    position: absolute;
-                    top: -18px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 1rem;
-                    z-index: 1001;
-                `;
-                card.appendChild(indicator);
+                firstCardSelect(card, position, audioIndex);
             } 
-            // If this is the second card selection
+            // Second card selection
             else if (selectedCards.length === 1) {
-                console.log('Second card selection');
-                
-                // Stop current audio
-                stopCurrentAudio();
-                
-                // Mark as processing to prevent further clicks
-                isProcessingMatch = true;
-                
-                // Play the audio
-                playAudio(audioIndex);
-                
-                // Add to selected cards
-                selectedCards.push(position);
-                
-                // Apply second card styles
-                card.classList.add('second-selected');
-                
-                // Increment attempts counter
-                attempts++;
-                updateStats();
-                
-                // Check for match immediately
-                const pos1 = selectedCards[0];
-                const card1 = document.querySelector(`[data-position="${pos1}"]`);
-                const audioIndex1 = parseInt(card1.dataset.audioIndex);
-                
-                // Is it a match?
-                if (audioIndex === audioIndex1) {
-                    console.log('MATCH FOUND!');
-                    
-                    // Update game state
-                    gameBoard[pos1].matched = true;
-                    gameBoard[position].matched = true;
-                    matches++;
-                    
-                    // Update matched cards visually
-                    card1.classList.remove('first-selected');
-                    card.classList.remove('second-selected');
-                    
-                    // Remove all gold/blue styling
-                    document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
-                    document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
-                    
-                    // Add matched class
-                    card1.classList.add('matched');
-                    card.classList.add('matched');
-                    
-                    // Remove target indicator
-                    const indicator = card1.querySelector('.target-indicator');
-                    if (indicator) indicator.remove();
-                    
-                    // Clean up any other indicators that might be hanging around
-                    document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
-                    
-                    // Clear selection state for next turn
-                    selectedCards = [];
-                    isProcessingMatch = false;
-                    
-                    // Check for win condition
-                    if (matches === 18) {
-                        gameOver();
-                    }
-                } else {
-                    console.log('No match');
-                    
-                    // Show both cards for a moment before hiding
-                    setTimeout(() => {
-                        // Clear visual states
-                        card1.classList.remove('first-selected');
-                        card.classList.remove('second-selected');
-                        
-                        // Clean up ALL first-selected/second-selected classes to be safe
-                        document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
-                        document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
-                        
-                        // Remove target indicator
-                        const indicator = card1.querySelector('.target-indicator');
-                        if (indicator) indicator.remove();
-                        
-                        // Clean up any other indicators that might be hanging around
-                        document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
-                        
-                        // Clear selection state for next turn
-                        selectedCards = [];
-                        isProcessingMatch = false;
-                    }, 1000);
-                }
+                secondCardSelect(card, position, audioIndex);
             }
+        }
+        
+        // First card selection
+        function firstCardSelect(card, position, audioIndex) {
+            // Reset any lingering state first
+            nuclearReset();
+            
+            // Play the audio
+            playAudio(audioIndex);
+            
+            // Mark as first selected
+            selectedCards.push(position);
+            
+            // Apply gold styling
+            card.classList.add('first-selected');
+            
+            // Add target indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'target-indicator';
+            indicator.innerHTML = '👆';
+            indicator.style.cssText = `
+                position: absolute;
+                top: -18px;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 1rem;
+                z-index: 1001;
+            `;
+            card.appendChild(indicator);
+        }
+        
+        // Second card selection
+        function secondCardSelect(card, position, audioIndex) {
+            // Stop first card's audio
+            stopCurrentAudio();
+            
+            // Block further clicks while processing
+            isProcessingMatch = true;
+            
+            // Play this card's audio
+            playAudio(audioIndex);
+            
+            // Add to selected cards
+            selectedCards.push(position);
+            
+            // Apply blue styling
+            card.classList.add('second-selected');
+            
+            // Increment attempts counter
+            attempts++;
+            updateStats();
+            
+            // Get first card info
+            const pos1 = selectedCards[0];
+            const card1 = document.querySelector(`[data-position="${pos1}"]`);
+            const audioIndex1 = parseInt(card1.dataset.audioIndex);
+            
+            // Check for match
+            if (audioIndex === audioIndex1) {
+                // Match found
+                handleMatch(card1, card, pos1, position);
+            } else {
+                // No match
+                handleMismatch(card1, card);
+            }
+        }
+        
+        // Handle match found
+        function handleMatch(card1, card2, pos1, pos2) {
+            // Update game state
+            gameBoard[pos1].matched = true;
+            gameBoard[pos2].matched = true;
+            matches++;
+            
+            // Remove selection styling
+            card1.classList.remove('first-selected');
+            card2.classList.remove('second-selected');
+            
+            // Add matched styling
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            
+            // Remove indicators
+            const indicator = card1.querySelector('.target-indicator');
+            if (indicator) indicator.remove();
+            
+            // Reset state (but don't stop audio)
+            selectedCards = [];
+            isProcessingMatch = false;
+            
+            // Final cleanup to ensure no ghost states
+            document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
+            document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
+            document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
+            
+            // Check for win condition
+            if (matches === 18) {
+                gameOver();
+            }
+        }
+        
+        // Handle mismatch
+        function handleMismatch(card1, card2) {
+            // Show both cards for a moment
+            setTimeout(() => {
+                // Remove selection styling
+                card1.classList.remove('first-selected');
+                card2.classList.remove('second-selected');
+                
+                // Remove indicators
+                const indicator = card1.querySelector('.target-indicator');
+                if (indicator) indicator.remove();
+                
+                // Final cleanup to ensure no ghost states
+                document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
+                document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
+                document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
+                
+                // Reset state (but don't stop audio)
+                selectedCards = [];
+                isProcessingMatch = false;
+            }, 1000);
+        }
+        
+        // Nuclear reset - clears EVERYTHING
+        function nuclearReset() {
+            // Stop all audio
+            stopCurrentAudio();
+            
+            // Clear ALL card states except matched
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    card.classList.remove('first-selected', 'second-selected', 'playing');
+                }
+            });
+            
+            // Remove ALL indicators
+            document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
+            
+            // Reset state completely
+            selectedCards = [];
+            isProcessingMatch = false;
         }
         
         // Simple audio playback
