@@ -1036,13 +1036,11 @@
             // Get the audio index for this card
             const audioIndex = parseInt(card.dataset.audioIndex);
             
-            // If we're processing a match or already have 2 cards selected,
-            // this is a new selection - start fresh
-            if (isProcessingMatch || selectedCards.length >= 2) {
-                console.log('Starting new selection cycle');
+            // SPECIAL CASE: If we already have 2 cards selected, this is a new selection
+            // Start fresh with this as the first card
+            if (selectedCards.length >= 2) {
+                console.log('Already have 2 cards - starting new selection with this card');
                 resetCardSelections();
-                
-                // This is now a first card selection
                 selectedCards.push(position);
                 playCardAudio(audioIndex);
                 applyFirstCardStyles(card);
@@ -1067,12 +1065,12 @@
             else if (selectedCards.length === 1) {
                 console.log('Second card selection');
                 
-                // Stop first card's audio and play second card's audio
                 // Add to selected cards
                 selectedCards.push(position);
                 
-                // Play the audio for this card
-                playCardAudio(audioIndex);
+                // Play the audio for this card WITHOUT stopping first card's audio
+                // This is critical to prevent cutting off the audio
+                playSecondCardAudio(audioIndex, card);
                 
                 // Apply second card styles
                 applySecondCardStyles(card);
@@ -1082,10 +1080,52 @@
                 updateStats();
                 
                 // Check for match IMMEDIATELY for visual feedback
-                // This shows checkmarks right away if it's a match
+                // But don't stop audio playback
                 checkMatch();
                 
                 // Audio keeps playing until it finishes or user makes another selection
+            }
+        }
+        
+        // Special function for playing second card audio without cutting off
+        function playSecondCardAudio(audioIndex, card) {
+            console.log(`Playing second card audio for index ${audioIndex}`);
+            
+            // Don't stop current audio!
+            
+            // Use preloaded audio if available
+            if (preloadedAudio[audioIndex]) {
+                // Create a new Audio object for the second card to avoid conflicts
+                const secondAudio = new Audio();
+                secondAudio.src = preloadedAudio[audioIndex].src;
+                secondAudio.volume = 0.7;
+                secondAudio.crossOrigin = 'anonymous';
+                
+                // Store reference to second audio
+                window.secondAudio = secondAudio;
+                
+                // Reset to beginning
+                secondAudio.currentTime = 0;
+                
+                // Play with error handling
+                const playPromise = secondAudio.play().catch(error => {
+                    console.error(`Error playing second audio ${audioIndex}:`, error);
+                });
+                
+                // Add playing state to this card only
+                card.classList.add('playing');
+                
+                // Set timeout to clear playing state when audio ends
+                secondAudio.addEventListener('ended', () => {
+                    card.classList.remove('playing');
+                });
+                
+                // Safety timeout
+                audioTimeouts[`second_${audioIndex}`] = setTimeout(() => {
+                    card.classList.remove('playing');
+                }, 10000);
+            } else {
+                console.error(`Audio ${audioIndex} not available for second card`);
             }
         }
         
@@ -1181,22 +1221,25 @@
                 delete audioTimeouts['match_check'];
             }
             
-            // Remove any audio ended event listeners from current audio
+            // Stop all audio playback
             if (currentAudio) {
-                const oldAudio = currentAudio;
-                const newAudio = new Audio();
-                newAudio.src = oldAudio.src;
-                
-                // Stop the old audio
-                oldAudio.pause();
-                oldAudio.currentTime = 0;
-                
-                // Clear all event listeners by replacing with new audio object
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
                 currentAudio = null;
             }
             
-            // Stop any playing audio
-            stopCurrentAudio();
+            // Stop second audio if it exists
+            if (window.secondAudio) {
+                window.secondAudio.pause();
+                window.secondAudio.currentTime = 0;
+                window.secondAudio = null;
+            }
+            
+            // Clear all audio timeouts
+            Object.keys(audioTimeouts).forEach(key => {
+                clearTimeout(audioTimeouts[key]);
+                delete audioTimeouts[key];
+            });
             
             // Clear card visual states except matched
             selectedCards.forEach(pos => {
@@ -1212,6 +1255,11 @@
                     // Remove inline styles completely
                     card.removeAttribute('style');
                 }
+            });
+            
+            // Clear all playing states
+            document.querySelectorAll('.card.playing').forEach(card => {
+                card.classList.remove('playing');
             });
             
             // Clear selection arrays and flags
