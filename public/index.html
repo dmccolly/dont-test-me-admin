@@ -1019,7 +1019,7 @@
             });
         }
 
-        // Handle card click - FINAL VERSION
+        // Handle card click - Simple, focused solution
         function handleCardClick(position) {
             const card = document.querySelector(`[data-position="${position}"]`);
             
@@ -1036,119 +1036,133 @@
             // Get the audio index for this card
             const audioIndex = parseInt(card.dataset.audioIndex);
             
-            // If this is a third click (or more), completely reset and start fresh
-            if (selectedCards.length >= 2) {
-                console.log('This is a third click - reset everything and start fresh');
-                
-                // Full reset
+            // If we already have 2 cards selected or are processing a match,
+            // this is a new selection - start fresh
+            if (selectedCards.length >= 2 || isProcessingMatch) {
+                console.log('New selection - resetting state');
                 resetCardSelections();
-                
-                // Start fresh with this as first card
-                selectedCards.push(position);
-                playCardAudio(audioIndex);
-                applyFirstCardStyles(card);
-                return;
             }
             
-            // First card selection
+            // If this is the first card selection
             if (selectedCards.length === 0) {
                 console.log('First card selection');
+                
+                // Play the audio
+                playAudio(audioIndex);
+                
+                // Mark as first selected
                 selectedCards.push(position);
-                playCardAudio(audioIndex);
-                applyFirstCardStyles(card);
+                
+                // Apply styles
+                card.classList.add('first-selected');
+                const indicator = document.createElement('div');
+                indicator.className = 'target-indicator';
+                indicator.innerHTML = '👆';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: -18px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 1rem;
+                    z-index: 1001;
+                `;
+                card.appendChild(indicator);
             } 
-            // Second card selection
+            // If this is the second card selection
             else if (selectedCards.length === 1) {
                 console.log('Second card selection');
                 
-                // Stop ONLY the first card's audio
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    currentAudio = null;
-                }
+                // Stop current audio
+                stopCurrentAudio();
                 
-                // Store first card info for match checking
-                const firstCardPos = selectedCards[0];
-                const firstCard = document.querySelector(`[data-position="${firstCardPos}"]`);
-                const firstAudioIndex = parseInt(firstCard.dataset.audioIndex);
+                // Mark as processing to prevent further clicks
+                isProcessingMatch = true;
                 
-                // Add second card to selected array
+                // Play the audio
+                playAudio(audioIndex);
+                
+                // Add to selected cards
                 selectedCards.push(position);
                 
-                // Create and play second card's audio using a completely new audio object
-                const secondAudio = new Audio();
-                if (preloadedAudio[audioIndex]) {
-                    secondAudio.src = preloadedAudio[audioIndex].src;
-                    secondAudio.volume = 0.7;
-                    
-                    // Store it globally to access later
-                    window.secondAudio = secondAudio;
-                    
-                    // Play with error handling
-                    secondAudio.play().catch(error => {
-                        console.error('Error playing second audio:', error);
-                    });
-                    
-                    // Set a flag to ignore the 'ended' event for cleanup
-                    // This prevents the audio from being cleaned up automatically
-                    secondAudio.preserveOnEnd = true;
-                }
-                
-                // Apply second card style
-                applySecondCardStyles(card);
+                // Apply second card styles
+                card.classList.add('second-selected');
                 
                 // Increment attempts counter
                 attempts++;
                 updateStats();
                 
-                // Check for match IMMEDIATELY
-                const isMatch = firstAudioIndex === audioIndex;
+                // Check for match immediately
+                const pos1 = selectedCards[0];
+                const card1 = document.querySelector(`[data-position="${pos1}"]`);
+                const audioIndex1 = parseInt(card1.dataset.audioIndex);
                 
-                if (isMatch) {
+                // Is it a match?
+                if (audioIndex === audioIndex1) {
                     console.log('MATCH FOUND!');
                     
                     // Update game state
-                    gameBoard[firstCardPos].matched = true;
+                    gameBoard[pos1].matched = true;
                     gameBoard[position].matched = true;
                     matches++;
                     
-                    // Apply matched styles to both cards IMMEDIATELY
-                    applyMatchedStyles(firstCard);
-                    applyMatchedStyles(card);
+                    // Update matched cards visually
+                    card1.classList.remove('first-selected');
+                    card.classList.remove('second-selected');
+                    card1.classList.add('matched');
+                    card.classList.add('matched');
                     
-                    // Clear selection array but KEEP the second audio playing
+                    // Remove target indicator
+                    const indicator = card1.querySelector('.target-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    // Clear selection state for next turn
                     selectedCards = [];
+                    isProcessingMatch = false;
                     
                     // Check for win condition
                     if (matches === 18) {
                         gameOver();
                     }
                 } else {
-                    console.log('NO MATCH');
+                    console.log('No match');
                     
-                    // Wait a moment before clearing the cards
-                    // But leave second audio playing
+                    // Show both cards for a moment before hiding
                     setTimeout(() => {
-                        // Only reset the cards visually, not the audio
-                        if (selectedCards.includes(firstCardPos) && selectedCards.includes(position)) {
-                            // Clear just the visual states
-                            firstCard.classList.remove('first-selected', 'playing');
-                            card.classList.remove('second-selected', 'playing');
-                            
-                            // Remove indicators
-                            const indicator = firstCard.querySelector('.target-indicator');
-                            if (indicator) indicator.remove();
-                            
-                            // Clear styles
-                            firstCard.removeAttribute('style');
-                            card.removeAttribute('style');
-                            
-                            // Clear selection array but KEEP second audio playing
-                            selectedCards = [];
-                        }
+                        // Clear visual states
+                        card1.classList.remove('first-selected');
+                        card.classList.remove('second-selected');
+                        
+                        // Remove target indicator
+                        const indicator = card1.querySelector('.target-indicator');
+                        if (indicator) indicator.remove();
+                        
+                        // Clear selection state for next turn
+                        selectedCards = [];
+                        isProcessingMatch = false;
                     }, 1000);
                 }
+            }
+        }
+        
+        // Simple audio playback
+        function playAudio(audioIndex) {
+            if (preloadedAudio[audioIndex]) {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                
+                currentAudio = preloadedAudio[audioIndex];
+                currentAudio.currentTime = 0;
+                currentAudio.play().catch(e => console.error('Error playing audio:', e));
+            }
+        }
+        
+        // Stop current audio
+        function stopCurrentAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
             }
         }
         
@@ -1234,31 +1248,12 @@
             `);
         }
 
-        // Reset card selections - ONLY stops audio if explicitly told to
-        function resetCardSelections(stopSecondAudio = true) {
-            console.log('Resetting card selections, stopSecondAudio =', stopSecondAudio);
+        // Reset card selections - simple version
+        function resetCardSelections() {
+            // Stop audio
+            stopCurrentAudio();
             
-            // Stop first audio always
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-            
-            // Stop second audio ONLY if requested
-            if (stopSecondAudio && window.secondAudio) {
-                window.secondAudio.pause();
-                window.secondAudio.currentTime = 0;
-                window.secondAudio = null;
-            }
-            
-            // Clear all timeouts
-            Object.keys(audioTimeouts).forEach(key => {
-                clearTimeout(audioTimeouts[key]);
-                delete audioTimeouts[key];
-            });
-            
-            // Clear card visual states except matched
+            // Clear all card visual states except matched
             selectedCards.forEach(pos => {
                 const card = document.querySelector(`[data-position="${pos}"]`);
                 if (card && !card.classList.contains('matched')) {
@@ -1268,16 +1263,6 @@
                     // Remove any indicators
                     const indicator = card.querySelector('.target-indicator');
                     if (indicator) indicator.remove();
-                    
-                    // Remove inline styles completely
-                    card.removeAttribute('style');
-                }
-            });
-            
-            // Clear all playing states
-            document.querySelectorAll('.card.playing').forEach(card => {
-                if (!card.classList.contains('matched')) {
-                    card.classList.remove('playing');
                 }
             });
             
