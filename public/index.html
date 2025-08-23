@@ -804,11 +804,11 @@
                     // Clear inline styles too
                     card.style.background = '';
                     card.style.border = '';
-                    card.style.color = '';
                     card.style.transform = '';
                     card.style.boxShadow = '';
                     card.style.zIndex = '';
                     card.style.position = '';
+                    card.style.color = '';
                 }
             });
         }
@@ -979,7 +979,7 @@
             
             console.log(`Card clicked: Position ${position}, Card number ${card.textContent}, Audio index ${card.dataset.audioIndex}`);
             console.log(`Current selected cards:`, selectedCards);
-            console.log(`Card classes before:`, card.className);
+            console.log(`Card classes BEFORE:`, card.className);
             
             // Prevent clicking the same card twice or already matched cards
             if (!card || card.classList.contains('matched')) {
@@ -998,38 +998,42 @@
                 console.log('Adding first-selected class');
                 clearAllCardStates(); // Clear any previous states
                 
-                // Force the styling with inline styles as backup
+                // Force add the class and verify it's there
+                card.classList.add('first-selected');
+                console.log(`Card classes AFTER adding first-selected:`, card.className);
+                console.log(`Has first-selected class:`, card.classList.contains('first-selected'));
+                
+                // Also add inline styles as backup
                 card.style.background = 'linear-gradient(145deg, #ffd700, #ffb300)';
                 card.style.border = '3px solid #ffed4e';
-                card.style.color = '#000';
                 card.style.transform = 'translateY(-12px) scale(1.15)';
                 card.style.boxShadow = '0 0 25px #ffd700, 0 0 50px rgba(255, 215, 0, 0.5), 0 25px 50px rgba(0, 0, 0, 0.6)';
                 card.style.zIndex = '1000';
                 card.style.position = 'relative';
+                card.style.color = '#000';
                 
-                card.classList.add('first-selected');
                 selectedCards.push(position);
                 
                 const audioIndex = parseInt(card.dataset.audioIndex);
                 playAudioFile(audioIndex, card);
                 
                 console.log(`First card selected: Position ${position}, Audio ${audioIndex}`);
-                console.log(`Card classes after:`, card.className);
                 
             } else if (selectedCards.length === 1) {
                 // Second card selection
                 console.log('Adding second-selected class');
+                card.classList.add('second-selected');
+                console.log(`Card classes AFTER adding second-selected:`, card.className);
                 
-                // Force the styling with inline styles as backup
+                // Also add inline styles as backup
                 card.style.background = 'linear-gradient(145deg, #2196F3, #1976D2)';
                 card.style.border = '2px solid #64b5f6';
-                card.style.color = '#fff';
                 card.style.transform = 'translateY(-8px) scale(1.08)';
                 card.style.boxShadow = '0 0 15px #2196F3, 0 0 30px rgba(33, 150, 243, 0.4), 0 20px 40px rgba(0, 0, 0, 0.5)';
                 card.style.zIndex = '500';
                 card.style.position = 'relative';
+                card.style.color = '#fff';
                 
-                card.classList.add('second-selected');
                 selectedCards.push(position);
                 
                 const audioIndex = parseInt(card.dataset.audioIndex);
@@ -1170,25 +1174,8 @@
             if (audioIndex1 === audioIndex2) {
                 // Match found
                 console.log('✅ MATCH FOUND!');
-                
-                // Clear selection styles and add match styles
                 card1.classList.remove('first-selected', 'second-selected', 'playing');
                 card2.classList.remove('first-selected', 'second-selected', 'playing');
-                card1.style.background = '';
-                card1.style.border = '';
-                card1.style.color = '';
-                card1.style.transform = '';
-                card1.style.boxShadow = '';
-                card1.style.zIndex = '';
-                card1.style.position = '';
-                card2.style.background = '';
-                card2.style.border = '';
-                card2.style.color = '';
-                card2.style.transform = '';
-                card2.style.boxShadow = '';
-                card2.style.zIndex = '';
-                card2.style.position = '';
-                
                 card1.classList.add('matched');
                 card2.classList.add('matched');
                 gameBoard[pos1].matched = true;
@@ -1208,7 +1195,8 @@
                 // No match
                 console.log('❌ No match - clearing selection states');
                 setTimeout(() => {
-                    clearAllCardStates();
+                    card1.classList.remove('first-selected', 'second-selected', 'playing');
+                    card2.classList.remove('first-selected', 'second-selected', 'playing');
                 }, 500);
             }
 
