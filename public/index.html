@@ -1108,12 +1108,21 @@
                     // Update matched cards visually
                     card1.classList.remove('first-selected');
                     card.classList.remove('second-selected');
+                    
+                    // Remove all gold/blue styling
+                    document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
+                    document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
+                    
+                    // Add matched class
                     card1.classList.add('matched');
                     card.classList.add('matched');
                     
                     // Remove target indicator
                     const indicator = card1.querySelector('.target-indicator');
                     if (indicator) indicator.remove();
+                    
+                    // Clean up any other indicators that might be hanging around
+                    document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
                     
                     // Clear selection state for next turn
                     selectedCards = [];
@@ -1132,9 +1141,16 @@
                         card1.classList.remove('first-selected');
                         card.classList.remove('second-selected');
                         
+                        // Clean up ALL first-selected/second-selected classes to be safe
+                        document.querySelectorAll('.first-selected').forEach(c => c.classList.remove('first-selected'));
+                        document.querySelectorAll('.second-selected').forEach(c => c.classList.remove('second-selected'));
+                        
                         // Remove target indicator
                         const indicator = card1.querySelector('.target-indicator');
                         if (indicator) indicator.remove();
+                        
+                        // Clean up any other indicators that might be hanging around
+                        document.querySelectorAll('.target-indicator').forEach(ind => ind.remove());
                         
                         // Clear selection state for next turn
                         selectedCards = [];
@@ -1253,17 +1269,17 @@
             // Stop audio
             stopCurrentAudio();
             
-            // Clear all card visual states except matched
-            selectedCards.forEach(pos => {
-                const card = document.querySelector(`[data-position="${pos}"]`);
-                if (card && !card.classList.contains('matched')) {
-                    // Remove selection classes
+            // Clear ALL card visual states globally (except matched)
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.classList.contains('matched')) {
+                    // Remove all selection classes
                     card.classList.remove('first-selected', 'second-selected', 'playing');
-                    
-                    // Remove any indicators
-                    const indicator = card.querySelector('.target-indicator');
-                    if (indicator) indicator.remove();
                 }
+            });
+            
+            // Remove ALL target indicators
+            document.querySelectorAll('.target-indicator').forEach(indicator => {
+                indicator.remove();
             });
             
             // Clear selection arrays and flags
