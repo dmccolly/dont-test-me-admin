@@ -12,25 +12,22 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
             padding: 0;
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
         }
 
         .container {
-            background: rgba(40, 44, 52, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 25px;
             width: 400px;
-            position: relative;
-            margin: auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .header {
@@ -38,55 +35,107 @@
             margin-bottom: 15px;
         }
 
-        .title {
-            font-size: 2rem;
-            font-weight: bold;
+        .header h1 {
             color: white;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .subtitle {
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
             font-size: 0.9rem;
-            color: #b0b3b8;
-            line-height: 1.4;
-            margin-bottom: 10px;
         }
 
+        /* Ticker Message */
         .ticker {
-            min-height: 40px;
-            max-height: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ffd700;
-            font-size: 0.8rem;
-            font-weight: normal;
-            text-align: center;
-            line-height: 1.2;
-            padding: 5px;
-            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .game-selector {
+        .ticker-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-panel h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .admin-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .admin-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .admin-btn {
+            background: rgba(156, 39, 176, 0.6);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .admin-btn:hover {
+            background: rgba(156, 39, 176, 0.8);
+        }
+
+        /* Game Selection */
+        .game-selection {
+            margin-bottom: 15px;
+        }
+
+        .game-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin-bottom: 15px;
-            justify-content: center;
         }
 
         .game-btn {
-            background: linear-gradient(145deg, #4CAF50, #45a049);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             color: white;
-            border: none;
             padding: 8px 12px;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.8rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             flex: 1;
             min-width: 70px;
             max-width: 90px;
@@ -97,461 +146,274 @@
         }
 
         .game-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .game-btn.active {
-            background: linear-gradient(145deg, #45a049, #4CAF50);
-            transform: translateY(-1px);
+        .game-btn.selected {
+            background: rgba(76, 175, 80, 0.6);
+            border-color: #4CAF50;
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
+        .delete-btn {
+            background: rgba(244, 67, 54, 0.6);
+            border: 1px solid #f44336;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .delete-btn:hover {
+            background: rgba(244, 67, 54, 0.8);
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-section h3 {
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .file-input-group {
+            margin-bottom: 10px;
+        }
+
+        .game-name-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .game-name-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .file-input-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            background: rgba(33, 150, 243, 0.6);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .file-input-label:hover {
+            background: rgba(33, 150, 243, 0.8);
+        }
+
+        .file-status {
+            margin: 8px 0;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .upload-btn {
+            width: 100%;
+            background: rgba(76, 175, 80, 0.6);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .upload-btn:hover:not(:disabled) {
+            background: rgba(76, 175, 80, 0.8);
+        }
+
+        .upload-btn:disabled {
+            background: rgba(158, 158, 158, 0.5);
+            cursor: not-allowed;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stat {
             text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
         }
 
         .stat-label {
-            font-size: 0.6rem;
-            color: #b0b3b8;
+            font-size: 0.7rem;
+            opacity: 0.8;
             margin-bottom: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .stat-value {
             font-size: 1rem;
             font-weight: bold;
-            color: white;
         }
 
+        /* Game Board */
         .game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 15px;
         }
 
         .card {
             aspect-ratio: 1;
-            background: linear-gradient(145deg, 
-                rgba(255, 255, 255, 0.15), 
-                rgba(255, 255, 255, 0.05)
-            );
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
             font-size: 1rem;
             font-weight: bold;
             color: white;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card:nth-child(6n+1) { 
-            border-color: rgba(0, 191, 255, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(0, 191, 255, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+2) { 
-            border-color: rgba(255, 20, 147, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 20, 147, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+3) { 
-            border-color: rgba(138, 43, 226, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(138, 43, 226, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+4) { 
-            border-color: rgba(255, 140, 0, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 140, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+5) { 
-            border-color: rgba(50, 205, 50, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(50, 205, 50, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        .card:nth-child(6n+6) { 
-            border-color: rgba(255, 69, 0, 0.4);
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 69, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .card:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.4),
-                0 0 30px rgba(255, 255, 255, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Card Colors - These are your original beautiful gradients */
+        .card:nth-child(6n+1) { background: linear-gradient(135deg, #4dabf7, #339af0); }
+        .card:nth-child(6n+2) { background: linear-gradient(135deg, #ff8cc8, #ff6b9d); }
+        .card:nth-child(6n+3) { background: linear-gradient(135deg, #69db7c, #51cf66); }
+        .card:nth-child(6n+4) { background: linear-gradient(135deg, #ffd43b, #fab005); }
+        .card:nth-child(6n+5) { background: linear-gradient(135deg, #ff7979, #fd79a8); }
+        .card:nth-child(6n+6) { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+
+        .card.playing {
+            background: linear-gradient(135deg, #2196F3, #1976D2) !important;
+            animation: playingPulse 0.6s ease-in-out;
+            transform: scale(1.05);
         }
 
         .card.matched {
-            background: linear-gradient(145deg, rgba(76, 175, 80, 0.3), rgba(69, 160, 73, 0.3));
-            border-color: rgba(76, 175, 80, 0.6);
-            color: #4CAF50;
+            background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+            transform: scale(1.1);
+            animation: matchSuccess 0.6s ease-in-out;
         }
 
         .card.matched::after {
             content: '✓';
             position: absolute;
-            font-size: 1.5rem;
-            color: #4CAF50;
-        }
-
-        /* Override all card styles when first-selected */
-        .card.first-selected,
-        .card.first-selected:nth-child(6n+1),
-        .card.first-selected:nth-child(6n+2),
-        .card.first-selected:nth-child(6n+3),
-        .card.first-selected:nth-child(6n+4),
-        .card.first-selected:nth-child(6n+5),
-        .card.first-selected:nth-child(6n+6) {
-            background: linear-gradient(145deg, #ffd700, #ffb300) !important;
-            border: 3px solid #ffed4e !important;
-            color: #000 !important;
-            transform: translateY(-12px) scale(1.15) !important;
-            box-shadow: 
-                0 0 25px #ffd700,
-                0 0 50px rgba(255, 215, 0, 0.5),
-                0 25px 50px rgba(0, 0, 0, 0.6) !important;
-            animation: first-card-glow 1.2s ease-in-out infinite alternate !important;
-            z-index: 1000 !important;
-            position: relative !important;
-        }
-
-        .card.first-selected::before {
-            display: none !important;
-        }
-
-        .card.first-selected::after {
-            content: '👆' !important;
-            position: absolute !important;
-            top: -25px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            font-size: 1.2rem !important;
-            z-index: 1001 !important;
-        }
-
-        @keyframes first-card-glow {
-            0% { 
-                box-shadow: 
-                    0 0 20px #ffd700,
-                    0 0 40px rgba(255, 215, 0, 0.4),
-                    0 25px 50px rgba(0, 0, 0, 0.6);
-                transform: translateY(-12px) scale(1.15);
-            }
-            100% { 
-                box-shadow: 
-                    0 0 35px #ffd700,
-                    0 0 70px rgba(255, 215, 0, 0.8),
-                    0 25px 50px rgba(0, 0, 0, 0.6);
-                transform: translateY(-15px) scale(1.18);
-            }
-        }
-
-        /* Override all card styles when second-selected */
-        .card.second-selected,
-        .card.second-selected:nth-child(6n+1),
-        .card.second-selected:nth-child(6n+2),
-        .card.second-selected:nth-child(6n+3),
-        .card.second-selected:nth-child(6n+4),
-        .card.second-selected:nth-child(6n+5),
-        .card.second-selected:nth-child(6n+6) {
-            background: linear-gradient(145deg, #2196F3, #1976D2) !important;
-            border: 2px solid #64b5f6 !important;
-            color: #fff !important;
-            transform: translateY(-8px) scale(1.08) !important;
-            box-shadow: 
-                0 0 15px #2196F3,
-                0 0 30px rgba(33, 150, 243, 0.4),
-                0 20px 40px rgba(0, 0, 0, 0.5) !important;
-            z-index: 500 !important;
-            position: relative !important;
-        }
-
-        .card.second-selected::before {
-            display: none !important;
-        }
-
-        .card.playing {
-            background: linear-gradient(145deg, rgba(33, 150, 243, 0.4), rgba(21, 101, 192, 0.4));
-            border-color: rgba(33, 150, 243, 0.8);
-            transform: translateY(-2px) scale(1.01);
-            animation: pulse 0.6s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { box-shadow: 0 0 20px rgba(33, 150, 243, 0.3); }
-            to { box-shadow: 0 0 30px rgba(33, 150, 243, 0.6); }
-        }
-
-        .controls {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .new-game-btn {
-            background: linear-gradient(145deg, #2196F3, #1976D2);
+            font-size: 1.2rem;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            position: relative;
+            font-weight: bold;
         }
 
-        .new-game-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .new-game-btn .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .game-info {
+        /* Messages */
+        .message {
             text-align: center;
-            color: #b0b3b8;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
         }
 
-        .admin-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 6px 8px;
-            transition: all 0.3s ease;
-            z-index: 100;
+        .message.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            color: #ffcdd2;
         }
 
-        .admin-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.8);
+        .message.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #c8e6c9;
         }
 
-        .modal {
+        .message.info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+            color: #bbdefb;
+        }
+
+        .hidden {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
         }
 
-        .modal.show {
-            display: flex;
-        }
-
-        .modal-content {
-            background: rgba(40, 44, 52, 0.98);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-title {
-            color: white;
-            font-size: 1.3rem;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: #b0b3b8;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            color: white;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: #2196F3;
-            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .file-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 20px;
+        .loading {
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
         }
 
-        .file-input:hover {
-            border-color: #2196F3;
-            background: rgba(33, 150, 243, 0.05);
-        }
-
-        .btn {
-            background: linear-gradient(145deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-danger {
-            background: linear-gradient(145deg, #f44336, #d32f2f);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(145deg, #6c757d, #5a6268);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                padding: 20px;
+        /* Animations */
+        @keyframes firstCardPulse {
+            0% {
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 
+                           0 0 40px rgba(255, 215, 0, 0.4);
+                transform: scale(1.2);
             }
-            
-            .title {
-                font-size: 1.5rem;
+            100% {
+                box-shadow: 0 0 30px rgba(255, 215, 0, 1), 
+                           0 0 60px rgba(255, 215, 0, 0.6);
+                transform: scale(1.25);
+            }
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-5px); }
+        }
+
+        @keyframes playingPulse {
+            0%, 100% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes matchSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 450px) {
+            .container {
+                width: 100%;
+                margin: 10px;
+                padding: 20px;
             }
             
             .game-board {
@@ -559,46 +421,7 @@
             }
             
             .card {
-                font-size: 0.8rem;
-            }
-            
-            .stats {
-                gap: 10px;
-            }
-            
-            .stat {
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-                padding: 15px;
-            }
-            
-            .title {
-                font-size: 1.3rem;
-            }
-            
-            .game-board {
-                gap: 4px;
-            }
-            
-            .card {
-                font-size: 0.7rem;
-            }
-            
-            .game-selector {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .stats {
-                grid-template-columns: 1fr;
-                gap: 8px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -606,844 +429,625 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="title">DON'T TEST ME</h1>
-            <p class="subtitle">Here's one to test your hearing AND recall. Huh? I SAID, <strong>TO TEST YOUR HEARING AND RECALL!!</strong></p>
-            <div id="ticker" class="ticker"></div>
+            <h1>🎵 Audio Memory</h1>
+            <p>Match the sounds!</p>
         </div>
 
-        <div class="game-selector" id="gameSelector">
-            <button class="game-btn active" data-game="1">Demo Game</button>
+        <!-- Ticker Message -->
+        <div class="ticker">
+            <div class="ticker-text" id="tickerText">Welcome to Audio Memory Game!</div>
         </div>
 
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <h3>Admin Panel</h3>
+            <input type="text" id="tickerInput" class="admin-input" placeholder="Enter ticker message...">
+            <button onclick="updateTicker()" class="admin-btn">Update Ticker</button>
+        </div>
+
+        <!-- Game Selection -->
+        <div class="game-selection">
+            <div class="game-buttons" id="gameButtons">
+                <div class="loading">Loading games...</div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3>Upload New Game</h3>
+            <input type="text" id="gameName" class="game-name-input" placeholder="Game name...">
+            <div class="file-input-container">
+                <input type="file" id="audioFiles" class="file-input" multiple accept="audio/*">
+                <label for="audioFiles" class="file-input-label">Choose 18 Audio Files</label>
+            </div>
+            <div id="fileStatus" class="file-status"></div>
+            <button id="uploadBtn" class="upload-btn" disabled>Create Game</button>
+        </div>
+
+        <!-- Game Stats -->
         <div class="stats">
             <div class="stat">
-                <div class="stat-label">MATCHES</div>
-                <div class="stat-value" id="matches">0/18</div>
+                <div class="stat-label">Matches</div>
+                <div class="stat-value" id="matches">0</div>
             </div>
             <div class="stat">
-                <div class="stat-label">ATTEMPTS</div>
+                <div class="stat-label">Attempts</div>
                 <div class="stat-value" id="attempts">0</div>
             </div>
             <div class="stat">
-                <div class="stat-label">ACCURACY</div>
+                <div class="stat-label">Accuracy</div>
                 <div class="stat-value" id="accuracy">100%</div>
             </div>
         </div>
 
-        <div class="game-board" id="gameBoard"></div>
-
-        <div class="controls">
-            <button class="new-game-btn" id="newGameBtn">
-                New Game
-                <span class="badge" id="newGameBadge">4</span>
-            </button>
+        <!-- Game Board -->
+        <div class="game-board" id="gameBoard">
+            <!-- Cards will be generated here -->
         </div>
 
-        <div class="game-info" id="gameInfo">
-            Game ready. Find the matching sounds!<br>
-            <span id="gameTimer">Time: 0:00 | Attempts: 0</span>
-        </div>
-        
-        <button class="admin-btn" id="adminBtn">⚙</button>
-    </div>
-
-    <!-- Admin Modal -->
-    <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Admin Access</h2>
-                <button class="close-btn" id="closeAdminModal">×</button>
-            </div>
-            <div id="adminLogin">
-                <div class="form-group">
-                    <label class="form-label">Enter password:</label>
-                    <input type="password" class="form-input" id="adminPassword" placeholder="Password">
-                </div>
-                <button class="btn" id="adminLoginBtn">Enter</button>
-                <button class="btn btn-secondary" id="cancelAdminBtn">Cancel</button>
-            </div>
-            <div id="adminPanel" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Game Name:</label>
-                    <input type="text" class="form-input" id="gameName" placeholder="Enter game name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Audio Files (select 18):</label>
-                    <input type="file" class="form-input" id="audioFiles" multiple accept="audio/*">
-                </div>
-                <button class="btn" id="uploadGameBtn">Upload Audio Game</button>
-
-                <div class="form-group" style="margin-top: 30px;">
-                    <label class="form-label">Ticker Messages (one per line):</label>
-                    <textarea class="form-textarea" id="tickerMessages" placeholder="Enter funny messages, one per line..."></textarea>
-                </div>
-                <button class="btn" id="uploadTickerBtn">Upload Ticker Messages</button>
-
-                <div class="form-group" style="margin-top: 30px;">
-                    <label class="form-label">Select Game to Delete:</label>
-                    <select class="form-select" id="deleteGameSelect">
-                        <option value="">-- Select a game --</option>
-                    </select>
-                </div>
-                <button class="btn btn-danger" id="deleteGameBtn">Delete Selected Game</button>
-            </div>
-        </div>
+        <!-- Messages -->
+        <div id="messages"></div>
     </div>
 
     <script>
-        const API_BASE_URL = '/.netlify/functions';
-        
-        let games = [];
+        // Game state
         let currentGame = null;
         let gameBoard = [];
+        let audioElements = [];
         let selectedCards = [];
         let matches = 0;
         let attempts = 0;
-        let gameStartTime = null;
-        let gameTimer = null;
-        let tickerMessages = [];
-        let tickerInterval = null;
-        let currentTickerIndex = 0;
-        let currentAudio = null;
-        let preloadedAudio = {}; // Store preloaded audio objects
-        let audioTimeouts = {}; // Track audio timeout timers
+        let isProcessing = false;
+        let games = [];
 
         // Initialize the game
-        async function initGame() {
-            await loadGames();
-            await loadTickerMessages();
-            if (games.length > 0) {
-                selectGame(games[0].id);
-            }
-            startTicker();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGames();
+            setupEventListeners();
+            loadTickerMessage();
+        });
+
+        function setupEventListeners() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            const audioFiles = document.getElementById('audioFiles');
+            const gameName = document.getElementById('gameName');
+
+            uploadBtn.addEventListener('click', uploadGame);
+            audioFiles.addEventListener('change', validateFiles);
+            gameName.addEventListener('input', validateUploadForm);
+
+            // Admin panel toggle
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                    const panel = document.getElementById('adminPanel');
+                    panel.classList.toggle('hidden');
+                }
+            });
         }
 
-        // Load games from API
+        // Message display
+        function showMessage(text, type = 'info', duration = 3000) {
+            const messages = document.getElementById('messages');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            messages.innerHTML = '';
+            messages.appendChild(message);
+            
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (messages.contains(message)) {
+                        messages.removeChild(message);
+                    }
+                }, duration);
+            }
+        }
+
+        // Load games from backend
         async function loadGames() {
             try {
-                const response = await fetch(`${API_BASE_URL}/games`);
-                if (response.ok) {
-                    games = await response.json();
-                    updateGameSelector();
-                    updateDeleteGameOptions();
-                } else {
-                    console.error('Failed to load games');
-                    document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
+                showMessage('Loading games...', 'info');
+                
+                const response = await fetch('/.netlify/functions/games');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
+                
+                const data = await response.json();
+                games = Array.isArray(data) ? data : [];
+                
+                displayGameButtons();
+                document.getElementById('messages').innerHTML = '';
+                
             } catch (error) {
                 console.error('Error loading games:', error);
-                document.getElementById('ticker').textContent = 'Error loading games. Please refresh the page.';
+                showMessage('Error loading games. Please refresh the page.', 'error', 0);
+                
+                // Show empty state
+                games = [];
+                displayGameButtons();
             }
         }
 
-        // Load ticker messages
-        async function loadTickerMessages() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/messages`);
-                if (response.ok) {
-                    const data = await response.json();
-                    tickerMessages = data.messages || [];
-                }
-            } catch (error) {
-                console.error('Error loading ticker messages:', error);
+        // Display game selection buttons
+        function displayGameButtons() {
+            const container = document.getElementById('gameButtons');
+            
+            if (games.length === 0) {
+                container.innerHTML = '<div style="color: rgba(255,255,255,0.7); text-align: center;">No games available</div>';
+                return;
             }
-        }
-
-        // Preload audio files for faster playback
-        function preloadAudio() {
-            if (!currentGame || !currentGame.files) return;
             
-            // Clear existing preloaded audio
-            Object.values(preloadedAudio).forEach(audio => {
-                if (audio) {
-                    audio.pause();
-                    audio.src = '';
+            container.innerHTML = '';
+            
+            games.forEach(game => {
+                const button = document.createElement('button');
+                button.className = 'game-btn';
+                button.textContent = game.name;
+                button.onclick = () => selectGame(game);
+                
+                if (game.name !== 'Demo Game') {
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = '×';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteGame(game.id);
+                    };
+                    button.appendChild(deleteBtn);
                 }
-            });
-            preloadedAudio = {};
-            
-            // Preload all audio files for the current game
-            currentGame.files.forEach((file, index) => {
-                if (file.path) {
-                    const audio = new Audio();
-                    audio.preload = 'auto';
-                    audio.src = file.path;
-                    
-                    // Add event listeners for better audio management
-                    audio.addEventListener('canplaythrough', () => {
-                        console.log(`Audio ${index} preloaded successfully`);
-                    });
-                    
-                    audio.addEventListener('error', (e) => {
-                        console.error(`Error preloading audio ${index}:`, e);
-                    });
-                    
-                    audio.addEventListener('ended', () => {
-                        clearCardPlayingState(index);
-                    });
-                    
-                    preloadedAudio[index] = audio;
-                }
-            });
-            
-            console.log(`Preloaded ${Object.keys(preloadedAudio).length} audio files`);
-        }
-
-        // Clear visual playing state for cards with specific audio index
-        function clearCardPlayingState(audioIndex) {
-            document.querySelectorAll(`.card[data-audio-index="${audioIndex}"]`).forEach(card => {
-                card.classList.remove('playing');
+                
+                container.appendChild(button);
             });
         }
 
-        // Clear all visual states except matched
-        function clearAllCardStates() {
-            document.querySelectorAll('.card').forEach(card => {
-                if (!card.classList.contains('matched')) {
-                    card.classList.remove('selected', 'playing', 'first-selected', 'second-selected');
-                    // Clear inline styles too
-                    card.style.background = '';
-                    card.style.border = '';
-                    card.style.transform = '';
-                    card.style.boxShadow = '';
-                    card.style.zIndex = '';
-                    card.style.position = '';
-                    card.style.color = '';
-                }
-            });
-        }
-
-        // Start ticker rotation
-        function startTicker() {
-            if (tickerInterval) {
-                clearInterval(tickerInterval);
-            }
-
-            let gameStartTime = Date.now();
-            let currentPhase = 'initial';
-            let phaseStartTime = gameStartTime;
-            let messageIndex = 0;
-
-            tickerInterval = setInterval(() => {
-                const now = Date.now();
-                const elapsed = now - phaseStartTime;
-
-                if (currentPhase === 'initial') {
-                    if (elapsed >= 30000) {
-                        document.getElementById('ticker').textContent = 'Match pairs to WIN!';
-                        currentPhase = 'first_message';
-                        phaseStartTime = now;
-                    }
-                } else if (currentPhase === 'first_message') {
-                    if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
-                        phaseStartTime = now;
-                    }
-                } else if (currentPhase === 'blank') {
-                    if (elapsed >= 20000) {
-                        if (tickerMessages.length > 0) {
-                            if (messageIndex >= tickerMessages.length) {
-                                messageIndex = 0;
-                            }
-                            document.getElementById('ticker').textContent = tickerMessages[messageIndex];
-                            messageIndex++;
-                            currentPhase = 'messages';
-                            phaseStartTime = now;
-                        } else {
-                            currentPhase = 'initial';
-                            phaseStartTime = now;
-                        }
-                    }
-                } else if (currentPhase === 'messages') {
-                    if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
-                        phaseStartTime = now;
-                    }
-                }
-            }, 1000);
-        }
-
-        // Update game selector - Support up to 4 total games (demo + 3 custom)
-        function updateGameSelector() {
-            const selector = document.getElementById('gameSelector');
-            selector.innerHTML = '';
-            
-            // Limit to 4 games maximum (demo + 3 custom)
-            const displayGames = games.slice(0, 4);
-            
-            displayGames.forEach(game => {
-                const btn = document.createElement('button');
-                btn.className = 'game-btn';
-                btn.textContent = game.name;
-                btn.dataset.game = game.id;
-                btn.addEventListener('click', () => selectGame(game.id));
-                selector.appendChild(btn);
-            });
-
-            // Update new game badge - show total available slots
-            const badge = document.getElementById('newGameBadge');
-            if (badge) {
-                badge.textContent = games.length;
-                badge.style.display = games.length > 1 ? 'flex' : 'none';
-            }
-        }
-
-        // Select a game
-        function selectGame(gameId) {
-            // Clear any current states first
-            stopCurrentAudio();
-            clearAllCardStates();
-            
-            currentGame = games.find(g => g.id === gameId);
-            if (!currentGame) return;
-
-            // Update active button
+        // Select and load a game
+        function selectGame(game) {
+            // Update UI
             document.querySelectorAll('.game-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.game == gameId);
+                btn.classList.remove('selected');
             });
-
-            // Show loading message briefly
-            document.getElementById('ticker').textContent = 'Loading game...';
-
-            // Small delay to ensure clean state, then preload and setup
-            setTimeout(() => {
-                preloadAudio();
-                resetGame();
-                createGameBoard();
-                
-                // Clear loading message
-                setTimeout(() => {
-                    if (document.getElementById('ticker').textContent === 'Loading game...') {
-                        document.getElementById('ticker').textContent = '';
-                    }
-                }, 500);
-            }, 100);
+            event.target.closest('.game-btn').classList.add('selected');
+            
+            // Load game
+            currentGame = game;
+            initializeGame();
         }
 
-        // Create game board - FIXED: Better debugging for audio mapping
-        function createGameBoard() {
-            if (!currentGame) return;
-
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-
-            // Create audio mapping: each of 18 audio files appears twice
-            const audioMapping = [];
-            for (let i = 0; i < 18; i++) {
-                audioMapping.push(i);
-                audioMapping.push(i);
-            }
+        // Delete a game
+        async function deleteGame(gameId) {
+            if (!confirm('Delete this game?')) return;
             
-            // Shuffle only the audio assignments
-            for (let i = audioMapping.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [audioMapping[i], audioMapping[j]] = [audioMapping[j], audioMapping[i]];
-            }
-
-            // Create the game board with fixed card numbers 1-36
-            gameBoard = [];
-            for (let cardPosition = 0; cardPosition < 36; cardPosition++) {
-                gameBoard.push({
-                    cardNumber: cardPosition + 1,
-                    audioIndex: audioMapping[cardPosition],
-                    matched: false
-                });
-            }
-
-            // Debug: Log the audio mapping
-            console.log('Audio mapping created:');
-            for (let i = 0; i < 18; i++) {
-                const positions = gameBoard
-                    .map((card, pos) => card.audioIndex === i ? pos + 1 : null)
-                    .filter(pos => pos !== null);
-                console.log(`Audio ${i}: appears in positions ${positions.join(', ')}`);
-            }
-
-            // Create card elements
-            gameBoard.forEach((card, position) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'card';
-                cardElement.textContent = card.cardNumber;
-                cardElement.dataset.position = position;
-                cardElement.dataset.audioIndex = card.audioIndex;
-                cardElement.addEventListener('click', () => handleCardClick(position));
-                board.appendChild(cardElement);
-            });
-        }
-
-        // Handle card click with improved visual feedback and debugging
-        function handleCardClick(position) {
-            const card = document.querySelector(`[data-position="${position}"]`);
-            
-            console.log(`Card clicked: Position ${position}, Card number ${card.textContent}, Audio index ${card.dataset.audioIndex}`);
-            console.log(`Current selected cards:`, selectedCards);
-            console.log(`Card classes BEFORE:`, card.className);
-            
-            // Prevent clicking the same card twice or already matched cards
-            if (!card || card.classList.contains('matched')) {
-                console.log('Card blocked - matched or invalid');
-                return;
-            }
-            
-            // Prevent clicking the same card that's already selected
-            if (selectedCards.includes(position)) {
-                console.log('Card blocked - already selected this position');
-                return;
-            }
-
-            if (selectedCards.length === 0) {
-                // First card selection - add prominent highlight
-                console.log('Adding first-selected class');
-                clearAllCardStates(); // Clear any previous states
-                
-                // Force add the class and verify it's there
-                card.classList.add('first-selected');
-                console.log(`Card classes AFTER adding first-selected:`, card.className);
-                console.log(`Has first-selected class:`, card.classList.contains('first-selected'));
-                
-                // Also add inline styles as backup
-                card.style.background = 'linear-gradient(145deg, #ffd700, #ffb300)';
-                card.style.border = '3px solid #ffed4e';
-                card.style.transform = 'translateY(-12px) scale(1.15)';
-                card.style.boxShadow = '0 0 25px #ffd700, 0 0 50px rgba(255, 215, 0, 0.5), 0 25px 50px rgba(0, 0, 0, 0.6)';
-                card.style.zIndex = '1000';
-                card.style.position = 'relative';
-                card.style.color = '#000';
-                
-                selectedCards.push(position);
-                
-                const audioIndex = parseInt(card.dataset.audioIndex);
-                playAudioFile(audioIndex, card);
-                
-                console.log(`First card selected: Position ${position}, Audio ${audioIndex}`);
-                
-            } else if (selectedCards.length === 1) {
-                // Second card selection
-                console.log('Adding second-selected class');
-                card.classList.add('second-selected');
-                console.log(`Card classes AFTER adding second-selected:`, card.className);
-                
-                // Also add inline styles as backup
-                card.style.background = 'linear-gradient(145deg, #2196F3, #1976D2)';
-                card.style.border = '2px solid #64b5f6';
-                card.style.transform = 'translateY(-8px) scale(1.08)';
-                card.style.boxShadow = '0 0 15px #2196F3, 0 0 30px rgba(33, 150, 243, 0.4), 0 20px 40px rgba(0, 0, 0, 0.5)';
-                card.style.zIndex = '500';
-                card.style.position = 'relative';
-                card.style.color = '#fff';
-                
-                selectedCards.push(position);
-                
-                const audioIndex = parseInt(card.dataset.audioIndex);
-                playAudioFile(audioIndex, card);
-                
-                console.log(`Second card selected: Position ${position}, Audio ${audioIndex}`);
-                console.log('Selected cards array:', selectedCards);
-                
-                attempts++;
-                updateStats();
-                
-                setTimeout(() => {
-                    checkMatch();
-                }, 1000);
-            } else {
-                console.log('Too many cards selected, resetting');
-                // Reset if somehow we have too many selected
-                clearAllCardStates();
-                selectedCards = [];
-                handleCardClick(position); // Retry this click as first selection
-            }
-        }
-
-        // Play audio file with improved preloading and visual feedback
-        function playAudioFile(index, cardElement) {
-            // Stop any currently playing audio and clear states
-            stopCurrentAudio();
-            clearAllCardStates();
-            
-            // Add visual playing state to the clicked card
-            if (cardElement) {
-                cardElement.classList.add('playing');
-            }
-            
-            // Use preloaded audio if available
-            if (preloadedAudio[index]) {
-                currentAudio = preloadedAudio[index];
-                currentAudio.currentTime = 0; // Reset to beginning
-                
-                // Clear any existing timeout for this audio
-                if (audioTimeouts[index]) {
-                    clearTimeout(audioTimeouts[index]);
-                }
-                
-                // Add event listener for when audio ends
-                const handleAudioEnd = () => {
-                    clearCardPlayingState(index);
-                    currentAudio.removeEventListener('ended', handleAudioEnd);
-                };
-                currentAudio.addEventListener('ended', handleAudioEnd);
-                
-                // Set timeout to clear visual state even if audio doesn't fire 'ended' event
-                audioTimeouts[index] = setTimeout(() => {
-                    clearCardPlayingState(index);
-                }, 2000); // Max 2 seconds
-                
-                currentAudio.play().catch(error => {
-                    console.error('Audio play failed:', error);
-                    clearCardPlayingState(index);
-                    document.getElementById('ticker').textContent = 'Audio playback failed. Check browser permissions.';
-                });
-            } else {
-                // Fallback: create new audio object (shouldn't happen with preloading)
-                console.warn(`Audio ${index} not preloaded, creating new instance`);
-                if (currentGame && currentGame.files && currentGame.files[index]) {
-                    currentAudio = new Audio(currentGame.files[index].path);
-                    currentAudio.play().catch(error => {
-                        console.error('Audio play failed:', error);
-                        if (cardElement) cardElement.classList.remove('playing');
-                    });
-                }
-            }
-        }
-
-        // Stop current audio and clear visual states
-        function stopCurrentAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
-            
-            // Clear all timeout timers
-            Object.values(audioTimeouts).forEach(timeout => {
-                clearTimeout(timeout);
-            });
-            audioTimeouts = {};
-            
-            // Clear all playing states
-            document.querySelectorAll('.card.playing').forEach(card => {
-                card.classList.remove('playing');
-            });
-        }
-
-        // Check for match with detailed debugging
-        function checkMatch() {
-            console.log('\n=== CHECKING MATCH ===');
-            console.log('Selected cards:', selectedCards);
-            
-            if (selectedCards.length !== 2) {
-                console.log('ERROR: Wrong number of selected cards:', selectedCards.length);
-                selectedCards = [];
-                clearAllCardStates();
-                return;
-            }
-            
-            const [pos1, pos2] = selectedCards;
-            const card1 = document.querySelector(`[data-position="${pos1}"]`);
-            const card2 = document.querySelector(`[data-position="${pos2}"]`);
-            
-            if (!card1 || !card2) {
-                console.log('ERROR: Could not find cards');
-                selectedCards = [];
-                clearAllCardStates();
-                return;
-            }
-            
-            // Stop current audio immediately when checking match
-            stopCurrentAudio();
-            
-            const audioIndex1 = parseInt(card1.dataset.audioIndex);
-            const audioIndex2 = parseInt(card2.dataset.audioIndex);
-            const cardNum1 = card1.textContent;
-            const cardNum2 = card2.textContent;
-
-            console.log(`Card 1: Position ${pos1}, Number ${cardNum1}, Audio ${audioIndex1}`);
-            console.log(`Card 2: Position ${pos2}, Number ${cardNum2}, Audio ${audioIndex2}`);
-            console.log(`Audio indices match: ${audioIndex1 === audioIndex2}`);
-            console.log(`Same position check: ${pos1 === pos2}`);
-
-            // Ensure we're not matching a card with itself
-            if (pos1 === pos2) {
-                console.log('ERROR: Same card selected twice!');
-                selectedCards = [];
-                clearAllCardStates();
-                return;
-            }
-
-            if (audioIndex1 === audioIndex2) {
-                // Match found
-                console.log('✅ MATCH FOUND!');
-                card1.classList.remove('first-selected', 'second-selected', 'playing');
-                card2.classList.remove('first-selected', 'second-selected', 'playing');
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                gameBoard[pos1].matched = true;
-                gameBoard[pos2].matched = true;
-                matches++;
-                
-                console.log(`Match #${matches} completed`);
-                
-                if (matches === 18) {
-                    clearInterval(gameTimer);
-                    stopCurrentAudio();
-                    const endTime = Date.now();
-                    const totalTime = Math.floor((endTime - gameStartTime) / 1000);
-                    document.getElementById('ticker').textContent = `Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
-                }
-            } else {
-                // No match
-                console.log('❌ No match - clearing selection states');
-                setTimeout(() => {
-                    card1.classList.remove('first-selected', 'second-selected', 'playing');
-                    card2.classList.remove('first-selected', 'second-selected', 'playing');
-                }, 500);
-            }
-
-            selectedCards = [];
-            updateStats();
-            console.log('=== MATCH CHECK COMPLETE ===\n');
-        }
-
-        // Reset game - FIXED: Only randomize audio, keep card numbers the same
-        function resetGame() {
-            stopCurrentAudio();
-            clearAllCardStates();
-            selectedCards = [];
-            matches = 0;
-            attempts = 0;
-            gameStartTime = Date.now();
-            
-            if (gameTimer) {
-                clearInterval(gameTimer);
-            }
-            
-            gameTimer = setInterval(updateTimer, 1000);
-            updateStats();
-            updateTimer();
-        }
-
-        // Update statistics
-        function updateStats() {
-            document.getElementById('matches').textContent = `${matches}/18`;
-            document.getElementById('attempts').textContent = attempts;
-            
-            const accuracy = attempts === 0 ? 100 : Math.round((matches / attempts) * 100);
-            document.getElementById('accuracy').textContent = `${accuracy}%`;
-        }
-
-        // Update timer
-        function updateTimer() {
-            if (!gameStartTime) return;
-            
-            const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
-            const timer = document.getElementById('gameTimer');
-            if (timer) {
-                timer.textContent = `Time: ${formatTime(elapsed)} | Attempts: ${attempts}`;
-            }
-        }
-
-        // Format time
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Admin functionality
-        document.getElementById('adminBtn').addEventListener('click', () => {
-            document.getElementById('adminModal').classList.add('show');
-        });
-
-        document.getElementById('closeAdminModal').addEventListener('click', closeAdminModal);
-        document.getElementById('cancelAdminBtn').addEventListener('click', closeAdminModal);
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.remove('show');
-            document.getElementById('adminLogin').style.display = 'block';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-        }
-
-        // Admin login
-        document.getElementById('adminLoginBtn').addEventListener('click', () => {
-            const password = document.getElementById('adminPassword').value;
-            if (password === 'MUSIC') {
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-            } else {
-                alert('Incorrect password');
-            }
-        });
-
-        // Upload game - Check for maximum games limit
-        async function uploadGame() {
-            const gameName = document.getElementById('gameName').value.trim();
-            const audioFiles = document.getElementById('audioFiles').files;
-
-            console.log('Upload attempt:', { gameName, fileCount: audioFiles.length });
-
-            if (!gameName) {
-                alert('Please enter a game name');
-                return;
-            }
-
-            if (audioFiles.length !== 18) {
-                alert('Please select exactly 18 audio files');
-                return;
-            }
-
-            // Check game limit (demo + 3 custom = 4 max)
-            if (games.length >= 4) {
-                alert('Maximum of 4 games allowed (including demo game). Please delete a game first.');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('name', gameName);
-            
-            for (let i = 0; i < audioFiles.length; i++) {
-                formData.append('files', audioFiles[i]);
-            }
-
             try {
-                console.log('Sending upload request...');
-                const response = await fetch(`${API_BASE_URL}/games`, {
+                showMessage('Deleting game...', 'info');
+                
+                const response = await fetch(`/.netlify/functions/games?id=${gameId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                showMessage('Game deleted!', 'success');
+                await loadGames();
+                
+            } catch (error) {
+                console.error('Error deleting game:', error);
+                showMessage('Error deleting game.', 'error');
+            }
+        }
+
+        // Validate file selection
+        function validateFiles() {
+            const files = document.getElementById('audioFiles').files;
+            const status = document.getElementById('fileStatus');
+            
+            if (files.length === 0) {
+                status.innerHTML = '';
+            } else if (files.length !== 18) {
+                status.innerHTML = `<span style="color: #ffcdd2;">Need exactly 18 files (${files.length} selected)</span>`;
+            } else {
+                status.innerHTML = `<span style="color: #c8e6c9;">✓ 18 files selected</span>`;
+            }
+            
+            validateUploadForm();
+        }
+
+        // Validate upload form
+        function validateUploadForm() {
+            const name = document.getElementById('gameName').value.trim();
+            const files = document.getElementById('audioFiles').files;
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            uploadBtn.disabled = !name || files.length !== 18 || games.length >= 4;
+        }
+
+        // Upload new game
+        async function uploadGame() {
+            const name = document.getElementById('gameName').value.trim();
+            const files = document.getElementById('audioFiles').files;
+            
+            if (!name || files.length !== 18) {
+                showMessage('Please enter a name and select exactly 18 audio files.', 'error');
+                return;
+            }
+            
+            if (games.length >= 4) {
+                showMessage('Maximum of 4 games allowed.', 'error');
+                return;
+            }
+            
+            try {
+                document.getElementById('uploadBtn').disabled = true;
+                showMessage('Uploading game...', 'info', 0);
+                
+                const formData = new FormData();
+                formData.append('name', name);
+                
+                for (let i = 0; i < files.length; i++) {
+                    formData.append(`file_${i}`, files[i]);
+                }
+                
+                const response = await fetch('/.netlify/functions/games', {
                     method: 'POST',
                     body: formData
                 });
-
-                console.log('Upload response:', response.status);
-                const result = await response.json();
-                console.log('Upload result:', result);
-
-                if (response.ok) {
-                    alert('Game uploaded successfully!');
-                    document.getElementById('gameName').value = '';
-                    document.getElementById('audioFiles').value = '';
-                    await loadGames();
-                } else {
-                    alert(`Upload failed: ${result.error}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
+                
+                showMessage('Game uploaded successfully!', 'success');
+                
+                // Reset form
+                document.getElementById('gameName').value = '';
+                document.getElementById('audioFiles').value = '';
+                document.getElementById('fileStatus').innerHTML = '';
+                
+                // Reload games
+                await loadGames();
+                
             } catch (error) {
                 console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
+                showMessage(`Upload failed: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('uploadBtn').disabled = false;
             }
         }
 
-        document.getElementById('uploadGameBtn').addEventListener('click', uploadGame);
-
-        // Upload ticker messages
-        document.getElementById('uploadTickerBtn').addEventListener('click', async () => {
-            const messages = document.getElementById('tickerMessages').value.trim();
+        // Initialize game
+        async function initializeGame() {
+            if (!currentGame) return;
             
-            if (!messages) {
-                alert('Please enter some ticker messages');
-                return;
-            }
-
             try {
-                const response = await fetch(`${API_BASE_URL}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ messages })
+                showMessage('Loading game...', 'info');
+                
+                // Reset game state
+                matches = 0;
+                attempts = 0;
+                selectedCards = [];
+                isProcessing = false;
+                updateStats();
+                
+                // Parse audio files
+                const audioFiles = JSON.parse(currentGame.files);
+                
+                // Preload audio
+                audioElements = [];
+                const loadPromises = audioFiles.map((audioData, index) => {
+                    return new Promise((resolve, reject) => {
+                        const audio = new Audio();
+                        audio.preload = 'auto';
+                        audio.volume = 0.7;
+                        
+                        const timeoutId = setTimeout(() => {
+                            console.warn(`Audio ${index + 1} loading timeout, proceeding anyway`);
+                            resolve(audio);
+                        }, 5000);
+                        
+                        audio.oncanplaythrough = () => {
+                            clearTimeout(timeoutId);
+                            resolve(audio);
+                        };
+                        
+                        audio.onerror = (e) => {
+                            clearTimeout(timeoutId);
+                            console.error(`Failed to load audio ${index + 1}:`, e);
+                            reject(new Error(`Failed to load audio file ${index + 1}`));
+                        };
+                        
+                        audio.src = audioData;
+                        audioElements[index] = audio;
+                    });
                 });
-
-                if (response.ok) {
-                    alert('Ticker messages uploaded successfully!');
-                    document.getElementById('tickerMessages').value = '';
-                    await loadTickerMessages();
-                } else {
-                    const error = await response.json();
-                    alert(`Upload failed: ${error.error}`);
-                }
+                
+                await Promise.all(loadPromises);
+                
+                // Create game board
+                createGameBoard();
+                document.getElementById('messages').innerHTML = '';
+                
             } catch (error) {
-                console.error('Upload error:', error);
-                alert('Upload failed. Please try again.');
+                console.error('Error initializing game:', error);
+                showMessage('Error loading game. Please try again.', 'error');
             }
-        });
+        }
 
-        // Update delete game options - Exclude demo game from deletion
-        function updateDeleteGameOptions() {
-            const select = document.getElementById('deleteGameSelect');
-            select.innerHTML = '<option value="">-- Select a game --</option>';
+        // Create game board
+        function createGameBoard() {
+            // Create pairs - each audio appears twice
+            const pairs = [];
+            for (let i = 0; i < 18; i++) {
+                pairs.push(i, i);
+            }
             
-            // Only show non-demo games for deletion
-            games.forEach(game => {
-                if (game.name !== "Demo Game") {
-                    const option = document.createElement('option');
-                    option.value = game.id;
-                    option.textContent = game.name;
-                    select.appendChild(option);
-                }
+            // Shuffle the pairs
+            gameBoard = shuffleArray([...pairs]);
+            
+            // Create visual board
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            
+            gameBoard.forEach((audioIndex, position) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = position + 1;
+                card.addEventListener('click', () => handleCardClick(position));
+                board.appendChild(card);
             });
         }
 
-        // Delete game - Fixed implementation
-        document.getElementById('deleteGameBtn').addEventListener('click', async () => {
-            const gameId = document.getElementById('deleteGameSelect').value;
-            if (!gameId) {
-                alert('Please select a game to delete');
+        // Handle card clicks
+        function handleCardClick(position) {
+            if (isProcessing || selectedCards.includes(position)) {
                 return;
             }
-
-            const game = games.find(g => g.id == gameId);
-            if (!game) {
-                alert('Game not found');
-                return;
-            }
-
-            if (game.name === "Demo Game") {
-                alert('Cannot delete the demo game');
-                return;
-            }
-
-            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
-                return;
-            }
-
+            
+            const audioIndex = gameBoard[position];
+            const card = document.querySelector(`.card:nth-child(${position + 1})`);
+            
+            console.log(`Card clicked - Position: ${position + 1}, Audio: ${audioIndex}`);
+            
+            // Play audio
             try {
-                console.log('Deleting game:', gameId);
-                const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
-                    method: 'DELETE'
+                // Stop any currently playing audio
+                audioElements.forEach(audio => {
+                    audio.pause();
+                    audio.currentTime = 0;
                 });
-
-                console.log('Delete response status:', response.status);
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Delete result:', result);
-                    alert('Game deleted successfully!');
+                audioElements[audioIndex].currentTime = 0;
+                audioElements[audioIndex].play().catch(e => console.error('Audio play failed:', e));
+                
+                // Visual feedback for playing
+                document.querySelectorAll('.card').forEach(c => c.classList.remove('playing'));
+                card.classList.add('playing');
+                
+                // Clear playing state after audio
+                const audio = audioElements[audioIndex];
+                const clearPlaying = () => {
+                    card.classList.remove('playing');
+                };
+                
+                audio.addEventListener('ended', clearPlaying, { once: true });
+                setTimeout(clearPlaying, 2000); // Fallback
+                
+            } catch (error) {
+                console.error('Error playing audio:', error);
+            }
+            
+            // Add to selected cards
+            selectedCards.push(position);
+            
+            // Visual feedback - THIS IS THE KEY FIX
+            if (selectedCards.length === 1) {
+                console.log('First card selected - applying GOLD visual changes');
+                
+                // Store original styles
+                const originalStyle = card.getAttribute('style') || '';
+                card.dataset.originalStyle = originalStyle;
+                
+                // Nuclear option - completely override everything with setAttribute
+                card.setAttribute('style', `
+                    background: linear-gradient(45deg, #ffd700, #ffed4e) !important;
+                    border: 4px solid #ffa000 !important;
+                    transform: scale(1.2) !important;
+                    box-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 
+                               0 0 50px rgba(255, 215, 0, 0.6),
+                               inset 0 0 20px rgba(255, 255, 255, 0.3) !important;
+                    color: #000 !important;
+                    z-index: 1000 !important;
+                    position: relative !important;
+                    animation: firstCardPulse 1s infinite alternate !important;
+                `);
+                
+                // Add visual indicator
+                const indicator = document.createElement('div');
+                indicator.innerHTML = '🎯';
+                indicator.style.cssText = `
+                    position: absolute;
+                    top: -10px;
+                    right: -10px;
+                    font-size: 18px;
+                    animation: bounce 0.5s infinite alternate;
+                    z-index: 1001;
+                `;
+                indicator.className = 'selection-indicator';
+                card.appendChild(indicator);
+                
+                console.log('GOLD visual changes applied to first card');
+                
+            } else if (selectedCards.length === 2) {
+                console.log('Second card selected');
+                
+                // Store original styles
+                const originalStyle = card.getAttribute('style') || '';
+                card.dataset.originalStyle = originalStyle;
+                
+                // Style second card - BLUE
+                card.setAttribute('style', `
+                    background: linear-gradient(45deg, #2196F3, #1976D2) !important;
+                    border: 3px solid #1565C0 !important;
+                    transform: scale(1.1) !important;
+                    box-shadow: 0 0 20px rgba(33, 150, 243, 0.7) !important;
+                    color: white !important;
+                    z-index: 999 !important;
+                `);
+                
+                // Check for match after delay
+                isProcessing = true;
+                setTimeout(checkMatch, 1000);
+            }
+        }
+
+        // Check for match
+        function checkMatch() {
+            const [pos1, pos2] = selectedCards;
+            const audio1 = gameBoard[pos1];
+            const audio2 = gameBoard[pos2];
+            
+            console.log(`Checking match: Audio ${audio1} vs ${audio2}`);
+            
+            attempts++;
+            
+            const card1 = document.querySelector(`.card:nth-child(${pos1 + 1})`);
+            const card2 = document.querySelector(`.card:nth-child(${pos2 + 1})`);
+            
+            if (audio1 === audio2) {
+                // Match found!
+                matches++;
+                console.log('✅ Match found!');
+                
+                // Stop any playing audio immediately
+                audioElements.forEach(audio => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                });
+                
+                // Apply matched styling
+                [card1, card2].forEach(card => {
+                    card.classList.add('matched');
+                    card.setAttribute('style', `
+                        background: linear-gradient(45deg, #4CAF50, #45a049) !important;
+                        border: 3px solid #388E3C !important;
+                        transform: scale(1.1) !important;
+                        box-shadow: 0 0 20px rgba(76, 175, 80, 0.7) !important;
+                        color: white !important;
+                        z-index: 998 !important;
+                        pointer-events: none !important;
+                    `);
                     
-                    // Reload games and select demo game if current game was deleted
-                    await loadGames();
-                    if (currentGame && currentGame.id == gameId) {
-                        selectGame(games[0].id); // Select first available game (should be demo)
+                    // Remove indicators
+                    const indicator = card.querySelector('.selection-indicator');
+                    if (indicator) {
+                        indicator.remove();
                     }
+                });
+                
+                // Check for win
+                if (matches === 18) {
+                    setTimeout(() => {
+                        showMessage(`🎉 You won! ${matches} matches in ${attempts} attempts (${Math.round((matches/attempts)*100)}% accuracy)`, 'success', 0);
+                    }, 1000);
+                }
+                
+            } else {
+                // No match
+                console.log('❌ No match');
+                setTimeout(clearSelections, 1000);
+            }
+            
+            updateStats();
+            isProcessing = false;
+        }
+
+        // Clear card selections
+        function clearSelections() {
+            selectedCards = [];
+            
+            document.querySelectorAll('.card').forEach(card => {
+                // Don't reset matched cards
+                if (card.classList.contains('matched')) {
+                    return;
+                }
+                
+                // Remove indicators
+                const indicator = card.querySelector('.selection-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+                
+                // Restore original styles
+                const originalStyle = card.dataset.originalStyle || '';
+                if (originalStyle) {
+                    card.setAttribute('style', originalStyle);
+                    delete card.dataset.originalStyle;
                 } else {
-                    const error = await response.json();
-                    console.error('Delete error:', error);
-                    alert(`Delete failed: ${error.error || 'Unknown error'}`);
+                    card.removeAttribute('style');
+                }
+                
+                // Remove classes
+                card.classList.remove('playing');
+            });
+        }
+
+        // Update game stats
+        function updateStats() {
+            document.getElementById('matches').textContent = matches;
+            document.getElementById('attempts').textContent = attempts;
+            document.getElementById('accuracy').textContent = attempts > 0 ? Math.round((matches / attempts) * 100) + '%' : '100%';
+        }
+
+        // Ticker message functions
+        async function loadTickerMessage() {
+            try {
+                const response = await fetch('/.netlify/functions/messages');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.message) {
+                        document.getElementById('tickerText').textContent = data.message;
+                    }
                 }
             } catch (error) {
-                console.error('Delete error:', error);
-                alert('Delete failed. Please try again.');
+                console.log('Using default ticker message');
             }
-        });
+        }
 
-        // New game button - FIXED: Just reshuffles audio assignments and preloads
-        document.getElementById('newGameBtn').addEventListener('click', () => {
-            if (currentGame) {
-                resetGame();
-                createGameBoard();
-                preloadAudio(); // Ensure audio is preloaded for new game layout
+        async function updateTicker() {
+            const message = document.getElementById('tickerInput').value.trim();
+            if (!message) return;
+            
+            try {
+                const response = await fetch('/.netlify/functions/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('tickerText').textContent = message;
+                    document.getElementById('tickerInput').value = '';
+                    showMessage('Ticker updated!', 'success');
+                } else {
+                    throw new Error('Update failed');
+                }
+            } catch (error) {
+                showMessage('Error updating ticker', 'error');
             }
-        });
+        }
 
-        // Initialize the game when page loads
-        document.addEventListener('DOMContentLoaded', initGame);
+        // Utility functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
     </script>
 </body>
 </html>
