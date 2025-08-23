@@ -1033,24 +1033,33 @@
                 return;
             }
             
-            // If we're processing a match OR already have 2 cards selected, reset and start fresh
-            if (isProcessingMatch || selectedCards.length >= 2) {
-                console.log('Processing match or have 2 cards - resetting for new selection');
-                resetCardSelections();
-            }
-            
             // Get the audio index for this card
             const audioIndex = parseInt(card.dataset.audioIndex);
+            
+            // If we're processing a match or already have 2 cards selected,
+            // this is a new selection - start fresh
+            if (isProcessingMatch || selectedCards.length >= 2) {
+                console.log('Starting new selection cycle');
+                resetCardSelections();
+                
+                // This is now a first card selection
+                selectedCards.push(position);
+                playCardAudio(audioIndex);
+                applyFirstCardStyles(card);
+                return;
+            }
             
             // If this is the first card selection
             if (selectedCards.length === 0) {
                 console.log('First card selection');
                 
+                // Add to selected cards
+                selectedCards.push(position);
+                
                 // Play the audio for this card
                 playCardAudio(audioIndex);
                 
-                // Mark as first selected
-                selectedCards.push(position);
+                // Apply first card styles
                 applyFirstCardStyles(card);
                 
             } 
@@ -1058,14 +1067,14 @@
             else if (selectedCards.length === 1) {
                 console.log('Second card selection');
                 
-                // Mark as processing match to prevent multiple clicks
-                isProcessingMatch = true;
+                // Stop first card's audio and play second card's audio
+                // Add to selected cards
+                selectedCards.push(position);
                 
                 // Play the audio for this card
                 playCardAudio(audioIndex);
                 
-                // Add to selected cards
-                selectedCards.push(position);
+                // Apply second card styles
                 applySecondCardStyles(card);
                 
                 // Increment attempts counter
@@ -1073,15 +1082,10 @@
                 updateStats();
                 
                 // Check for match IMMEDIATELY for visual feedback
-                setTimeout(() => {
-                    checkMatch();
-                    
-                    // After checking the match, mark as not processing
-                    // This allows new clicks to be processed
-                    isProcessingMatch = false;
-                }, 100);
+                // This shows checkmarks right away if it's a match
+                checkMatch();
                 
-                // Let audio continue playing until user clicks again or it finishes naturally
+                // Audio keeps playing until it finishes or user makes another selection
             }
         }
         
@@ -1219,7 +1223,7 @@
         function playCardAudio(audioIndex) {
             console.log(`Playing audio for index ${audioIndex}`);
             
-            // Always stop current audio
+            // Always stop current audio when playing a new one
             stopCurrentAudio();
             
             // Use preloaded audio if available
@@ -1236,7 +1240,6 @@
                 });
                 
                 // ONLY add playing state to the clicked card, NOT its match
-                // This prevents the matching card from being revealed with a blue tint
                 const clickedCardPosition = selectedCards[selectedCards.length - 1];
                 const clickedCard = document.querySelector(`[data-position="${clickedCardPosition}"]`);
                 if (clickedCard) {
@@ -1315,32 +1318,32 @@
                 applyMatchedStyles(card1);
                 applyMatchedStyles(card2);
                 
-                // NOTE: We don't stop the audio here - let it play until user clicks another card
-                // or it finishes naturally
-                
                 // Check for win condition
                 if (matches === 18) {
                     gameOver();
                 }
                 
-                // Clear selected cards array but keep audio playing
+                // Clear selection arrays but leave isProcessingMatch = false
+                // so audio plays until user clicks or it ends naturally
                 selectedCards = [];
+                isProcessingMatch = false;
                 
             } else {
                 console.log('No match');
                 
-                // Show both cards for a moment before hiding
-                // Don't reset card selections yet - let them stay visible
-                // Audio continues to play
+                // Don't clear selections yet - let cards remain visible
+                // Audio will play until it finishes or user clicks again
                 
-                // Set a timer to clear the mismatch state if user doesn't click
+                // Allow user to click and continue immediately if they want
+                isProcessingMatch = false;
+                
+                // Fallback timeout to clear mismatched cards if user doesn't click
                 setTimeout(() => {
                     // Only reset if these cards are still the current selection
-                    // (user might have clicked another card already)
                     if (selectedCards.includes(pos1) && selectedCards.includes(pos2)) {
                         resetCardSelections();
                     }
-                }, 1000);
+                }, 1500); // Slight delay to let audio play a bit
             }
             
             // Update stats
