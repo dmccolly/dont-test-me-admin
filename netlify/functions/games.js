@@ -2,7 +2,7 @@ const https = require('https');
 const http = require('http');
 
 // Xano configuration
-const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:pYeQctVX';
+const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:owXpCDEu';
 
 // Test different endpoint patterns to find the correct one
 async function findCorrectEndpoint() {
