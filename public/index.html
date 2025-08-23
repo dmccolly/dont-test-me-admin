@@ -1019,142 +1019,247 @@
             });
         }
 
-        // Handle card click with improved visual feedback and debugging
+        // Handle card click - clean, predictable user experience
         function handleCardClick(position) {
             const card = document.querySelector(`[data-position="${position}"]`);
             
-            console.log(`Card clicked: Position ${position}, Card number ${card?.textContent}, Audio index ${card?.dataset.audioIndex}`);
-            console.log(`Current selected cards:`, selectedCards);
-            console.log(`Is processing match:`, isProcessingMatch);
+            console.log(`\n🎮 Card clicked: Position ${position}`);
+            console.log(`Selected cards: ${selectedCards.length}, Processing: ${isProcessingMatch}`);
             
-            // Prevent clicking invalid, matched, or already selected cards
-            if (!card || card.classList.contains('matched') || selectedCards.includes(position)) {
-                console.log('Card blocked - matched, invalid, or already selected');
+            // Prevent clicking invalid or matched cards
+            if (!card || card.classList.contains('matched')) {
+                console.log('❌ Blocked: Invalid or matched card');
                 return;
             }
 
-            // If we're processing a match OR have 2 cards, this is a new selection - reset everything
+            // If user clicks while processing OR with 2 cards selected, start fresh
             if (isProcessingMatch || selectedCards.length >= 2) {
-                console.log('Starting fresh selection - clearing current state');
+                console.log('🔄 User wants to start fresh - resetting everything');
+                resetSelection();
+            }
+
+            // Handle selection based on current state
+            if (selectedCards.length === 0) {
+                selectFirstCard(position, card);
+            } else if (selectedCards.length === 1 && !selectedCards.includes(position)) {
+                selectSecondCard(position, card);
+            } else {
+                console.log('❌ Blocked: Same card already selected');
+            }
+        }
+
+        // Select first card - simple and clean
+        function selectFirstCard(position, card) {
+            console.log('🥇 First card selection');
+            
+            // Clear any previous states
+            clearAllCardStates();
+            
+            // Add visual highlight
+            card.classList.add('first-selected');
+            card.setAttribute('style', `
+                background: linear-gradient(145deg, 
+                    rgba(230, 194, 0, 0.8), 
+                    rgba(204, 172, 0, 0.7)) !important;
+                backdrop-filter: blur(10px) !important;
+                border: 2px solid rgba(212, 179, 0, 0.9) !important;
+                color: #000 !important;
+                transform: translateY(-4px) scale(1.05) !important;
+                box-shadow: 
+                    0 0 12px rgba(230, 194, 0, 0.4),
+                    0 0 24px rgba(230, 194, 0, 0.2),
+                    0 8px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+                animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
+                z-index: 1000 !important;
+                position: relative !important;
+            `);
+            
+            // Add target indicator
+            const indicator = document.createElement('div');
+            indicator.innerHTML = '👆';
+            indicator.style.cssText = `
+                position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+                font-size: 1rem; z-index: 1001;
+            `;
+            indicator.className = 'target-indicator';
+            card.appendChild(indicator);
+            
+            // Update game state
+            selectedCards.push(position);
+            
+            // Play audio
+            const audioIndex = parseInt(card.dataset.audioIndex);
+            playAudioFile(audioIndex, card);
+            
+            console.log(`✅ First card ready: Position ${position}, Audio ${audioIndex}`);
+        }
+
+        // Select second card - immediately check for match
+        function selectSecondCard(position, card) {
+            console.log('🥈 Second card selection');
+            
+            // Add visual highlight for second card
+            card.classList.add('second-selected');
+            
+            // Update game state immediately
+            selectedCards.push(position);
+            attempts++;
+            updateStats();
+            
+            // Play audio
+            const audioIndex = parseInt(card.dataset.audioIndex);
+            playAudioFile(audioIndex, card);
+            
+            console.log(`Second card: Position ${position}, Audio ${audioIndex}`);
+            
+            // Check match IMMEDIATELY - don't wait for audio
+            setTimeout(() => {
+                checkMatchImmediate();
+            }, 100); // Tiny delay just to let visual states settle
+        }
+
+        // Reset all selection state - for fresh starts
+        function resetSelection() {
+            console.log('🧹 Resetting selection state');
+            
+            // Stop current audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            
+            // Clear any pending match check
+            if (matchCheckTimer) {
+                clearTimeout(matchCheckTimer);
+                matchCheckTimer = null;
+            }
+            
+            // Clear all visual states
+            clearAllCardStates();
+            
+            // Reset game state
+            selectedCards = [];
+            isProcessingMatch = false;
+            
+            // Clear all timeouts
+            Object.values(audioTimeouts).forEach(timeout => clearTimeout(timeout));
+            audioTimeouts = {};
+        }
+
+        // Check for match immediately - don't wait for audio
+        function checkMatchImmediate() {
+            console.log('\n🎯 IMMEDIATE MATCH CHECK');
+            
+            if (selectedCards.length !== 2) {
+                console.log('❌ Wrong number of cards:', selectedCards.length);
+                resetSelection();
+                return;
+            }
+            
+            const [pos1, pos2] = selectedCards;
+            const card1 = document.querySelector(`[data-position="${pos1}"]`);
+            const card2 = document.querySelector(`[data-position="${pos2}"]`);
+            
+            if (!card1 || !card2) {
+                console.log('❌ Cards not found');
+                resetSelection();
+                return;
+            }
+            
+            const audioIndex1 = parseInt(card1.dataset.audioIndex);
+            const audioIndex2 = parseInt(card2.dataset.audioIndex);
+            
+            console.log(`Comparing: Audio ${audioIndex1} vs ${audioIndex2}`);
+            
+            if (audioIndex1 === audioIndex2) {
+                // MATCH! Handle immediately
+                console.log('🎉 MATCH FOUND!');
+                handleMatch(card1, card2);
+            } else {
+                // No match - show both cards briefly then clear
+                console.log('❌ No match');
+                handleMismatch(card1, card2);
+            }
+        }
+
+        // Handle successful match
+        function handleMatch(card1, card2) {
+            matches++;
+            
+            // Clear selection styles immediately
+            card1.classList.remove('first-selected', 'second-selected', 'playing');
+            card2.classList.remove('first-selected', 'second-selected', 'playing');
+            
+            // Remove indicators
+            card1.querySelector('.target-indicator')?.remove();
+            card2.querySelector('.target-indicator')?.remove();
+            
+            // Clear inline styles
+            card1.removeAttribute('style');
+            card2.removeAttribute('style');
+            
+            // Add matched state immediately
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            
+            // Update game board
+            const pos1 = parseInt(card1.dataset.position);
+            const pos2 = parseInt(card2.dataset.position);
+            gameBoard[pos1].matched = true;
+            gameBoard[pos2].matched = true;
+            
+            // Reset selection state
+            selectedCards = [];
+            isProcessingMatch = false;
+            updateStats();
+            
+            console.log(`✅ Match #${matches} complete`);
+            
+            // Check for win
+            if (matches === 18) {
+                endGame();
+            }
+        }
+
+        // Handle mismatch
+        function handleMismatch(card1, card2) {
+            isProcessingMatch = true; // Briefly block clicks to show mismatch
+            
+            // Show mismatch for 1 second, then clear
+            setTimeout(() => {
+                // Clear selection styles
+                card1.classList.remove('first-selected', 'second-selected', 'playing');
+                card2.classList.remove('first-selected', 'second-selected', 'playing');
                 
-                // Stop current audio
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                    currentAudio = null;
-                }
+                // Remove indicators
+                card1.querySelector('.target-indicator')?.remove();
+                card2.querySelector('.target-indicator')?.remove();
                 
-                // Clear all event listeners and timeouts
-                Object.values(audioTimeouts).forEach(timeout => clearTimeout(timeout));
-                audioTimeouts = {};
+                // Clear inline styles
+                card1.removeAttribute('style');
+                card2.removeAttribute('style');
                 
-                // Reset game state
-                clearAllCardStates();
+                // Reset selection state
                 selectedCards = [];
                 isProcessingMatch = false;
                 
-                // Now proceed with this click as a first selection
-                console.log('State reset, proceeding as first card selection');
-            }
+                console.log('💫 Mismatch cleared, ready for new selection');
+            }, 1000);
+        }
 
-            if (selectedCards.length === 0) {
-                // First card selection
-                console.log('First card selection');
-                
-                card.classList.add('first-selected');
-                card.setAttribute('style', `
-                    background: linear-gradient(145deg, 
-                        rgba(230, 194, 0, 0.8), 
-                        rgba(204, 172, 0, 0.7)) !important;
-                    backdrop-filter: blur(10px) !important;
-                    border: 2px solid rgba(212, 179, 0, 0.9) !important;
-                    color: #000 !important;
-                    transform: translateY(-4px) scale(1.05) !important;
-                    box-shadow: 
-                        0 0 12px rgba(230, 194, 0, 0.4),
-                        0 0 24px rgba(230, 194, 0, 0.2),
-                        0 8px 16px rgba(0, 0, 0, 0.4),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-                    animation: first-card-glow 1.5s ease-in-out infinite alternate !important;
-                    z-index: 1000 !important;
-                    position: relative !important;
-                `);
-                
-                // Add target indicator
-                const indicator = document.createElement('div');
-                indicator.innerHTML = '👆';
-                indicator.style.cssText = `
-                    position: absolute;
-                    top: -18px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    font-size: 1rem;
-                    z-index: 1001;
-                `;
-                indicator.className = 'target-indicator';
-                card.appendChild(indicator);
-                
-                selectedCards.push(position);
-                
-                const audioIndex = parseInt(card.dataset.audioIndex);
-                playAudioFile(audioIndex, card);
-                
-                console.log(`✅ First card selected: Position ${position}, Audio ${audioIndex}`);
-                
-            } else if (selectedCards.length === 1) {
-                // Second card selection - enter processing state
-                console.log('Second card selection - entering processing state');
-                isProcessingMatch = true; // Block match-checking logic, but allow resets
-                card.classList.add('second-selected');
-                
-                selectedCards.push(position);
-                
-                const audioIndex = parseInt(card.dataset.audioIndex);
-                playAudioFile(audioIndex, card);
-                
-                console.log(`Second card selected: Position ${position}, Audio ${audioIndex}`);
-                console.log('Selected cards array:', selectedCards);
-                
-                attempts++;
-                updateStats();
-                
-                // Wait for audio to finish naturally before checking match
-                // Listen for the audio to end, then check match
-                if (currentAudio) {
-                    let matchCheckTriggered = false;
-                    
-                    const triggerMatchCheck = () => {
-                        if (!matchCheckTriggered) {
-                            matchCheckTriggered = true;
-                            console.log('Triggering match check');
-                            setTimeout(() => {
-                                checkMatch();
-                            }, 500); // Small delay after audio ends
-                        }
-                    };
-                    
-                    const handleAudioEndForMatch = () => {
-                        console.log('Second card audio ended naturally');
-                        currentAudio.removeEventListener('ended', handleAudioEndForMatch);
-                        triggerMatchCheck();
-                    };
-                    
-                    currentAudio.addEventListener('ended', handleAudioEndForMatch);
-                    
-                    // Backup timeout in case audio doesn't fire 'ended' event
-                    setTimeout(() => {
-                        console.log('Backup timeout triggered for match check');
-                        currentAudio.removeEventListener('ended', handleAudioEndForMatch);
-                        triggerMatchCheck();
-                    }, 6000); // 6 second max wait
-                } else {
-                    // Fallback if no current audio
-                    console.log('No current audio, using fallback delay');
-                    setTimeout(() => {
-                        checkMatch();
-                    }, 2000);
-                }
+        // End game
+        function endGame() {
+            clearInterval(gameTimer);
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
             }
+            const endTime = Date.now();
+            const totalTime = Math.floor((endTime - gameStartTime) / 1000);
+            document.getElementById('ticker').textContent = 
+                `🎉 Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
         }
 
         // Play audio file - simplified and more reliable approach
@@ -1265,131 +1370,18 @@
             });
         }
 
-        // Check for match with detailed debugging and improved logic
+        // Legacy checkMatch function - now simplified
         function checkMatch() {
-            console.log('\n=== CHECKING MATCH ===');
-            console.log('Selected cards:', selectedCards);
-            
-            if (selectedCards.length !== 2) {
-                console.log('ERROR: Wrong number of selected cards:', selectedCards.length);
-                selectedCards = [];
-                clearAllCardStates();
-                isProcessingMatch = false; // Reset processing flag
-                return;
-            }
-            
-            const [pos1, pos2] = selectedCards;
-            const card1 = document.querySelector(`[data-position="${pos1}"]`);
-            const card2 = document.querySelector(`[data-position="${pos2}"]`);
-            
-            if (!card1 || !card2) {
-                console.log('ERROR: Could not find cards');
-                selectedCards = [];
-                clearAllCardStates();
-                isProcessingMatch = false; // Reset processing flag
-                return;
-            }
-            
-            // DON'T stop current audio - it should have finished naturally by now
-            // Only clear timeouts
-            Object.values(audioTimeouts).forEach(timeout => clearTimeout(timeout));
-            audioTimeouts = {};
-            
-            const audioIndex1 = parseInt(card1.dataset.audioIndex);
-            const audioIndex2 = parseInt(card2.dataset.audioIndex);
-            const cardNum1 = card1.textContent;
-            const cardNum2 = card2.textContent;
-
-            console.log(`Card 1: Position ${pos1}, Number ${cardNum1}, Audio ${audioIndex1}`);
-            console.log(`Card 2: Position ${pos2}, Number ${cardNum2}, Audio ${audioIndex2}`);
-            console.log(`Audio indices match: ${audioIndex1 === audioIndex2}`);
-            console.log(`Same position check: ${pos1 === pos2}`);
-
-            // Ensure we're not matching a card with itself
-            if (pos1 === pos2) {
-                console.log('ERROR: Same card selected twice!');
-                selectedCards = [];
-                clearAllCardStates();
-                isProcessingMatch = false; // Reset processing flag
-                return;
-            }
-
-            if (audioIndex1 === audioIndex2) {
-                // Match found - handle immediately
-                console.log('✅ MATCH FOUND!');
-                matches++;
-                
-                // Clear selection classes and styles immediately
-                card1.classList.remove('first-selected', 'second-selected', 'playing');
-                card2.classList.remove('first-selected', 'second-selected', 'playing');
-                
-                // Remove target indicators immediately
-                card1.querySelector('.target-indicator')?.remove();
-                card2.querySelector('.target-indicator')?.remove();
-                
-                // Clear inline styles immediately
-                card1.removeAttribute('style');
-                card2.removeAttribute('style');
-                
-                // Add matched state immediately
-                card1.classList.add('matched');
-                card2.classList.add('matched');
-                
-                // Update gameBoard state
-                gameBoard[pos1].matched = true;
-                gameBoard[pos2].matched = true;
-                
-                console.log(`Match #${matches} completed`);
-                
-                // Check for win condition
-                if (matches === 18) {
-                    clearInterval(gameTimer);
-                    if (currentAudio) {
-                        currentAudio.pause();
-                        currentAudio = null;
-                    }
-                    const endTime = Date.now();
-                    const totalTime = Math.floor((endTime - gameStartTime) / 1000);
-                    document.getElementById('ticker').textContent = `Congratulations! Completed in ${formatTime(totalTime)} with ${attempts} attempts!`;
-                }
-            } else {
-                // No match - clear states after a brief delay
-                console.log('❌ No match - clearing selection states');
-                
-                setTimeout(() => {
-                    // Clear selection states
-                    card1.classList.remove('first-selected', 'second-selected', 'playing');
-                    card2.classList.remove('first-selected', 'second-selected', 'playing');
-                    
-                    // Remove target indicators
-                    card1.querySelector('.target-indicator')?.remove();
-                    card2.querySelector('.target-indicator')?.remove();
-                    
-                    // Clear inline styles
-                    card1.removeAttribute('style');
-                    card2.removeAttribute('style');
-                    
-                }, 800); // Slightly longer delay so player can see both cards
-            }
-
-            // Reset selected cards and processing flag
-            selectedCards = [];
-            isProcessingMatch = false; // Allow new selections
-            updateStats();
-            console.log('=== MATCH CHECK COMPLETE - Ready for new selections ===\n');
+            // This is now just a fallback - should rarely be called
+            console.log('⚠️ Legacy checkMatch called - using immediate check instead');
+            checkMatchImmediate();
         }
 
-        // Reset game - FIXED: Only randomize audio, keep card numbers the same
+        // Reset game - clean start
         function resetGame() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio = null;
-            }
-            clearAllCardStates();
-            selectedCards = [];
+            resetSelection(); // Use our new reset function
             matches = 0;
             attempts = 0;
-            isProcessingMatch = false; // Reset processing flag
             gameStartTime = Date.now();
             
             if (gameTimer) {
