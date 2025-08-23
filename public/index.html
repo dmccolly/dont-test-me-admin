@@ -1025,6 +1025,7 @@
             
             console.log(`Card clicked: Position ${position}, Card number ${card?.textContent}, Audio index ${card?.dataset.audioIndex}`);
             console.log(`Current selected cards:`, selectedCards);
+            console.log(`Is processing match:`, isProcessingMatch);
             
             // Prevent clicking invalid, matched, or already selected cards
             if (!card || card.classList.contains('matched') || selectedCards.includes(position)) {
@@ -1032,9 +1033,9 @@
                 return;
             }
 
-            // Prevent clicking during processing
-            if (selectedCards.length >= 2) {
-                console.log('Card blocked - already processing two cards');
+            // Prevent clicking during match processing or when already have 2 cards
+            if (isProcessingMatch || selectedCards.length >= 2) {
+                console.log('Card blocked - processing match or already have 2 cards selected');
                 return;
             }
 
@@ -1084,8 +1085,9 @@
                 console.log(`✅ First card selected: Position ${position}, Audio ${audioIndex}`);
                 
             } else if (selectedCards.length === 1) {
-                // Second card selection
-                console.log('Second card selection');
+                // Second card selection - enter processing state
+                console.log('Second card selection - entering processing state');
+                isProcessingMatch = true; // Block further clicks
                 card.classList.add('second-selected');
                 
                 selectedCards.push(position);
@@ -1099,10 +1101,42 @@
                 attempts++;
                 updateStats();
                 
-                // Check match after a delay to let audio play
-                setTimeout(() => {
-                    checkMatch();
-                }, 1200); // Slightly longer delay
+                // Wait for audio to finish naturally before checking match
+                // Listen for the audio to end, then check match
+                if (currentAudio) {
+                    let matchCheckTriggered = false;
+                    
+                    const triggerMatchCheck = () => {
+                        if (!matchCheckTriggered) {
+                            matchCheckTriggered = true;
+                            console.log('Triggering match check');
+                            setTimeout(() => {
+                                checkMatch();
+                            }, 500); // Small delay after audio ends
+                        }
+                    };
+                    
+                    const handleAudioEndForMatch = () => {
+                        console.log('Second card audio ended naturally');
+                        currentAudio.removeEventListener('ended', handleAudioEndForMatch);
+                        triggerMatchCheck();
+                    };
+                    
+                    currentAudio.addEventListener('ended', handleAudioEndForMatch);
+                    
+                    // Backup timeout in case audio doesn't fire 'ended' event
+                    setTimeout(() => {
+                        console.log('Backup timeout triggered for match check');
+                        currentAudio.removeEventListener('ended', handleAudioEndForMatch);
+                        triggerMatchCheck();
+                    }, 6000); // 6 second max wait
+                } else {
+                    // Fallback if no current audio
+                    console.log('No current audio, using fallback delay');
+                    setTimeout(() => {
+                        checkMatch();
+                    }, 2000);
+                }
             }
         }
 
@@ -1223,6 +1257,7 @@
                 console.log('ERROR: Wrong number of selected cards:', selectedCards.length);
                 selectedCards = [];
                 clearAllCardStates();
+                isProcessingMatch = false; // Reset processing flag
                 return;
             }
             
@@ -1234,6 +1269,7 @@
                 console.log('ERROR: Could not find cards');
                 selectedCards = [];
                 clearAllCardStates();
+                isProcessingMatch = false; // Reset processing flag
                 return;
             }
             
@@ -1263,6 +1299,7 @@
                 console.log('ERROR: Same card selected twice!');
                 selectedCards = [];
                 clearAllCardStates();
+                isProcessingMatch = false; // Reset processing flag
                 return;
             }
 
@@ -1324,19 +1361,24 @@
                 }, 800); // Slightly longer delay so player can see both cards
             }
 
-            // Reset selected cards and update stats
+            // Reset selected cards and processing flag
             selectedCards = [];
+            isProcessingMatch = false; // Allow new selections
             updateStats();
-            console.log('=== MATCH CHECK COMPLETE ===\n');
+            console.log('=== MATCH CHECK COMPLETE - Ready for new selections ===\n');
         }
 
         // Reset game - FIXED: Only randomize audio, keep card numbers the same
         function resetGame() {
-            stopCurrentAudio();
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
             clearAllCardStates();
             selectedCards = [];
             matches = 0;
             attempts = 0;
+            isProcessingMatch = false; // Reset processing flag
             gameStartTime = Date.now();
             
             if (gameTimer) {
