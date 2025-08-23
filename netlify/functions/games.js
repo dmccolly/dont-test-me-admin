@@ -1,153 +1,72 @@
-const fs = require('fs');
-const path = require('path');
+const https = require('https');
+const http = require('http');
 
-// Use a more persistent approach - try multiple storage locations
-const STORAGE_LOCATIONS = [
-    '/tmp/audio-games-data.json',
-    '/var/task/games-data.json',  // Alternative location
-    process.env.LAMBDA_TASK_ROOT ? path.join(process.env.LAMBDA_TASK_ROOT, 'games-data.json') : null
-].filter(Boolean);
+// Xano configuration
+const XANO_BASE_URL = 'https://xajo-bs7d-cagt.n7e.xano.io/api:pYeQctVX';
 
-let gameIdCounter = 1;
-let gamesCache = null; // In-memory cache
-
-// Initialize storage with multiple fallback locations
-function initializeStorage() {
-    try {
-        // First try to load from any existing storage location
-        for (const location of STORAGE_LOCATIONS) {
-            try {
-                if (fs.existsSync(location)) {
-                    const data = fs.readFileSync(location, 'utf8');
-                    const parsed = JSON.parse(data);
-                    gameIdCounter = parsed.counter || 1;
-                    gamesCache = parsed.games || [];
-                    console.log(`Loaded existing games from ${location}:`, gamesCache.length, 'games');
-                    return gamesCache;
-                }
-            } catch (err) {
-                console.log(`Could not load from ${location}:`, err.message);
-                continue;
+// Helper function to make HTTP requests to Xano
+function makeXanoRequest(method, endpoint, data = null) {
+    return new Promise((resolve, reject) => {
+        const url = new URL(`${XANO_BASE_URL}${endpoint}`);
+        const isHttps = url.protocol === 'https:';
+        const httpModule = isHttps ? https : http;
+        
+        const options = {
+            hostname: url.hostname,
+            port: url.port || (isHttps ? 443 : 80),
+            path: url.pathname + url.search,
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             }
-        }
-        
-        // No existing data found, initialize with demo game
-        console.log('No existing storage found, initializing with demo game');
-        const initialGames = [{
-            id: 1,
-            name: "Demo Game",
-            files: generateDemoAudioFiles()
-        }];
-        gameIdCounter = 2;
-        gamesCache = initialGames;
-        
-        // Save initial data
-        saveToStorage(initialGames);
-        return initialGames;
-        
-    } catch (error) {
-        console.error('Error initializing storage:', error);
-        // Fallback to demo game
-        const fallbackGames = [{
-            id: 1,
-            name: "Demo Game",
-            files: generateDemoAudioFiles()
-        }];
-        gameIdCounter = 2;
-        gamesCache = fallbackGames;
-        return fallbackGames;
-    }
-}
-
-// Save games with multiple location attempts and caching
-function saveToStorage(games) {
-    try {
-        const dataToSave = {
-            games: games,
-            counter: gameIdCounter,
-            lastUpdated: new Date().toISOString(),
-            version: '1.0'
         };
-        
-        const jsonData = JSON.stringify(dataToSave, null, 2);
-        let savedSuccessfully = false;
-        
-        // Try to save to multiple locations
-        for (const location of STORAGE_LOCATIONS) {
-            try {
-                // Ensure directory exists
-                const dir = path.dirname(location);
-                if (!fs.existsSync(dir)) {
-                    fs.mkdirSync(dir, { recursive: true });
+
+        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+            const jsonData = JSON.stringify(data);
+            options.headers['Content-Length'] = Buffer.byteLength(jsonData);
+        }
+
+        const req = httpModule.request(options, (res) => {
+            let responseData = '';
+
+            res.on('data', (chunk) => {
+                responseData += chunk;
+            });
+
+            res.on('end', () => {
+                try {
+                    const parsedData = responseData ? JSON.parse(responseData) : {};
+                    
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                        resolve(parsedData);
+                    } else {
+                        reject(new Error(`Xano API error: ${res.statusCode} - ${responseData}`));
+                    }
+                } catch (error) {
+                    reject(new Error(`JSON parse error: ${error.message}`));
                 }
-                
-                fs.writeFileSync(location, jsonData, 'utf8');
-                console.log(`Successfully saved games to ${location}`);
-                savedSuccessfully = true;
-                break; // Success, no need to try other locations
-            } catch (err) {
-                console.log(`Could not save to ${location}:`, err.message);
-                continue;
-            }
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(new Error(`Request error: ${error.message}`));
+        });
+
+        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
+            req.write(JSON.stringify(data));
         }
-        
-        // Update cache regardless of file save success
-        gamesCache = games;
-        
-        if (!savedSuccessfully) {
-            console.warn('Could not save to any storage location, using memory cache only');
-        }
-        
-        return savedSuccessfully;
-    } catch (error) {
-        console.error('Error saving to storage:', error);
-        // Still update cache
-        gamesCache = games;
-        return false;
-    }
+
+        req.end();
+    });
 }
 
-// Load games with cache fallback
-function loadFromStorage() {
-    try {
-        // Try to load from file first
-        for (const location of STORAGE_LOCATIONS) {
-            try {
-                if (fs.existsSync(location)) {
-                    const data = fs.readFileSync(location, 'utf8');
-                    const parsed = JSON.parse(data);
-                    gameIdCounter = parsed.counter || gameIdCounter;
-                    gamesCache = parsed.games || [];
-                    return gamesCache;
-                }
-            } catch (err) {
-                console.log(`Could not load from ${location}:`, err.message);
-                continue;
-            }
-        }
-        
-        // Fallback to cache if files not available
-        if (gamesCache) {
-            console.log('Using cached games data');
-            return gamesCache;
-        }
-        
-        // No data available, reinitialize
-        console.log('No data available, reinitializing');
-        return initializeStorage();
-        
-    } catch (error) {
-        console.error('Error loading from storage:', error);
-        return gamesCache || [];
-    }
-}
-
-// Generate demo audio files with different frequencies
+// Generate demo audio files
 function generateDemoAudioFiles() {
     const files = [];
     for (let i = 0; i < 18; i++) {
         const frequency = 200 + (i * 50);
-        const audioData = generateSineWave(frequency, 0.3, 44100); // 0.3 seconds duration
+        const audioData = generateSineWave(frequency, 0.3, 44100);
         files.push({
             filename: `demo_file_${i + 1}.mp3`,
             original_name: `demo_${i + 1}.mp3`,
@@ -191,11 +110,36 @@ function generateSineWave(frequency, duration, sampleRate) {
     return Buffer.from(buffer).toString('base64');
 }
 
+// Initialize with demo game if none exists
+async function ensureDemoGameExists() {
+    try {
+        const games = await makeXanoRequest('GET', '/game');
+        
+        // Check if demo game exists
+        const demoExists = games.some(game => game.name === "Demo Game");
+        
+        if (!demoExists) {
+            console.log('Demo game not found, creating...');
+            const demoGame = {
+                name: "Demo Game",
+                files: generateDemoAudioFiles()
+            };
+            
+            await makeXanoRequest('POST', '/game', demoGame);
+            console.log('Demo game created successfully');
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error ensuring demo game exists:', error);
+        return false;
+    }
+}
+
 // MULTIPART PARSER - working solution without external dependencies
 function parseMultipartFormData(body, boundary) {
     console.log('=== MULTIPART PARSING DEBUG ===');
     console.log('Boundary:', boundary);
-    console.log('Body type:', typeof body);
     console.log('Body length:', body ? body.length : 'null/undefined');
     
     if (!body) {
@@ -209,6 +153,8 @@ function parseMultipartFormData(body, boundary) {
     
     const delimiter = `--${boundary}`;
     const parts = bodyStr.split(delimiter);
+    
+    console.log('Found parts:', parts.length);
     
     for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
@@ -231,6 +177,8 @@ function parseMultipartFormData(body, boundary) {
             const fieldName = dispositionMatch[1];
             const fileName = dispositionMatch[2];
             
+            console.log(`Found field: ${fieldName}, filename: ${fileName || 'none'}`);
+            
             if (fileName) {
                 const contentBuffer = Buffer.from(content, 'binary');
                 const base64Data = contentBuffer.toString('base64');
@@ -249,6 +197,8 @@ function parseMultipartFormData(body, boundary) {
                     dataUrl: `data:${mimeType};base64,${base64Data}`,
                     size: contentBuffer.length
                 });
+                
+                console.log(`File processed: ${fileName}, size: ${contentBuffer.length} bytes`);
             } else {
                 let fieldValue = content;
                 if (fieldValue.endsWith('\r\n')) {
@@ -259,10 +209,12 @@ function parseMultipartFormData(body, boundary) {
                 }
                 
                 fields[fieldName] = fieldValue;
+                console.log(`Field processed: ${fieldName} = "${fieldValue}"`);
             }
         }
     }
     
+    console.log('=== PARSING COMPLETE ===');
     console.log('Fields found:', Object.keys(fields));
     console.log('Files found:', files.length);
     
@@ -270,9 +222,6 @@ function parseMultipartFormData(body, boundary) {
 }
 
 const handler = async (event, context) => {
-    // Initialize storage and load games
-    let games = initializeStorage();
-    
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
@@ -286,9 +235,15 @@ const handler = async (event, context) => {
     const path = event.path.replace('/.netlify/functions/games', '');
     
     try {
+        // Ensure demo game exists on first request
+        await ensureDemoGameExists();
+        
         if (event.httpMethod === 'GET') {
             if (path === '' || path === '/') {
-                games = loadFromStorage();
+                console.log('Fetching all games from Xano...');
+                const games = await makeXanoRequest('GET', '/game');
+                console.log(`Retrieved ${games.length} games from Xano`);
+                
                 return {
                     statusCode: 200,
                     headers,
@@ -296,24 +251,28 @@ const handler = async (event, context) => {
                 };
             } else {
                 const gameId = parseInt(path.split('/')[1]);
-                games = loadFromStorage();
-                const game = games.find(g => g.id === gameId);
-                if (!game) {
+                console.log(`Fetching game ${gameId} from Xano...`);
+                
+                try {
+                    const game = await makeXanoRequest('GET', `/game/${gameId}`);
+                    return {
+                        statusCode: 200,
+                        headers,
+                        body: JSON.stringify(game)
+                    };
+                } catch (error) {
                     return {
                         statusCode: 404,
                         headers,
                         body: JSON.stringify({ error: 'Game not found' })
                     };
                 }
-                return {
-                    statusCode: 200,
-                    headers,
-                    body: JSON.stringify(game)
-                };
             }
         }
         
         if (event.httpMethod === 'POST') {
+            console.log('\n=== NETLIFY FUNCTION POST REQUEST ===');
+            
             const contentType = event.headers['content-type'] || event.headers['Content-Type'];
             
             if (!contentType || !contentType.includes('multipart/form-data')) {
@@ -340,6 +299,7 @@ const handler = async (event, context) => {
             
             let bodyData = event.body;
             if (event.isBase64Encoded) {
+                console.log('Body is base64 encoded, decoding...');
                 bodyData = Buffer.from(event.body, 'base64').toString('binary');
             }
             
@@ -370,40 +330,50 @@ const handler = async (event, context) => {
                 };
             }
             
-            games = loadFromStorage();
+            // Check game limit (demo + 3 custom = 4 max)
+            const existingGames = await makeXanoRequest('GET', '/game');
+            if (existingGames.length >= 4) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({ 
+                        error: 'Maximum of 4 games allowed. Please delete a game first.',
+                        current_count: existingGames.length
+                    })
+                };
+            }
             
             const processedFiles = [];
             for (let i = 0; i < Math.min(audioFiles.length, 18); i++) {
                 const file = audioFiles[i];
                 processedFiles.push({
-                    filename: `game_${gameIdCounter}_file_${i + 1}.mp3`,
+                    filename: `game_file_${i + 1}.mp3`,
                     original_name: file.filename,
                     path: file.dataUrl
                 });
             }
             
+            // Ensure we have exactly 18 files
             while (processedFiles.length < 18) {
                 const sourceIndex = processedFiles.length % audioFiles.length;
                 const sourceFile = audioFiles[sourceIndex];
                 processedFiles.push({
-                    filename: `game_${gameIdCounter}_file_${processedFiles.length + 1}.mp3`,
+                    filename: `game_file_${processedFiles.length + 1}.mp3`,
                     original_name: sourceFile.filename,
                     path: sourceFile.dataUrl
                 });
             }
             
-            const newGame = {
-                id: gameIdCounter++,
+            const gameData = {
                 name: gameName,
-                files: processedFiles.slice(0, 18),
-                created: new Date().toISOString()
+                files: processedFiles.slice(0, 18)
             };
             
-            games.push(newGame);
+            console.log(`Creating game "${gameName}" in Xano with ${gameData.files.length} files`);
             
-            const saveSuccess = saveToStorage(games);
+            const newGame = await makeXanoRequest('POST', '/game', gameData);
             
-            console.log(`SUCCESS: Created game "${gameName}" with ${newGame.files.length} files`);
+            console.log(`SUCCESS: Game created in Xano with ID ${newGame.id}`);
             
             return {
                 statusCode: 200,
@@ -412,42 +382,52 @@ const handler = async (event, context) => {
                     message: 'Game uploaded successfully',
                     game_name: gameName,
                     files_uploaded: audioFiles.length,
-                    total_files: newGame.files.length,
-                    game_id: newGame.id,
-                    saved_to_disk: saveSuccess
+                    total_files: gameData.files.length,
+                    game_id: newGame.id
                 })
             };
         }
         
         if (event.httpMethod === 'DELETE') {
             const gameId = parseInt(path.split('/')[1]);
+            console.log(`Deleting game ${gameId} from Xano...`);
             
-            games = loadFromStorage();
-            const gameIndex = games.findIndex(g => g.id === gameId);
-            
-            if (gameIndex === -1) {
+            try {
+                // Check if game exists first
+                const game = await makeXanoRequest('GET', `/game/${gameId}`);
+                
+                // Prevent deletion of demo game
+                if (game.name === "Demo Game") {
+                    return {
+                        statusCode: 400,
+                        headers,
+                        body: JSON.stringify({ error: 'Cannot delete the demo game' })
+                    };
+                }
+                
+                // Delete the game
+                await makeXanoRequest('DELETE', `/game/${gameId}`);
+                
+                console.log(`Successfully deleted game: ${game.name}`);
+                
                 return {
-                    statusCode: 404,
+                    statusCode: 200,
                     headers,
-                    body: JSON.stringify({ error: 'Game not found' })
+                    body: JSON.stringify({
+                        message: 'Game deleted successfully',
+                        deleted_game: game.name
+                    })
                 };
+            } catch (error) {
+                if (error.message.includes('404')) {
+                    return {
+                        statusCode: 404,
+                        headers,
+                        body: JSON.stringify({ error: 'Game not found' })
+                    };
+                }
+                throw error;
             }
-            
-            const deletedGame = games.splice(gameIndex, 1)[0];
-            
-            const saveSuccess = saveToStorage(games);
-            
-            console.log(`Successfully deleted game: ${deletedGame.name}`);
-            
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    message: 'Game deleted successfully',
-                    deleted_game: deletedGame.name,
-                    saved_to_disk: saveSuccess
-                })
-            };
         }
         
         return {
