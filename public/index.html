@@ -89,8 +89,8 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             flex: 1;
-            min-width: 70px;
-            max-width: 90px;
+            min-width: 95px; /* Increased from 70px to 95px */
+            max-width: 120px; /* Increased from 90px to 120px */
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
@@ -598,9 +598,16 @@
                 font-size: 0.7rem;
             }
             
+            /* MODIFIED: Changed from flex-direction: column to maintain 2 rows max */
             .game-selector {
-                flex-direction: column;
+                flex-wrap: wrap;
                 gap: 8px;
+            }
+            
+            /* MODIFIED: This ensures buttons will show in 2 rows at most */
+            .game-btn {
+                flex: 0 1 calc(50% - 4px);
+                min-width: 0;
             }
             
             .stats {
