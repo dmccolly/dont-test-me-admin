@@ -20,22 +20,29 @@
             justify-content: center;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
+        /* MINIMAL RESPONSIVE CHANGES START */
         .container {
-            width: 100%;
-            max-width: 400px;
-            min-width: 280px;
             background: rgba(40, 44, 52, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 20px;
+            padding: 25px;
+            width: 100%;  /* Changed from fixed 400px */
+            max-width: 400px;  /* Added max-width */
+            min-width: 280px;  /* Added min-width */
             position: relative;
             margin: auto;
-            box-sizing: border-box;
         }
+
+        @media (max-width: 420px) {
+            .container {
+                padding: 15px;  /* Reduce padding on smaller screens */
+                border-radius: 16px;  /* Slightly smaller radius */
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .header {
             text-align: center;
@@ -56,6 +63,18 @@
             line-height: 1.4;
             margin-bottom: 10px;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .title {
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 0.8rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .ticker {
             min-height: 40px;
@@ -84,7 +103,7 @@
             background: linear-gradient(145deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            padding: 8px;
+            padding: 8px 12px;
             border-radius: 12px;
             cursor: pointer;
             font-size: 0.75rem;
@@ -99,6 +118,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .game-btn {
+                min-width: 60px;
+                padding: 6px 8px;
+                font-size: 0.7rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .game-btn:hover {
             transform: translateY(-2px);
@@ -134,10 +163,22 @@
         }
 
         .stat-value {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: bold;
             color: white;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .stat {
+                padding: 6px;
+            }
+            
+            .stat-value {
+                font-size: 0.9rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         #game-board {
             display: grid;
@@ -145,6 +186,14 @@
             gap: 5px;
             margin-bottom: 15px;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            #game-board {
+                gap: 3px;  /* Smaller gap on tiny screens */
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .card {
             aspect-ratio: 1;
@@ -170,6 +219,15 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.2),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .card {
+                border-radius: 12px;
+                font-size: 0.9rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .card::before {
             content: '';
@@ -359,18 +417,24 @@
             background: linear-gradient(145deg, #2196F3, #1976D2);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             position: relative;
-            display: block;
-            width: auto;
-            margin: 0 auto;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .new-game-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .new-game-btn:hover {
             transform: translateY(-2px);
@@ -397,8 +461,15 @@
             color: #b0b3b8;
             font-size: 0.8rem;
             margin-bottom: 10px;
-            margin-top: 10px;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .game-info {
+                font-size: 0.7rem;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .admin-btn {
             position: absolute;
@@ -449,6 +520,15 @@
             overflow-y: auto;
             position: relative;
         }
+
+        /* MINIMAL RESPONSIVE CHANGES START */
+        @media (max-width: 350px) {
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+        }
+        /* MINIMAL RESPONSIVE CHANGES END */
 
         .modal-header {
             display: flex;
@@ -554,174 +634,6 @@
 
         .btn-secondary {
             background: linear-gradient(145deg, #6c757d, #5a6268);
-        }
-
-        /* RESPONSIVE DESIGN */
-        @media (max-width: 400px) {
-            .container {
-                border-radius: 16px;
-                padding: 15px;
-            }
-        }
-        
-        @media (max-width: 350px) {
-            #game-board {
-                gap: 3px;
-            }
-            
-            .card {
-                border-radius: 10px;
-            }
-            
-            .card-number {
-                font-size: 0.8rem;
-            }
-            
-            .game-btn {
-                min-width: 60px;
-                padding: 6px;
-                font-size: 0.7rem;
-            }
-            
-            .stat-value {
-                font-size: 0.9rem;
-            }
-            
-            .stat-label {
-                font-size: 0.55rem;
-            }
-            
-            .title {
-                font-size: 1.5rem;
-                margin-bottom: 5px;
-            }
-            
-            .subtitle {
-                font-size: 0.8rem;
-                margin-bottom: 5px;
-                line-height: 1.3;
-            }
-            
-            .new-game-btn {
-                padding: 8px 16px;
-                font-size: 0.8rem;
-            }
-            
-            .game-info {
-                font-size: 0.7rem;
-                margin-top: 5px;
-                margin-bottom: 5px;
-            }
-        }
-        
-        @media (max-height: 700px) {
-            .container {
-                padding-top: 10px;
-                padding-bottom: 10px;
-            }
-            
-            .title {
-                font-size: 1.7rem;
-                margin-bottom: 5px;
-            }
-            
-            .subtitle {
-                font-size: 0.8rem;
-                margin-bottom: 5px;
-            }
-            
-            .stats {
-                margin-bottom: 10px;
-            }
-            
-            #game-board {
-                margin-bottom: 10px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                width: 100%;
-                max-width: 400px;
-                padding: 15px;
-            }
-            
-            .title {
-                font-size: 1.8rem;
-            }
-            
-            .subtitle {
-                font-size: 0.85rem;
-                margin-bottom: 8px;
-            }
-            
-            .game-btn {
-                padding: 7px;
-                font-size: 0.7rem;
-            }
-            
-            .new-game-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
-            
-            .card {
-                border-radius: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                width: 100%;
-                padding: 12px;
-                border-radius: 18px;
-            }
-            
-            .title {
-                font-size: 1.6rem;
-                margin-bottom: 5px;
-            }
-            
-            .subtitle {
-                font-size: 0.8rem;
-                margin-bottom: 5px;
-            }
-            
-            .game-btn {
-                min-width: 65px;
-                max-width: 80px;
-                padding: 6px;
-                font-size: 0.7rem;
-            }
-            
-            .game-board {
-                gap: 4px;
-            }
-            
-            .card {
-                font-size: 0.7rem;
-                border-radius: 10px;
-            }
-            
-            .stats {
-                gap: 6px;
-            }
-            
-            .stat {
-                padding: 6px;
-            }
-            
-            .new-game-btn {
-                padding: 8px 16px;
-                font-size: 0.8rem;
-            }
-            
-            .admin-btn {
-                top: 10px;
-                right: 10px;
-                padding: 5px 7px;
-                font-size: 0.65rem;
-            }
         }
     </style>
 </head>
