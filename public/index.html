@@ -32,50 +32,50 @@
             max-width: 400px;
             position: relative;
             margin: auto;
+            height: auto; /* Changed from fixed height to auto */
         }
 
-        /* Logo styling - brighter and repositioned */
+        /* Logo styling - left of New Game button, much brighter */
         .logo-container {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 50px;
-            opacity: 0.6;
+            bottom: 15px;
+            left: 25px;
+            width: 80px;
+            height: 40px;
+            opacity: 0.75;
             transition: opacity 0.3s ease;
             z-index: 10;
         }
 
         .logo-container:hover {
-            opacity: 0.8;
+            opacity: 0.95;
         }
 
         .logo-svg {
             width: 100%;
             height: 100%;
             filter: 
-                drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))
-                drop-shadow(0 -1px 2px rgba(255, 255, 255, 0.1));
+                drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5))
+                drop-shadow(0 -1px 1px rgba(255, 255, 255, 0.2));
         }
 
         .logo-svg .logo-letters {
-            fill: rgba(255, 255, 255, 0.3);
-            stroke: rgba(255, 255, 255, 0.4);
+            fill: rgba(255, 255, 255, 0.5);
+            stroke: rgba(255, 255, 255, 0.6);
             stroke-width: 0.5;
         }
 
         .logo-svg .logo-mic {
-            fill: rgba(255, 255, 255, 0.25);
-            stroke: rgba(255, 255, 255, 0.35);
+            fill: rgba(255, 255, 255, 0.45);
+            stroke: rgba(255, 255, 255, 0.55);
             stroke-width: 0.5;
         }
 
         .logo-svg .logo-wave {
-            stroke: rgba(255, 255, 255, 0.45);
+            stroke: rgba(255, 255, 255, 0.65);
             stroke-width: 1;
             fill: none;
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
         .header {
@@ -391,8 +391,9 @@
 
         .controls {
             text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 80px; /* Increased to make room for logo */
+            margin-bottom: 20px;
+            padding-bottom: 40px; /* Reduced from 80px */
+            position: relative;
         }
 
         .new-game-btn {
@@ -595,7 +596,7 @@
         @media (max-width: 768px) {
             .container {
                 width: 100vw;
-                height: 100vh;
+                min-height: 100vh;
                 border-radius: 0;
                 padding: 20px;
             }
@@ -621,15 +622,15 @@
             }
 
             .logo-container {
-                width: 80px;
-                height: 40px;
+                width: 60px;
+                height: 30px;
             }
         }
 
         @media (max-width: 480px) {
             .container {
                 width: 100vw;
-                height: 100vh;
+                min-height: 100vh;
                 border-radius: 0;
                 padding: 15px;
             }
@@ -662,16 +663,17 @@
             }
 
             .logo-container {
-                width: 70px;
-                height: 35px;
-                bottom: 15px;
+                width: 50px;
+                height: 25px;
+                bottom: 10px;
+                left: 15px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Logo centered below New Game button -->
+        <!-- Logo to the left of New Game button -->
         <div class="logo-container">
             <svg class="logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
                 <!-- H -->
