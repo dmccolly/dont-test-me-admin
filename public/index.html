@@ -14,12 +14,11 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent;
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
         .container {
@@ -27,102 +26,53 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 25px;
+            padding: 20px;
             width: 100%;
             max-width: 400px;
             position: relative;
             margin: auto;
-            height: auto;
-        }
-
-        /* Logo container - next to New Game button */
-        .controls-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .logo-container {
-            width: 120px;
-            height: 60px;
-            opacity: 0.9;
-            transition: opacity 0.3s ease;
-            flex-shrink: 0;
-        }
-
-        .logo-container:hover {
-            opacity: 1;
-        }
-
-        .logo-svg {
-            width: 100%;
-            height: 100%;
-            filter: 
-                drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))
-                drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
-        }
-
-        .logo-svg .logo-letters {
-            fill: rgba(255, 255, 255, 0.7);
-            stroke: rgba(255, 255, 255, 0.85);
-            stroke-width: 0.5;
-        }
-
-        .logo-svg .logo-mic {
-            fill: rgba(255, 255, 255, 0.65);
-            stroke: rgba(255, 255, 255, 0.8);
-            stroke-width: 0.5;
-        }
-
-        .logo-svg .logo-wave {
-            stroke: rgba(255, 255, 255, 0.9);
-            stroke-width: 1.2;
-            fill: none;
-            opacity: 1;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .title {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: white;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .subtitle {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #b0b3b8;
-            line-height: 1.4;
-            margin-bottom: 10px;
+            line-height: 1.3;
+            margin-bottom: 8px;
         }
 
         .ticker {
-            min-height: 40px;
-            max-height: 40px;
+            min-height: 35px;
+            max-height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ffd700;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: normal;
             text-align: center;
             line-height: 1.2;
-            padding: 5px;
+            padding: 4px;
             overflow: hidden;
         }
 
         .game-selector {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 15px;
+            gap: 5px;
+            margin-bottom: 12px;
             justify-content: center;
         }
 
@@ -130,16 +80,16 @@
             background: linear-gradient(145deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 6px 10px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
             flex: 1;
-            min-width: 95px;
-            max-width: 120px;
+            min-width: 85px;
+            max-width: 110px;
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
@@ -148,7 +98,7 @@
 
         .game-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
 
         .game-btn.active {
@@ -159,20 +109,20 @@
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
+            gap: 6px;
+            margin-bottom: 12px;
         }
 
         .stat {
             text-align: center;
             background: rgba(255, 255, 255, 0.05);
-            padding: 8px;
-            border-radius: 8px;
+            padding: 6px;
+            border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .stat-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #b0b3b8;
             margin-bottom: 2px;
             text-transform: uppercase;
@@ -180,7 +130,7 @@
         }
 
         .stat-value {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: white;
         }
@@ -188,8 +138,8 @@
         .game-board {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            margin-bottom: 15px;
+            gap: 5px;
+            margin-bottom: 12px;
         }
 
         .card {
@@ -200,11 +150,11 @@
             );
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: white;
             cursor: pointer;
@@ -212,7 +162,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 6px 24px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
@@ -236,56 +186,56 @@
         .card:nth-child(6n+1) { 
             border-color: rgba(0, 191, 255, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(0, 191, 255, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(0, 191, 255, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:nth-child(6n+2) { 
             border-color: rgba(255, 20, 147, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 20, 147, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 20, 147, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:nth-child(6n+3) { 
             border-color: rgba(138, 43, 226, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(138, 43, 226, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(138, 43, 226, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:nth-child(6n+4) { 
             border-color: rgba(255, 140, 0, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 140, 0, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 140, 0, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:nth-child(6n+5) { 
             border-color: rgba(50, 205, 50, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(50, 205, 50, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(50, 205, 50, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:nth-child(6n+6) { 
             border-color: rgba(255, 69, 0, 0.4);
             box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(255, 69, 0, 0.2),
+                0 6px 24px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 69, 0, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .card:hover {
-            transform: translateY(-8px) scale(1.05);
+            transform: translateY(-6px) scale(1.04);
             box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.4),
-                0 0 30px rgba(255, 255, 255, 0.1),
+                0 15px 30px rgba(0, 0, 0, 0.4),
+                0 0 25px rgba(255, 255, 255, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
@@ -298,7 +248,7 @@
         .card.matched::after {
             content: '✓';
             position: absolute;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #4CAF50;
         }
 
@@ -394,35 +344,40 @@
             to { box-shadow: 0 0 30px rgba(33, 150, 243, 0.6); }
         }
 
+        .controls {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
         .new-game-btn {
             background: linear-gradient(145deg, #2196F3, #1976D2);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
             position: relative;
         }
 
         .new-game-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
 
         .new-game-btn .badge {
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -6px;
+            right: -6px;
             background: #ff4444;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -431,21 +386,21 @@
         .game-info {
             text-align: center;
             color: #b0b3b8;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
         }
 
         .admin-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 12px;
+            right: 12px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
+            border-radius: 5px;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             cursor: pointer;
-            padding: 6px 8px;
+            padding: 5px 6px;
             transition: all 0.3s ease;
             z-index: 100;
         }
@@ -592,54 +547,16 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .container {
-                width: 100vw;
-                min-height: 100vh;
-                border-radius: 0;
-                padding: 20px;
-            }
-            
-            .title {
-                font-size: 1.5rem;
-            }
-            
-            .game-board {
-                gap: 6px;
-            }
-            
-            .card {
-                font-size: 0.8rem;
-            }
-            
-            .stats {
-                gap: 10px;
-            }
-            
-            .stat {
-                padding: 8px;
-            }
-
-            .logo-container {
-                width: 100px;
-                height: 50px;
-            }
-
-            .controls-wrapper {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                width: 100vw;
-                min-height: 100vh;
-                border-radius: 0;
                 padding: 15px;
             }
             
             .title {
-                font-size: 1.3rem;
+                font-size: 1.4rem;
             }
             
             .game-board {
@@ -647,27 +564,55 @@
             }
             
             .card {
-                font-size: 0.7rem;
+                font-size: 0.75rem;
             }
             
-            .game-selector {
-                flex-wrap: wrap;
+            .stats {
                 gap: 8px;
             }
             
+            .stat {
+                padding: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 12px;
+                border-radius: 16px;
+            }
+            
+            .title {
+                font-size: 1.2rem;
+            }
+            
+            .game-board {
+                gap: 3px;
+            }
+            
+            .card {
+                font-size: 0.65rem;
+                border-radius: 8px;
+            }
+            
+            .game-selector {
+                gap: 4px;
+            }
+            
             .game-btn {
-                flex: 0 1 calc(50% - 4px);
+                flex: 0 1 calc(50% - 2px);
                 min-width: 0;
+                font-size: 0.65rem;
+                padding: 5px 8px;
             }
             
             .stats {
                 grid-template-columns: 1fr;
-                gap: 8px;
-            }
-
-            .logo-container {
-                width: 80px;
-                height: 40px;
+                gap: 5px;
             }
         }
     </style>
@@ -701,25 +646,7 @@
 
         <div class="game-board" id="gameBoard"></div>
 
-        <!-- Controls wrapper with logo and New Game button side by side -->
-        <div class="controls-wrapper">
-            <div class="logo-container">
-                <svg class="logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                    <!-- H -->
-                    <path class="logo-letters" d="M10 20 L10 80 M10 50 L30 50 M30 20 L30 80" />
-                    <!-- O -->
-                    <ellipse class="logo-letters" cx="50" cy="50" rx="15" ry="30" fill="none" />
-                    <!-- I -->
-                    <path class="logo-letters" d="M75 20 L75 80" />
-                    <!-- B -->
-                    <path class="logo-letters" d="M90 20 L90 80 M90 20 L105 20 Q120 20 120 35 Q120 50 105 50 L90 50 M90 50 L108 50 Q125 50 125 65 Q125 80 108 80 L90 80" />
-                    <!-- Microphone -->
-                    <ellipse class="logo-mic" cx="50" cy="45" rx="8" ry="15" />
-                    <path class="logo-mic" d="M42 45 L42 60 Q42 68 50 68 Q58 68 58 60 L58 45 M50 68 L50 75 M45 75 L55 75" />
-                    <!-- Sound wave -->
-                    <path class="logo-wave" d="M70 40 Q75 45 70 50 M80 35 Q88 50 80 65 M90 30 Q100 50 90 70" />
-                </svg>
-            </div>
+        <div class="controls">
             <button class="new-game-btn" id="newGameBtn">
                 New Game
                 <span class="badge" id="newGameBadge">4</span>
@@ -828,6 +755,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     tickerMessages = data.messages || [];
+                    console.log('Loaded ticker messages:', tickerMessages);
                 }
             } catch (error) {
                 console.error('Error loading ticker messages:', error);
@@ -928,50 +856,74 @@
                 clearInterval(tickerInterval);
             }
 
-            let gameStartTime = Date.now();
-            let currentPhase = 'initial';
-            let phaseStartTime = gameStartTime;
+            let currentPhase = 'initial_delay';
+            let phaseStartTime = Date.now();
             let messageIndex = 0;
 
             tickerInterval = setInterval(() => {
                 const now = Date.now();
                 const elapsed = now - phaseStartTime;
 
-                if (currentPhase === 'initial') {
-                    if (elapsed >= 30000) {
-                        document.getElementById('ticker').textContent = 'Match pairs to WIN!';
-                        currentPhase = 'first_message';
-                        phaseStartTime = now;
-                    }
-                } else if (currentPhase === 'first_message') {
+                if (currentPhase === 'initial_delay') {
+                    // 10-second initial delay (blank)
+                    document.getElementById('ticker').textContent = '';
                     if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
+                        currentPhase = 'welcome';
                         phaseStartTime = now;
                     }
-                } else if (currentPhase === 'blank') {
+                } else if (currentPhase === 'welcome') {
+                    // "Welcome to This" for 6 seconds
+                    document.getElementById('ticker').textContent = 'Welcome to This';
+                    if (elapsed >= 6000) {
+                        currentPhase = 'blank1';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'blank1') {
+                    // Blank for 3 seconds
+                    document.getElementById('ticker').textContent = '';
+                    if (elapsed >= 3000) {
+                        currentPhase = 'waste_time';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'waste_time') {
+                    // "A NEW way to waste time!" for 5 seconds
+                    document.getElementById('ticker').textContent = 'A NEW way to waste time!';
+                    if (elapsed >= 5000) {
+                        currentPhase = 'blank2';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'blank2') {
+                    // Blank for 5 seconds before custom messages
+                    document.getElementById('ticker').textContent = '';
+                    if (elapsed >= 5000) {
+                        currentPhase = tickerMessages.length > 0 ? 'custom_message' : 'blank3';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'custom_message') {
+                    // Show custom message for 10 seconds
+                    if (messageIndex >= tickerMessages.length) {
+                        messageIndex = 0;
+                    }
+                    document.getElementById('ticker').textContent = tickerMessages[messageIndex];
+                    if (elapsed >= 10000) {
+                        messageIndex++;
+                        currentPhase = 'blank3';
+                        phaseStartTime = now;
+                    }
+                } else if (currentPhase === 'blank3') {
+                    // Blank for 20 seconds between custom messages
+                    document.getElementById('ticker').textContent = '';
                     if (elapsed >= 20000) {
-                        if (tickerMessages.length > 0) {
-                            if (messageIndex >= tickerMessages.length) {
-                                messageIndex = 0;
-                            }
-                            document.getElementById('ticker').textContent = tickerMessages[messageIndex];
-                            messageIndex++;
-                            currentPhase = 'messages';
-                            phaseStartTime = now;
-                        } else {
-                            currentPhase = 'initial';
-                            phaseStartTime = now;
+                        currentPhase = tickerMessages.length > 0 ? 'custom_message' : 'initial_delay';
+                        phaseStartTime = now;
+                        if (messageIndex >= tickerMessages.length) {
+                            // Start over from the beginning of the entire sequence
+                            messageIndex = 0;
+                            currentPhase = 'initial_delay';
                         }
                     }
-                } else if (currentPhase === 'messages') {
-                    if (elapsed >= 10000) {
-                        document.getElementById('ticker').textContent = '';
-                        currentPhase = 'blank';
-                        phaseStartTime = now;
-                    }
                 }
-            }, 1000);
+            }, 100); // Check more frequently for smoother transitions
         }
 
         function updateGameSelector() {
@@ -1321,7 +1273,7 @@
             formData.append('name', gameName);
             
             for (let i = 0; i < audioFiles.length; i++) {
-                formData.append('files', audioFiles[i]);
+                formData.append(`file_${i}`, audioFiles[i]);
             }
 
             try {
@@ -1372,6 +1324,8 @@
                     alert('Ticker messages uploaded successfully!');
                     document.getElementById('tickerMessages').value = '';
                     await loadTickerMessages();
+                    // Restart ticker to show new messages immediately
+                    startTicker();
                 } else {
                     const error = await response.json();
                     alert(`Upload failed: ${error.error}`);
@@ -1420,7 +1374,7 @@
 
             try {
                 console.log('Deleting game:', gameId);
-                const response = await fetch(`${API_BASE_URL}/games/${gameId}`, {
+                const response = await fetch(`${API_BASE_URL}/games?id=${gameId}`, {
                     method: 'DELETE'
                 });
 
